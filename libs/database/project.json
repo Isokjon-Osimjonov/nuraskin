@@ -21,6 +21,13 @@
         "cwd": "libs/database",
         "command": "tsc --noEmit -p tsconfig.lib.json"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/database",
+        "command": "vitest run --config vitest.config.ts"
+      }
     }
   }
 }

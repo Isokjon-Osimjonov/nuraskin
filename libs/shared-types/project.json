@@ -14,6 +14,13 @@
         "tsConfig": "libs/shared-types/tsconfig.lib.json",
         "assets": ["libs/shared-types/*.md"]
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/shared-types",
+        "command": "vitest run --config vitest.config.ts"
+      }
     }
   }
 }

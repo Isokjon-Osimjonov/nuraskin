@@ -1,11 +1,15 @@
 import { db } from '../client';
 import { healthChecks } from '../schema';
+import { adminUser } from './admin-user';
 
 async function main(): Promise<void> {
-  await db
-    .insert(healthChecks)
-    .values({ message: 'ok' })
-    .onConflictDoNothing();
+  await Promise.all([
+    db
+      .insert(healthChecks)
+      .values({ message: 'ok' })
+      .onConflictDoNothing(),
+    adminUser(),
+  ]);
 }
 
 main()

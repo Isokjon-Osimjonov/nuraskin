@@ -8,6 +8,13 @@
       "when": 1776591514378,
       "tag": "0000_warm_doorman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776619780710,
+      "tag": "0001_loose_gorilla_man",
+      "breakpoints": true
     }
   ]
 }

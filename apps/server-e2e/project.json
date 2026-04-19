@@ -5,13 +5,21 @@
   "implicitDependencies": ["server"],
   "targets": {
     "e2e": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/coverage/server-e2e"],
       "options": {
-        "jestConfig": "apps/server-e2e/jest.config.cts",
-        "passWithNoTests": true
+        "cwd": "apps/server-e2e",
+        "command": "vitest run --config vitest.config.ts"
       },
-      "dependsOn": ["server:build", "server:serve"]
+      "dependsOn": ["server:build"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/coverage/server-e2e"],
+      "options": {
+        "cwd": "apps/server-e2e",
+        "command": "vitest run --config vitest.config.ts"
+      }
     }
   }
 }

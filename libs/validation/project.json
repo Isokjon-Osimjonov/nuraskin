@@ -14,6 +14,13 @@
         "tsConfig": "libs/validation/tsconfig.lib.json",
         "assets": ["libs/validation/*.md"]
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/validation",
+        "command": "vitest run --config vitest.config.ts"
+      }
     }
   }
 }
