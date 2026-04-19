@@ -42,7 +42,7 @@ The system has three apps and shared libraries managed in an **Nx monorepo**.
 | Payments | Manual receipt upload only (v1) | No payment gateway in v1 |
 | Storage | Cloudinary | No alternative until justified |
 
-Library scope: `@nura/*`
+Library scope: `@nuraskin/*`
 
 ---
 
@@ -57,7 +57,7 @@ nura/
 ├── libs/
 │   ├── database/       ← Drizzle schema, migrations, seeds, db client
 │   ├── types/          ← Shared TypeScript types and Zod schemas
-│   ├── ui/             ← Shared React components (@nura/ui)
+│   ├── ui/             ← Shared React components (@nuraskin/ui)
 │   └── api-client/     ← Typed API client used by both SPAs
 ├── infra/
 │   └── docker/         ← docker-compose.yml for local dev
@@ -107,7 +107,7 @@ routes → controllers → services → repositories → drizzle → database
 | Client state | Zustand (one store per concern: auth, theme, ui) | — |
 | Forms | React Hook Form + Zod | `useState` for ≥3 fields |
 | URL state | Router search params | Component state for filters / pagination / sort |
-| Data fetching | `@nura/api-client` | `fetch()` directly in components |
+| Data fetching | `@nuraskin/api-client` | `fetch()` directly in components |
 
 - Components **≤ 120 lines**. Extract sub-components or hooks if larger.
 - Dark mode + mobile must work from day one — not retrofitted.

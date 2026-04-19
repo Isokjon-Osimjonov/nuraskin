@@ -14,6 +14,13 @@
         "tsConfig": "libs/database/tsconfig.lib.json",
         "assets": ["libs/database/*.md"]
       }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "libs/database",
+        "command": "tsc --noEmit -p tsconfig.lib.json"
+      }
     }
   }
 }
