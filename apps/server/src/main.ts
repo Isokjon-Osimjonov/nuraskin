@@ -1,21 +1,19 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
+import { resolve } from 'path';
+import dotenv from 'dotenv';
 
-import express from 'express';
-import * as path from 'path';
+// In development (Nx serve), NX_WORKSPACE_ROOT points to repo root.
+// In production (compiled dist/), fall back to two levels up from __dirname.
+const envPath = process.env['NX_WORKSPACE_ROOT']
+  ? resolve(process.env['NX_WORKSPACE_ROOT'], '.env')
+  : resolve(__dirname, '../../.env');
 
-const app = express();
+dotenv.config({ path: envPath });
 
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+import { app } from './app';
+import { logger } from './common/utils/logger';
 
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to server!' });
+const port = process.env['PORT'] ?? 4000;
+
+app.listen(port, () => {
+  logger.info(`Server running on port ${port}`);
 });
-
-const port = process.env.PORT || 3333;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
-});
-server.on('error', console.error);
