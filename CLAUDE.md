@@ -37,7 +37,7 @@ The system has three apps and shared libraries managed in an **Nx monorepo**.
 | Icons | Lucide React | No mixing other icon sets |
 | Charts | Recharts | No Chart.js |
 | Logging | Pino | No Winston, no `console.log` in committed code |
-| Testing | Vitest + Supertest + Playwright | No Jest |
+| Testing | Vitest + Supertest + Playwright | **No Jest** — Jest is not used in this project |
 | Auth | JWT (admin) + Telegram Login Widget (frontend) | No Auth0, no NextAuth |
 | Payments | Manual receipt upload only (v1) | No payment gateway in v1 |
 | Storage | Cloudinary | No alternative until justified |
@@ -46,7 +46,25 @@ Library scope: `@nura/*`
 
 ---
 
-## 3. Folder Structure Rules (Nx Conventions)
+## 3. Folder Structure
+
+```
+nura/
+├── apps/
+│   ├── admin/          ← Admin SPA (React + Vite)
+│   ├── frontend/       ← Customer storefront SPA (React + Vite)
+│   └── server/         ← Express API server
+├── libs/
+│   ├── database/       ← Drizzle schema, migrations, seeds, db client
+│   ├── types/          ← Shared TypeScript types and Zod schemas
+│   ├── ui/             ← Shared React components (@nura/ui)
+│   └── api-client/     ← Typed API client used by both SPAs
+├── infra/
+│   └── docker/         ← docker-compose.yml for local dev
+└── .agents/            ← Claude Code agent definitions
+```
+
+### Folder rules
 
 1. **Never create empty module folders ahead of time.** Folders exist only when they contain real files.
 2. **Apps vs. Libs:** App-specific code lives in `apps/`. Shared domain logic, UI components, and utilities live in `libs/`.
@@ -101,9 +119,9 @@ routes → controllers → services → repositories → drizzle → database
 ### 6.1 Colors & Components
 
 - **Use Shadcn UI defaults.** Rely entirely on the default Shadcn UI component library.
-- **Tailwind v4 is CSS-first.** There is **no `tailwind.config.js`** — do not attempt to create or modify one.
-- Use standard utility classes (`bg-blue-500`) or Shadcn's CSS variables (`bg-primary`).
-- **No custom overrides.** Do not invent custom CSS variables or bespoke theme files.
+- **Tailwind v4 is CSS-first.** There is **no `tailwind.config.js`** — do not create or modify one.
+- Use standard Tailwind utility classes (`bg-white`, `text-gray-900`, `p-4`) or Shadcn's semantic classes (`bg-primary`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`).
+- **No custom overrides.** Do not create custom CSS variable files or bespoke theme files.
 
 ### 6.2 Spacing, Radii, Shadows
 
@@ -131,6 +149,8 @@ When replacing a component:
 ---
 
 ## 7. Database Rules
+
+All database code lives in `libs/database/`.
 
 - **Every table has:** `id` (uuid pk, default `gen_random_uuid()`), `created_at` (timestamptz), `updated_at` (timestamptz).
 - **Soft delete** only where needed: `products`, `categories`. Orders and ledger entries are **never** deleted.
@@ -227,8 +247,7 @@ CANCELED    CANCELED   (auto-restock blocked if SHIPPED)
 ### 12.1 Before Any Change
 
 1. Read this file (`CLAUDE.md`).
-2. Read `DECISIONS.md`.
-3. Grep the codebase for existing patterns before writing new ones.
+2. Grep the codebase for existing patterns before writing new ones.
 
 ### 12.2 When Writing
 
@@ -255,13 +274,15 @@ CANCELED    CANCELED   (auto-restock blocked if SHIPPED)
 | Empty folders with `.gitkeep` "for structure" | Violates rule 3.1 |
 | `any` types to silence TypeScript | Masks real bugs |
 | Duplicate components / layouts in the tree | Violates rule 6.5 |
-| Inventing new custom CSS variables | Violates rule 6.1 |
+| Inventing new custom CSS variables or token files | Violates rule 6.1 |
 | Creating or editing `tailwind.config.js` | Does not exist in Tailwind v4 |
 | `console.log` in committed code | Use Pino |
+| Using Jest in any form | This project uses Vitest only |
 | Editing shipped migrations | Migrations are immutable |
 | DB calls in controllers | Violates layer rules (§4) |
 | Business logic in controllers | Violates layer rules (§4) |
 | `req` / `res` in services | Services must be framework-agnostic |
+| Writing code outside the folder specified in the task | Stay in scope |
 
 ---
 
