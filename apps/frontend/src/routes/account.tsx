@@ -1,21 +1,59 @@
 import React from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 
 export const Route = createFileRoute('/account')({
   component: AccountPage,
 });
 
+interface TelegramAuthResult {
+  id: number;
+  first_name: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
 function AccountPage() {
-  const { user, logout } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (!user) {
-      void navigate({ to: '/login' });
+    async function handleTelegramAuth() {
+      const params = new URLSearchParams(window.location.search);
+      const tgAuthResult = params.get('tgAuthResult');
+      if (!tgAuthResult) return;
+
+      try {
+        const parsed = JSON.parse(tgAuthResult) as TelegramAuthResult;
+        const res = await fetch('http://localhost:4000/api/auth/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed),
+        });
+
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+        } else {
+          navigate({ to: '/login' });
+        }
+      } catch {
+        navigate({ to: '/login' });
+      }
     }
-  }, [user, navigate]);
+
+    if (!user) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('tgAuthResult')) {
+        void handleTelegramAuth();
+      } else {
+        void navigate({ to: '/login' });
+      }
+    }
+  }, [user, setUser, navigate]);
 
   if (!user) return null;
 
@@ -40,7 +78,7 @@ function AccountPage() {
       <div className="max-w-lg mx-auto mt-12 p-4">
         <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8">
           <div className="w-16 h-16 rounded-full bg-[#E30B5C]/20 flex items-center justify-center">
-            <User className="h-8 w-8 text-[#E30B5C]" />
+            <UserIcon className="h-8 w-8 text-[#E30B5C]" />
           </div>
 
           <h2 className="text-white font-semibold text-xl mt-4">{user.first_name}</h2>

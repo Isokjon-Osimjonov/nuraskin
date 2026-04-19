@@ -32,17 +32,33 @@ function LoginForm() {
     defaultValues: { email: '', password: '' },
   });
 
-  function onSubmit(_data: LoginInput) {
+  async function onSubmit(data: LoginInput) {
     setIsPending(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('http://localhost:4000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        setAuth(json.token, json.user);
+        navigate({ to: '/' });
+      } else if (res.status === 401) {
+        toast.error("Email yoki parol noto'g'ri");
+      } else {
+        toast.error('Server xatosi yuz berdi');
+      }
+    } catch {
+      toast.error('Server bilan bog\'lanib bo\'lmadi');
+    } finally {
       setIsPending(false);
-      setAuth('mock-token', { id: '1', email: _data.email, name: 'Admin' });
-      navigate({ to: '/' });
-    }, 1000);
+    }
   }
 
   function onError() {
-    toast.error('Login failed. Check your credentials.');
+    toast.error('Forma noto\'g\'ri to\'ldirilgan');
   }
 
   return (

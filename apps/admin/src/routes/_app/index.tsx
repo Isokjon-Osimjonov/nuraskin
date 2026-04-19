@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/auth.store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,12 +9,35 @@ export const Route = createFileRoute('/_app/')({
   component: Dashboard,
 });
 
+interface MeResponse {
+  id: string;
+  email: string;
+  name: string;
+}
+
 interface HealthResponse {
   status: string;
   message: string;
 }
 
 function Dashboard() {
+  const token = useAuthStore((s) => s.token);
+
+  const { data: meData, isError: isMeError } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await fetch('http://localhost:4000/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) {
+        useAuthStore.getState().logout();
+        throw new Error('Unauthorized');
+      }
+      return res.json() as Promise<MeResponse>;
+    },
+    retry: false,
+  });
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
