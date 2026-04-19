@@ -30,6 +30,20 @@
       "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
       "executor": "nx:noop"
     },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/server",
+        "command": "tsc --noEmit -p tsconfig.app.json"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/server",
+        "command": "vitest run --config vitest.config.ts"
+      }
+    },
     "serve": {
       "continuous": true,
       "executor": "@nx/js:node",

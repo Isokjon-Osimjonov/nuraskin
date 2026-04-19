@@ -5,6 +5,7 @@ import pinoHttp from 'pino-http';
 import { logger } from './common/utils/logger';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import { router as healthRouter } from './modules/health/health.routes';
+import { router as authRouter } from './modules/auth/auth.routes';
 
 export const app = express();
 
@@ -14,5 +15,6 @@ app.use(express.json());
 app.use(pinoHttp({ logger }));
 
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
 
 app.use(errorMiddleware);

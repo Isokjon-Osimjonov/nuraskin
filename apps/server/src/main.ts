@@ -9,11 +9,13 @@ const envPath = process.env['NX_WORKSPACE_ROOT']
 
 dotenv.config({ path: envPath });
 
+// Validate env immediately after loading — crashes on invalid config.
+import './common/config/env';
+
 import { app } from './app';
 import { logger } from './common/utils/logger';
+import { env } from './common/config/env';
 
-const port = process.env['PORT'] ?? 4000;
-
-app.listen(port, () => {
-  logger.info(`Server running on port ${port}`);
+app.listen(env.PORT, () => {
+  logger.info(`Server running on port ${env.PORT}`);
 });

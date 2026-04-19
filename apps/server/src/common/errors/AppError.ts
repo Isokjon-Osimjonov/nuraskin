@@ -24,6 +24,14 @@ export class ForbiddenError extends AppError {
   readonly statusCode = 403;
 }
 
+export class ConflictError extends AppError {
+  readonly statusCode = 409;
+}
+
+export class ValidationError extends AppError {
+  readonly statusCode = 422;
+}
+
 export class InternalError extends AppError {
   readonly statusCode = 500;
 }
