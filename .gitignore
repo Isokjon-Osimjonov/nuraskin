@@ -43,4 +43,9 @@ Thumbs.db
 .claude/worktrees
 .claude/settings.local.json
 
-vite.config.*.timestamp*
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# vite.config.*.timestamp*
