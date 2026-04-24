@@ -5,6 +5,10 @@ import ReactDOM from 'react-dom/client';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
 
+if (!import.meta.env.VITE_API_URL) {
+  throw new Error('VITE_API_URL is not defined in environment variables');
+}
+
 const router = createRouter({ routeTree });
 
 declare module '@tanstack/react-router' {

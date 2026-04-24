@@ -1,0 +1,75 @@
+import { useAuthStore } from '../../../stores/auth.store';
+import type {
+  CreateProductInput,
+  UpdateProductInput,
+  AnalyzeImageResponse,
+} from '@nuraskin/shared-types';
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
+  const token = useAuthStore.getState().token;
+  const headers = new Headers(options.headers);
+
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+  if (!response.ok) throw new Error(await response.text());
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+export interface ProductListItem {
+  id: string;
+  barcode: string;
+  sku: string;
+  name: string;
+  brandName: string;
+  categoryId: string;
+  descriptionUz: string | null;
+  howToUseUz: string | null;
+  ingredients: string[];
+  skinTypes: string[];
+  benefits: string[];
+  weightGrams: number;
+  imageUrls: string[];
+  isActive: boolean;
+  totalStock: number;
+  uzbRetail: string | null;
+  uzbWholesale: string | null;
+  korRetail: string | null;
+  korWholesale: string | null;
+}
+
+export const productsApi = {
+  getAll: (filters?: {
+    categoryId?: string;
+    isActive?: boolean;
+    search?: string;
+  }): Promise<ProductListItem[]> => {
+    const params = new URLSearchParams();
+    if (filters?.categoryId) params.set('categoryId', filters.categoryId);
+    if (filters?.isActive !== undefined) params.set('isActive', String(filters.isActive));
+    if (filters?.search) params.set('search', filters.search);
+    const qs = params.toString();
+    return fetchWithAuth(`/products${qs ? `?${qs}` : ''}`);
+  },
+  getById: (id: string): Promise<ProductListItem> => fetchWithAuth(`/products/${id}`),
+  getByBarcode: (barcode: string): Promise<ProductListItem> =>
+    fetchWithAuth(`/products/barcode/${barcode}`),
+  create: (data: CreateProductInput) =>
+    fetchWithAuth('/products', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: UpdateProductInput) =>
+    fetchWithAuth(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) => fetchWithAuth(`/products/${id}`, { method: 'DELETE' }),
+  analyzeImage: (imageUrl: string): Promise<AnalyzeImageResponse> =>
+    fetchWithAuth('/products/analyze-image', {
+      method: 'POST',
+      body: JSON.stringify({ imageUrl }),
+    }),
+  getUploadUrl: (): Promise<{ url: string; timestamp: number; signature: string; apiKey: string }> =>
+    fetchWithAuth('/categories/upload-url', { method: 'POST' }),
+};

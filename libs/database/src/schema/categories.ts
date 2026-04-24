@@ -1,7 +1,4 @@
 import { pgTable, uuid, text, boolean, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
-import { products } from './products';
-import { categoryProducts } from './category-products';
 
 export const categories = pgTable(
   'categories',
@@ -21,10 +18,6 @@ export const categories = pgTable(
     deletedIdx: index('categories_deleted_idx').on(t.deletedAt),
   }),
 );
-
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  products: many(categoryProducts),
-}));
 
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;

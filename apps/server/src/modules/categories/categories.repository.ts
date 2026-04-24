@@ -1,4 +1,4 @@
-import { db, categories, categoryProducts } from '@nuraskin/database';
+import { db, categories, products } from '@nuraskin/database';
 import { eq, isNull, and, sql } from 'drizzle-orm';
 import type { Category, NewCategory } from '@nuraskin/database';
 
@@ -17,10 +17,10 @@ export async function findAll(): Promise<CategoryWithProductCount[]> {
       createdAt: categories.createdAt,
       updatedAt: categories.updatedAt,
       deletedAt: categories.deletedAt,
-      productCount: sql<number>`cast(count(${categoryProducts.productId}) as integer)`,
+      productCount: sql<number>`cast(count(${products.id}) as integer)`,
     })
     .from(categories)
-    .leftJoin(categoryProducts, eq(categories.id, categoryProducts.categoryId))
+    .leftJoin(products, and(eq(categories.id, products.categoryId), isNull(products.deletedAt)))
     .where(isNull(categories.deletedAt))
     .groupBy(categories.id);
 
@@ -38,10 +38,10 @@ export async function findById(id: string): Promise<CategoryWithProductCount | n
       createdAt: categories.createdAt,
       updatedAt: categories.updatedAt,
       deletedAt: categories.deletedAt,
-      productCount: sql<number>`cast(count(${categoryProducts.productId}) as integer)`,
+      productCount: sql<number>`cast(count(${products.id}) as integer)`,
     })
     .from(categories)
-    .leftJoin(categoryProducts, eq(categories.id, categoryProducts.categoryId))
+    .leftJoin(products, and(eq(categories.id, products.categoryId), isNull(products.deletedAt)))
     .where(and(eq(categories.id, id), isNull(categories.deletedAt)))
     .groupBy(categories.id)
     .limit(1);

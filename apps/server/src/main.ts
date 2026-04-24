@@ -16,6 +16,6 @@ import { app } from './app';
 import { logger } from './common/utils/logger';
 import { env } from './common/config/env';
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${env.PORT}`);
 });

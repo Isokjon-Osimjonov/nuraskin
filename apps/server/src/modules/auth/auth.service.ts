@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { env } from '../../common/config/env';
+import { logger } from '../../common/utils/logger';
 import { UnauthorizedError } from '../../common/errors/AppError';
 import type { LoginInput, TelegramAuthInput } from './auth.schema';
 import * as repository from './auth.repository';
@@ -86,8 +87,8 @@ function validateTelegramHash(input: TelegramAuthInput): void {
     .map(([k, v]) => `${k}=${v}`)
     .join('\n');
 
-  console.log('[Auth] Validating Telegram hash for bot token:', env.TELEGRAM_BOT_TOKEN.slice(0, 10) + '...');
-  console.log('[Auth] Data check string:\n' + dataCheckString);
+  logger.debug({ botTokenPrefix: env.TELEGRAM_BOT_TOKEN.slice(0, 10) }, '[Auth] Validating Telegram hash');
+  logger.debug({ dataCheckString }, '[Auth] Data check string');
   
   const secretKey = crypto.createHash('sha256').update(env.TELEGRAM_BOT_TOKEN).digest();
   const expectedHash = crypto

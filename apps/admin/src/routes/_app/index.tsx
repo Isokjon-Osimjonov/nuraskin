@@ -24,7 +24,7 @@ function Dashboard() {
   } = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:4000/api/health');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/health`);
       if (!res.ok) throw new Error('API error');
       return res.json() as Promise<HealthResponse>;
     },

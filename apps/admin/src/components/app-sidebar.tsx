@@ -42,6 +42,11 @@ const navMain = [
     icon: PackageIcon,
   },
   {
+    title: "Inventory",
+    url: "/inventory",
+    icon: PackageIcon, // Or a different icon like Database/Boxes if available
+  },
+  {
     title: "Orders",
     url: "/orders",
     icon: ShoppingCartIcon,
