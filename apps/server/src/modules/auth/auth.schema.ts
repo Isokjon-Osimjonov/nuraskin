@@ -6,7 +6,7 @@ export const LoginSchema = z.object({
 });
 
 export const TelegramAuthSchema = z.object({
-  id: z.number(),
+  id: z.union([z.number(), z.string()]),
   first_name: z.string(),
   last_name: z.string().optional(),
   username: z.string().optional(),

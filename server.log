@@ -1,0 +1,17 @@
+
+ NX   Running target serve for project server and 3 tasks it depends on:
+
+
+
+> nx run shared-types:build  [local cache]
+
+
+> nx run database:build
+
+Compiling TypeScript files for project "database"...
+Done compiling TypeScript files for project "database".
+
+> nx run server:build
+
+> webpack-cli build --node-env=production
+

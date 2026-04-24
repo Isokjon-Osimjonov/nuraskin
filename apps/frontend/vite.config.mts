@@ -10,13 +10,17 @@ import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/frontend',
+  envDir: '../../',
   server: {
-    port: 4200,
-    host: 'localhost',
+    port: 4300,
+    host: true,
+    allowedHosts: ["salon-cofounder-shawl.ngrok-free.dev"],
+    strictPort: true,
   },
   preview: {
-    port: 4200,
-    host: 'localhost',
+    port: 4300,
+    host: true,
+    allowedHosts: ["salon-cofounder-shawl.ngrok-free.dev"],
   },
   plugins: [
     TanStackRouterVite({

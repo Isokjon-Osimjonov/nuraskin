@@ -6,6 +6,7 @@ import { logger } from './common/utils/logger';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import { router as healthRouter } from './modules/health/health.routes';
 import { router as authRouter } from './modules/auth/auth.routes';
+import { router as categoriesRouter } from './modules/categories/categories.routes';
 
 export const app = express();
 
@@ -16,5 +17,6 @@ app.use(pinoHttp({ logger }));
 
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/categories', categoriesRouter);
 
 app.use(errorMiddleware);

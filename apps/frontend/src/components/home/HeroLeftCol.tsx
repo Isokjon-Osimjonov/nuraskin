@@ -1,27 +1,32 @@
 import { ArrowUpRight } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 
 export function HeroLeftCol() {
   return (
-    <div className="flex flex-col">
-      <p className="text-white/60 text-sm max-w-[200px] md:max-w-[220px] leading-relaxed">
-        Tabiat ilhomidan yaratilgan va zamonaviy formulalar bilan mukammallashtirilgan kundalik
-        ishonch uchun yuqori darajali parvarishlash.
+    <div className="flex flex-col items-center md:items-start text-center md:text-left">
+      <p className="text-white text-base max-w-xs leading-relaxed">
+        Zamonaviy formulalar bilan mukammallashtirilgan kundalik ishonch uchun
+        yuqori darajali parvarishlash.
       </p>
 
-      <button
-        className="mt-4 flex items-center gap-3 self-start rounded-full px-5 py-2.5 border border-white/15 text-white text-sm hover:bg-white/10 transition-colors"
-        style={{ backgroundColor: 'rgba(20,5,12,0.55)' }}
-      >
-        <span>Kashf eting</span>
-        <span
-          className="flex items-center justify-center rounded-full p-1.5 bg-[#E30B5C] shrink-0"
-          style={{ boxShadow: '0 0 20px rgba(227,11,92,0.6)' }}
+      {/* NORD-style: pill label + separate round arrow button */}
+      <div className="mt-5 flex items-center gap-3 self-center md:self-start">
+        <Link
+          to="/products"
+          className="rounded-full px-8 py-3 text-sm font-light tracking-wide bg-white text-zinc-900 hover:bg-zinc-100 transition-colors shadow-lg"
         >
-          <ArrowUpRight className="h-3.5 w-3.5 text-white" />
-        </span>
-      </button>
+          Mahsulotlarni ko&apos;rish
+        </Link>
 
-      <p className="mt-6 text-white/40 text-xs">Pastga aylantiring ↓</p>
+        <Link
+          to="/products"
+          aria-label="Mahsulotlarga o'tish"
+          className="w-11 h-11 rounded-full bg-[#
+          ] flex items-center justify-center shrink-0 hover:bg-[#6B2540] transition-colors shadow-lg"
+        >
+          <ArrowUpRight className="h-4 w-4 text-white" />
+        </Link>
+      </div>
     </div>
   );
 }

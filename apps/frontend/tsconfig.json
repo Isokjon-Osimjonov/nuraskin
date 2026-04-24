@@ -8,7 +8,11 @@
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@nuraskin/shared-types": ["../../libs/shared-types/src/index.ts"],
+      "@nuraskin/database": ["../../libs/database/src/index.ts"],
+      "@nuraskin/validation": ["../../libs/validation/src/index.ts"],
+      "@nuraskin/ui": ["../../libs/ui/src/index.ts"]
     }
   },
   "files": [],

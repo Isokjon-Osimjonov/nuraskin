@@ -1,13 +1,21 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "allowJs": false,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "types": ["vite/client"],
     "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] }
+    "paths": {
+      "@/*": ["src/*"],
+      "@nuraskin/database": ["../../libs/database/src/index.ts"],
+      "@nuraskin/shared-types": ["../../libs/shared-types/src/index.ts"],
+      "@nuraskin/validation": ["../../libs/validation/src/index.ts"],
+      "@nuraskin/ui": ["../../libs/ui/src/index.ts"]
+    }
   },
   "files": [],
   "include": [],
@@ -15,6 +23,5 @@
     {
       "path": "./tsconfig.app.json"
     }
-  ],
-  "extends": "../../tsconfig.base.json"
+  ]
 }

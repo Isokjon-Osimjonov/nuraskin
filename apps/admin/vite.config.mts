@@ -13,10 +13,13 @@ export default defineConfig(() => ({
   server: {
     port: 4200,
     host: 'localhost',
+    allowedHosts: 'all',
+    strictPort: true,
   },
   preview: {
     port: 4200,
     host: 'localhost',
+    allowedHosts: 'all',
   },
   plugins: [
     TanStackRouterVite({

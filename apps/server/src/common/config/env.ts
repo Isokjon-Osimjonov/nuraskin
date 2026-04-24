@@ -4,8 +4,13 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  TELEGRAM_BOT_TOKEN: z.string().min(1),
+  TELEGRAM_BOT_TOKEN: z.string().min(1).transform((v) => v.trim()),
+  TELEGRAM_BOT_ID: z.string().min(1).transform((v) => v.trim()),
+  TELEGRAM_BOT_USERNAME: z.string().min(1).transform((v) => v.trim()),
   PORT: z.coerce.number().default(4000),
+  CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
+  CLOUDINARY_API_KEY: z.string().min(1).optional(),
+  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

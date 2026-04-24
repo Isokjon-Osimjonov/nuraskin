@@ -6,9 +6,9 @@ export const Route = createFileRoute('/_app/orders')({
 
 function OrdersPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight mb-6">Orders</h1>
-      <p className="text-muted-foreground">Orders management coming soon.</p>
+    <div className="p-6">
+      <h1 className="text-3xl font-medium tracking-tight">Orders</h1>
+      <p className="text-muted-foreground">Manage and track customer orders</p>
     </div>
   );
 }

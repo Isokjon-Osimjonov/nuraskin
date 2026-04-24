@@ -86,6 +86,9 @@ function validateTelegramHash(input: TelegramAuthInput): void {
     .map(([k, v]) => `${k}=${v}`)
     .join('\n');
 
+  console.log('[Auth] Validating Telegram hash for bot token:', env.TELEGRAM_BOT_TOKEN.slice(0, 10) + '...');
+  console.log('[Auth] Data check string:\n' + dataCheckString);
+  
   const secretKey = crypto.createHash('sha256').update(env.TELEGRAM_BOT_TOKEN).digest();
   const expectedHash = crypto
     .createHmac('sha256', secretKey)
@@ -96,6 +99,7 @@ function validateTelegramHash(input: TelegramAuthInput): void {
     expectedHash.length !== hash.length ||
     !crypto.timingSafeEqual(Buffer.from(expectedHash, 'hex'), Buffer.from(hash, 'hex'))
   ) {
+    console.error('[Auth] Hash mismatch!', { expected: expectedHash, received: hash });
     throw new UnauthorizedError('Invalid Telegram hash');
   }
 }

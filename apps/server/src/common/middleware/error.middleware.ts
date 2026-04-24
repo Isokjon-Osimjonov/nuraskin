@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
 import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
 
 export function errorMiddleware(
   err: unknown,
@@ -15,6 +16,12 @@ export function errorMiddleware(
     return;
   }
 
+  if (err instanceof ZodError) {
+    logger.warn({ err, path: req.path }, 'Validation error');
+    res.status(400).json({ error: 'Validation failed', details: err.issues });
+    return;
+  }
+
   logger.error({ err, path: req.path }, 'Unhandled error');
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
 }

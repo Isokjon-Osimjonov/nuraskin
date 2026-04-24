@@ -15,6 +15,13 @@
       "when": 1776619780710,
       "tag": "0001_loose_gorilla_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776964912160,
+      "tag": "0002_noisy_excalibur",
+      "breakpoints": true
     }
   ]
 }

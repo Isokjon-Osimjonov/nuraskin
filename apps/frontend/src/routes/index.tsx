@@ -1,13 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { HeroNav } from '@/components/home/HeroNav';
 import { HeroProduct } from '@/components/home/HeroProduct';
 import { HeroLeftCol } from '@/components/home/HeroLeftCol';
 import { HeroRightCol } from '@/components/home/HeroRightCol';
 import { HeroFooter } from '@/components/home/HeroFooter';
+import { CategoriesSection } from '@/components/home/CategoriesSection';
+import { RecentProductsSection } from '@/components/home/RecentProductsSection';
+import { AboutSummary } from '@/components/home/AboutSummary';
 
 const HERO_BG_IMAGE = '/nsbg.png';
 export const HERO_PRODUCT_IMAGE = '/nsb.png';
-export const HERO_THUMB_IMAGE = '/nsb.png';
 
 export const Route = createFileRoute('/')({
   component: HeroPage,
@@ -15,60 +16,73 @@ export const Route = createFileRoute('/')({
 
 function HeroPage() {
   return (
-    <div
-      className="relative min-h-screen overflow-hidden"
-      style={{
-        backgroundImage: `
-          linear-gradient(180deg, rgba(20,5,12,0.35) 0%, rgba(40,8,22,0.25) 55%, rgba(15,3,8,0.55) 100%),
-          url(${HERO_BG_IMAGE})
-        `,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-
-      {/* Soft pink radial glow behind product */}
+    <>
+      {/*
+        margin-top: -64px  pulls the hero UP behind the 64px sticky navbar.
+        height: 100vh      makes the image fill the full viewport (including the nav area).
+        The transparent navbar now sits over the actual hero background image.
+      */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="relative"
         style={{
+          height: '100vh',
+          marginTop: '-64px',
           backgroundImage: `
-            radial-gradient(ellipse 60% 50% at 50% 48%, rgba(227,11,92,0.22) 0%, transparent 70%),
-            radial-gradient(ellipse at 70% 30%, rgba(139,45,20,0.18) 0%, transparent 50%)
+            linear-gradient(180deg, rgba(20,5,12,0.35) 0%, rgba(40,8,22,0.25) 55%, rgba(15,3,8,0.55) 100%),
+            url(${HERO_BG_IMAGE})
           `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
-      />
+      >
+        {/* Radial glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `
+              radial-gradient(ellipse 60% 50% at 50% 48%, rgba(74,21,37,0.22) 0%, transparent 70%),
+              radial-gradient(ellipse at 70% 30%, rgba(74,21,37,0.18) 0%, transparent 50%)
+            `,
+          }}
+        />
 
-      <HeroNav />
-
-      <div className="relative min-h-screen">
-        {/* SKIN ESSENCE — behind the jar, lifted toward the top */}
-        <div className="absolute inset-x-0 top-[22vh] flex justify-center pointer-events-none z-0">
+        {/* SKIN ESSENCE — large editorial text behind jar */}
+        <div
+          className="absolute inset-x-0 flex justify-center pointer-events-none z-0 px-4"
+          style={{ top: 'clamp(15%, 25%, 35%)' }}
+        >
           <span
-            className="font-bold text-white select-none leading-none whitespace-nowrap"
+            className="font-normal text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100"
             style={{
-              fontSize: 'clamp(2rem, 9vw, 11rem)',
-              letterSpacing: '-0.035em',
+              fontSize: 'clamp(2.5rem, 12vw, 14rem)',
+              letterSpacing: '-0.02em',
             }}
           >
             SKIN ESSENCE
           </span>
         </div>
 
-        {/* Product jar — z-10, sits on top of the text */}
+        {/* Product jar */}
         <HeroProduct productImage={HERO_PRODUCT_IMAGE} />
 
-        {/* Left column — bottom left */}
-        <div className="absolute bottom-24 left-6 md:left-10 z-20">
+        {/* Left column */}
+        <div className="absolute bottom-12 left-0 right-0 md:left-12 md:right-auto px-8 md:px-0 z-20 flex justify-center md:justify-start">
           <HeroLeftCol />
         </div>
 
-        {/* Right column — bottom right, desktop only */}
-        <div className="hidden md:block absolute bottom-16 right-8 z-20">
-          <HeroRightCol thumbImage={HERO_THUMB_IMAGE} />
+        {/* Right column — desktop only */}
+        <div className="hidden md:block absolute bottom-10 right-8 z-20">
+          <HeroRightCol />
         </div>
+
+        <HeroFooter />
       </div>
 
-      <HeroFooter />
-    </div>
+      <CategoriesSection />
+
+      <RecentProductsSection />
+
+      <AboutSummary />
+    </>
   );
 }

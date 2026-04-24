@@ -14,17 +14,42 @@
     --muted-foreground: 240 3.8% 46.1%;
     --border: 240 5.9% 90%;
     --radius: 0.5rem;
-    --brand: #E30B5C;
+    --brand: #4A1525;
   }
 }
 
 @layer base {
-  * {
-    border-color: hsl(var(--border));
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
+
+  html {
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+  }
+
   body {
+    margin: 0;
+    padding: 0;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: 'Inter Variable', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

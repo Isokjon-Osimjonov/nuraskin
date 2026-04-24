@@ -1,125 +1,27 @@
-import { useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { LoginForm } from '@/components/login-form';
 import { useAuthStore } from '@/stores/auth.store';
+import { z } from 'zod';
 
 export const Route = createFileRoute('/login')({
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+  }),
+  beforeLoad: () => {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      throw redirect({ to: '/' });
+    }
+  },
   component: LoginPage,
 });
 
-const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-type LoginInput = z.infer<typeof LoginSchema>;
-
-function LoginForm() {
-  const [isPending, setIsPending] = useState(false);
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const navigate = useNavigate();
-
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(LoginSchema),
-    defaultValues: { email: '', password: '' },
-  });
-
-  async function onSubmit(data: LoginInput) {
-    setIsPending(true);
-    try {
-      const res = await fetch('http://localhost:4000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (res.ok) {
-        const json = await res.json();
-        setAuth(json.token, json.user);
-        navigate({ to: '/' });
-      } else if (res.status === 401) {
-        toast.error("Email yoki parol noto'g'ri");
-      } else {
-        toast.error('Server xatosi yuz berdi');
-      }
-    } catch {
-      toast.error('Server bilan bog\'lanib bo\'lmadi');
-    } finally {
-      setIsPending(false);
-    }
-  }
-
-  function onError() {
-    toast.error('Forma noto\'g\'ri to\'ldirilgan');
-  }
-
-  return (
-    <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          className="mt-1 w-full"
-          {...form.register('email')}
-        />
-        {form.formState.errors.email && (
-          <p className="text-xs text-destructive mt-1">
-            {form.formState.errors.email.message}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-4">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          className="mt-1 w-full"
-          {...form.register('password')}
-        />
-        {form.formState.errors.password && (
-          <p className="text-xs text-destructive mt-1">
-            {form.formState.errors.password.message}
-          </p>
-        )}
-      </div>
-
-      <Button type="submit" className="w-full mt-6" disabled={isPending}>
-        {isPending && <Loader2 className="animate-spin" />}
-        Sign in
-      </Button>
-    </form>
-  );
-}
-
 function LoginPage() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-card border border-border shadow-lg rounded-xl p-8">
-        <div>
-          <p className="text-2xl font-bold tracking-tight">NuraSkin</p>
-          <p className="text-sm text-muted-foreground mt-1">Admin Panel</p>
-        </div>
-
-        <Separator className="my-6" />
-
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-sm">
         <LoginForm />
       </div>
-
-      <p className="absolute bottom-6 text-center text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-        <span onClick={() => navigate({ to: '/' })}>← Back to store</span>
-      </p>
     </div>
   );
 }

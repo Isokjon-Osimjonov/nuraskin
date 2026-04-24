@@ -12,8 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppTelegramRouteImport } from './routes/_app/telegram'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppSalesRouteImport } from './routes/_app/sales'
 import { Route as AppProductsRouteImport } from './routes/_app/products'
 import { Route as AppOrdersRouteImport } from './routes/_app/orders'
+import { Route as AppCouponsRouteImport } from './routes/_app/coupons'
+import { Route as AppCategoriesRouteImport } from './routes/_app/categories'
+import { Route as AppAccountingRouteImport } from './routes/_app/accounting'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -29,6 +35,21 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTelegramRoute = AppTelegramRouteImport.update({
+  id: '/telegram',
+  path: '/telegram',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesRoute = AppSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProductsRoute = AppProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -39,38 +60,97 @@ const AppOrdersRoute = AppOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCouponsRoute = AppCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCategoriesRoute = AppCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAccountingRoute = AppAccountingRouteImport.update({
+  id: '/accounting',
+  path: '/accounting',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/accounting': typeof AppAccountingRoute
+  '/categories': typeof AppCategoriesRoute
+  '/coupons': typeof AppCouponsRoute
   '/orders': typeof AppOrdersRoute
   '/products': typeof AppProductsRoute
+  '/sales': typeof AppSalesRoute
+  '/settings': typeof AppSettingsRoute
+  '/telegram': typeof AppTelegramRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/accounting': typeof AppAccountingRoute
+  '/categories': typeof AppCategoriesRoute
+  '/coupons': typeof AppCouponsRoute
   '/orders': typeof AppOrdersRoute
   '/products': typeof AppProductsRoute
+  '/sales': typeof AppSalesRoute
+  '/settings': typeof AppSettingsRoute
+  '/telegram': typeof AppTelegramRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/accounting': typeof AppAccountingRoute
+  '/_app/categories': typeof AppCategoriesRoute
+  '/_app/coupons': typeof AppCouponsRoute
   '/_app/orders': typeof AppOrdersRoute
   '/_app/products': typeof AppProductsRoute
+  '/_app/sales': typeof AppSalesRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/telegram': typeof AppTelegramRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/orders' | '/products'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/accounting'
+    | '/categories'
+    | '/coupons'
+    | '/orders'
+    | '/products'
+    | '/sales'
+    | '/settings'
+    | '/telegram'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/orders' | '/products' | '/'
+  to:
+    | '/login'
+    | '/accounting'
+    | '/categories'
+    | '/coupons'
+    | '/orders'
+    | '/products'
+    | '/sales'
+    | '/settings'
+    | '/telegram'
+    | '/'
   id:
     | '__root__'
     | '/_app'
     | '/login'
+    | '/_app/accounting'
+    | '/_app/categories'
+    | '/_app/coupons'
     | '/_app/orders'
     | '/_app/products'
+    | '/_app/sales'
+    | '/_app/settings'
+    | '/_app/telegram'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
@@ -102,6 +182,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/telegram': {
+      id: '/_app/telegram'
+      path: '/telegram'
+      fullPath: '/telegram'
+      preLoaderRoute: typeof AppTelegramRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sales': {
+      id: '/_app/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof AppSalesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/products': {
       id: '/_app/products'
       path: '/products'
@@ -116,18 +217,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrdersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/coupons': {
+      id: '/_app/coupons'
+      path: '/coupons'
+      fullPath: '/coupons'
+      preLoaderRoute: typeof AppCouponsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/categories': {
+      id: '/_app/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof AppCategoriesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/accounting': {
+      id: '/_app/accounting'
+      path: '/accounting'
+      fullPath: '/accounting'
+      preLoaderRoute: typeof AppAccountingRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAccountingRoute: typeof AppAccountingRoute
+  AppCategoriesRoute: typeof AppCategoriesRoute
+  AppCouponsRoute: typeof AppCouponsRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppProductsRoute: typeof AppProductsRoute
+  AppSalesRoute: typeof AppSalesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppTelegramRoute: typeof AppTelegramRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccountingRoute: AppAccountingRoute,
+  AppCategoriesRoute: AppCategoriesRoute,
+  AppCouponsRoute: AppCouponsRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppProductsRoute: AppProductsRoute,
+  AppSalesRoute: AppSalesRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppTelegramRoute: AppTelegramRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LogOut, User as UserIcon } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAppStore } from '@/stores/app.store';
+
 
 export const Route = createFileRoute('/account')({
   component: AccountPage,
@@ -17,7 +18,7 @@ interface TelegramAuthResult {
 }
 
 function AccountPage() {
-  const { user, setUser, logout } = useAuthStore();
+  const { user, setAuth, logout } = useAppStore();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -35,8 +36,12 @@ function AccountPage() {
         });
 
         if (res.ok) {
-          const userData = await res.json();
-          setUser(userData);
+          const { token, user: userData } = await res.json();
+          setAuth(token, userData);
+          
+          // Clear query params and redirect
+          const redirectPath = new URLSearchParams(window.location.search).get('redirect') || '/account';
+          navigate({ to: redirectPath, replace: true });
         } else {
           navigate({ to: '/login' });
         }
@@ -53,7 +58,7 @@ function AccountPage() {
         void navigate({ to: '/login' });
       }
     }
-  }, [user, setUser, navigate]);
+  }, [user, setAuth, navigate]);
 
   if (!user) return null;
 
@@ -63,34 +68,24 @@ function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <nav className="bg-zinc-900 border-b border-zinc-800 px-8 py-5 flex items-center justify-between">
-        <span className="text-white font-semibold text-lg tracking-wide">NuraSkin</span>
-        <button
-          onClick={handleLogout}
-          className="text-zinc-400 text-sm hover:text-white transition-colors flex items-center gap-2"
-        >
-          <LogOut className="h-4 w-4" />
-          Chiqish
-        </button>
-      </nav>
+    <div className="min-h-screen bg-white">
 
       <div className="max-w-lg mx-auto mt-12 p-4">
-        <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8">
-          <div className="w-16 h-16 rounded-full bg-[#E30B5C]/20 flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-8">
+          <div className="w-16 h-16 rounded-full bg-[#E30B5C]/10 flex items-center justify-center">
             <UserIcon className="h-8 w-8 text-[#E30B5C]" />
           </div>
 
-          <h2 className="text-white font-semibold text-xl mt-4">{user.first_name}</h2>
+          <h2 className="text-zinc-900 font-semibold text-xl mt-4">{user.first_name}</h2>
           {user.username && (
             <p className="text-zinc-400 text-sm">@{user.username}</p>
           )}
 
-          <div className="border-t border-zinc-800 my-6" />
+          <div className="border-t border-zinc-100 my-6" />
 
           <div className="flex justify-between">
             <div className="text-center">
-              <p className="text-white font-bold text-lg">0</p>
+              <p className="text-zinc-900 font-bold text-lg">0</p>
               <p className="text-zinc-400 text-xs mt-1">Buyurtmalar</p>
             </div>
             <div className="text-center">
@@ -98,7 +93,7 @@ function AccountPage() {
               <p className="text-zinc-400 text-xs mt-1">Qarz</p>
             </div>
             <div className="text-center">
-              <span className="inline-block px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 text-xs">
+              <span className="inline-block px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 text-xs">
                 Standard
               </span>
               <p className="text-zinc-400 text-xs mt-1">VIP daraja</p>
@@ -107,8 +102,9 @@ function AccountPage() {
 
           <button
             onClick={handleLogout}
-            className="w-full mt-6 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:text-white hover:border-zinc-500 transition-colors"
+            className="w-full mt-6 py-2 rounded-lg border border-zinc-200 text-zinc-500 text-sm hover:text-zinc-900 hover:border-zinc-400 transition-colors flex items-center justify-center gap-2"
           >
+            <LogOut className="h-4 w-4" />
             Chiqish
           </button>
         </div>
