@@ -1,0 +1,2 @@
+ALTER TABLE "settings" ADD COLUMN "free_shipping_threshold_krw" bigint DEFAULT 200000 NOT NULL;--> statement-breakpoint
+ALTER TABLE "settings" ADD COLUMN "standard_shipping_fee_krw" bigint DEFAULT 3000 NOT NULL;

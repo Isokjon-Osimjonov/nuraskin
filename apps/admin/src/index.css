@@ -42,6 +42,12 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
+  --color-coral-50: #fff1f0;
+  --color-coral-100: #ffdfdc;
+  --color-coral-500: #ff7f50;
+  --color-coral-600: #e67248;
+  --color-coral-700: #bf5f3c;
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);

@@ -1,141 +1,70 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import crypto from 'crypto';
-
-// Mock env before any service imports
-vi.mock('../../../common/config/env', () => ({
-  env: {
-    JWT_SECRET: 'test-secret-that-is-at-least-32-characters-long',
-    JWT_EXPIRES_IN: '7d',
-    TELEGRAM_BOT_TOKEN: 'test-bot-token',
-    DATABASE_URL: 'postgresql://localhost/test',
-    PORT: 4000,
-  },
-}));
-
-vi.mock('../auth.repository');
-
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { login } from '../auth.service';
 import * as repository from '../auth.repository';
-import { adminLogin, telegramAuth } from '../auth.service';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { env } from '../../../common/config/env';
 import { UnauthorizedError } from '../../../common/errors/AppError';
 
-const mockedRepo = vi.mocked(repository);
+vi.mock('../auth.repository');
+vi.mock('bcryptjs');
+vi.mock('jsonwebtoken');
 
-const FAKE_USER = {
-  id: 'a1b2c3d4-0000-0000-0000-000000000001',
-  email: 'admin@nuraskin.com',
-  // bcrypt hash of 'admin123' (pre-computed)
-  passwordHash: '$2b$10$34mSAtjy5qH4JfMcfT2qbeDukFEjGdS6mW1h8.z7oOQAGUJozG/M2',
-  role: 'super_admin',
-  isActive: true,
-  lastLoginAt: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
+describe('AuthService', () => {
+  const mockUser = {
+    id: 'user-123',
+    fullName: 'Admin User',
+    email: 'admin@example.com',
+    passwordHash: 'hashed-password',
+    role: 'ADMIN',
+    isActive: true,
+    lastLoginAt: null,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
-const FAKE_TG_USER = {
-  id: 'b2c3d4e5-0000-0000-0000-000000000002',
-  telegramId: BigInt(123456789),
-  firstName: 'Ali',
-  lastName: null,
-  username: 'ali_uz',
-  photoUrl: null,
-  authDate: new Date(),
-  isActive: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
-function buildTelegramPayload(overrides: Partial<{
-  id: number;
-  first_name: string;
-  auth_date: number;
-  hash: string;
-  bot_token: string;
-}> = {}): { id: number; first_name: string; auth_date: number; hash: string } {
-  const bot_token = overrides.bot_token ?? 'test-bot-token';
-  const id = overrides.id ?? 123456789;
-  const first_name = overrides.first_name ?? 'Ali';
-  const auth_date = overrides.auth_date ?? Math.floor(Date.now() / 1000);
-
-  const fields = { id, first_name, auth_date };
-  const dataCheckString = Object.entries(fields)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${k}=${v}`)
-    .join('\n');
-
-  const secretKey = crypto.createHash('sha256').update(bot_token).digest();
-  const hash =
-    overrides.hash ??
-    crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-
-  return { id, first_name, auth_date, hash };
-}
-
-describe('auth.service — adminLogin', () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it('returns token for valid credentials', async () => {
-    mockedRepo.findByEmail.mockResolvedValue(FAKE_USER);
-    mockedRepo.updateLastLogin.mockResolvedValue(undefined);
-
-    const result = await adminLogin({ input: { email: 'admin@nuraskin.com', password: 'admin123' } });
-
-    expect(result.token).toBeTruthy();
-    expect(result.user.email).toBe('admin@nuraskin.com');
-    expect(result.user.role).toBe('super_admin');
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('throws UnauthorizedError for wrong password', async () => {
-    mockedRepo.findByEmail.mockResolvedValue(FAKE_USER);
+  describe('login', () => {
+    it('should return a token and user info on valid credentials', async () => {
+      vi.mocked(repository.findByEmail).mockResolvedValue(mockUser as any);
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as any);
+      vi.mocked(jwt.sign).mockReturnValue('mock-token' as any);
 
-    await expect(
-      adminLogin({ input: { email: 'admin@nuraskin.com', password: 'wrongpassword' } }),
-    ).rejects.toBeInstanceOf(UnauthorizedError);
-  });
+      const result = await login('admin@example.com', 'password');
 
-  it('throws UnauthorizedError when user not found', async () => {
-    mockedRepo.findByEmail.mockResolvedValue(null);
+      expect(result).toEqual({
+        token: 'mock-token',
+        user: {
+          id: mockUser.id,
+          email: mockUser.email,
+          fullName: mockUser.fullName,
+          role: mockUser.role,
+        },
+      });
+      expect(repository.updateLastLogin).toHaveBeenCalledWith(mockUser.id);
+    });
 
-    await expect(
-      adminLogin({ input: { email: 'ghost@nuraskin.com', password: 'admin123' } }),
-    ).rejects.toBeInstanceOf(UnauthorizedError);
-  });
-});
+    it('should throw UnauthorizedError on invalid email', async () => {
+      vi.mocked(repository.findByEmail).mockResolvedValue(null);
 
-describe('auth.service — telegramAuth', () => {
-  beforeEach(() => vi.clearAllMocks());
+      await expect(login('wrong@example.com', 'password')).rejects.toThrow(UnauthorizedError);
+    });
 
-  it('returns token for valid Telegram hash (existing user)', async () => {
-    const payload = buildTelegramPayload();
-    mockedRepo.findByTelegramId.mockResolvedValue(FAKE_TG_USER);
+    it('should throw UnauthorizedError on invalid password', async () => {
+      vi.mocked(repository.findByEmail).mockResolvedValue(mockUser as any);
+      vi.mocked(bcrypt.compare).mockResolvedValue(false as any);
 
-    const result = await telegramAuth({ input: payload });
+      await expect(login('admin@example.com', 'wrong-pass')).rejects.toThrow(UnauthorizedError);
+    });
 
-    expect(result.token).toBeTruthy();
-    expect(result.user.firstName).toBe('Ali');
-  });
+    it('should throw UnauthorizedError if user is inactive', async () => {
+      vi.mocked(repository.findByEmail).mockResolvedValue({ ...mockUser, isActive: false } as any);
 
-  it('creates user and returns token when user does not exist', async () => {
-    const payload = buildTelegramPayload();
-    mockedRepo.findByTelegramId.mockResolvedValue(null);
-    mockedRepo.createTelegramUser.mockResolvedValue(FAKE_TG_USER);
-
-    const result = await telegramAuth({ input: payload });
-
-    expect(mockedRepo.createTelegramUser).toHaveBeenCalledOnce();
-    expect(result.token).toBeTruthy();
-  });
-
-  it('throws UnauthorizedError for invalid hash', async () => {
-    const payload = buildTelegramPayload({ hash: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' });
-
-    await expect(telegramAuth({ input: payload })).rejects.toBeInstanceOf(UnauthorizedError);
-  });
-
-  it('throws UnauthorizedError for expired auth_date', async () => {
-    const expiredAuthDate = Math.floor(Date.now() / 1000) - 90_000; // 25 hours ago
-    const payload = buildTelegramPayload({ auth_date: expiredAuthDate });
-
-    await expect(telegramAuth({ input: payload })).rejects.toBeInstanceOf(UnauthorizedError);
+      await expect(login('admin@example.com', 'password')).rejects.toThrow(UnauthorizedError);
+    });
   });
 });

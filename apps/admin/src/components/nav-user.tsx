@@ -91,7 +91,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: '/settings/profile' })}>
                 <UserCircleIcon className="mr-2 size-4" />
                 Account
               </DropdownMenuItem>

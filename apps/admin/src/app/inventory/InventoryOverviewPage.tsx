@@ -8,6 +8,7 @@ import {
 import { productsApi } from '../products/api/products.api';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from '@tanstack/react-router';
+import { Route } from '../../routes/_app/inventory/index';
 import {
   Search,
   Scan,
@@ -16,6 +17,7 @@ import {
   Edit,
   Trash,
   Plus,
+  RefreshCw,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -31,12 +33,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  DataTableEmpty,
+} from '@/components/ui/DataTable';
+import { TablePagination } from '@/components/ui/TablePagination';
 
 export function InventoryOverviewPage() {
+  const { page, limit } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = React.useState('');
+  const [activeTab, setActiveTab] = React.useState<'active' | 'deleted'>(
+    'active',
+  );
 
   const [selectedProductForBatch, setSelectedProductForBatch] =
     React.useState<ScannedProduct | null>(null);
@@ -46,15 +63,23 @@ export function InventoryOverviewPage() {
     React.useState<InventoryOverviewItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
-  const { data: items, isLoading } = useQuery({
-    queryKey: ['inventory', 'overview'],
-    queryFn: inventoryApi.getOverview,
+  const { data: rawItems = [], isLoading } = useQuery({
+    queryKey: ['inventory', 'overview', activeTab],
+    queryFn: () =>
+      inventoryApi.getOverview({ deleted: activeTab === 'deleted' }),
   });
+
+  const isPaginatedResponse =
+    !Array.isArray(rawItems) && (rawItems as any).data;
+  const items = Array.isArray(rawItems)
+    ? rawItems
+    : (rawItems as any).data || [];
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', 'overview'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success("Mahsulot o'chirildi");
       setIsDeleteDialogOpen(false);
       setProductToDelete(null);
@@ -64,13 +89,39 @@ export function InventoryOverviewPage() {
     },
   });
 
-  const filteredItems = items?.filter(
-    (item) =>
+  const restoreMutation = useMutation({
+    mutationFn: productsApi.restore,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'overview'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Mahsulot tiklandi');
+    },
+    onError: (error: any) => toast.error(error.message || 'Xatolik yuz berdi'),
+  });
+
+  const filteredItems = items.filter(
+    (item: any) =>
       item.name.toLowerCase().includes(search.toLowerCase()) ||
       item.brandName.toLowerCase().includes(search.toLowerCase()) ||
       item.sku.toLowerCase().includes(search.toLowerCase()) ||
       item.barcode.includes(search),
   );
+
+  const totalItems = isPaginatedResponse
+    ? (rawItems as any).total
+    : filteredItems.length;
+  const paginatedItems = Array.isArray(rawItems)
+    ? filteredItems.slice((page - 1) * limit, page * limit)
+    : filteredItems;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const handlePageChange = (newPage: number) => {
+    navigate({ search: { page: newPage, limit } as any });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    navigate({ search: { page: 1, limit: newSize } as any });
+  };
 
   const LOW_STOCK_THRESHOLD = 10;
 
@@ -105,200 +156,227 @@ export function InventoryOverviewPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            className="pl-8"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v as any);
+          handlePageChange(1);
+        }}
+        className="w-full"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <TabsList>
+            <TabsTrigger value="active">Faol mahsulotlar</TabsTrigger>
+            <TabsTrigger value="deleted">
+              O'chirilganlar mahsulotlar
+            </TabsTrigger>
+          </TabsList>
 
-      <div className="rounded-md border">
-        <div className="relative w-full overflow-auto">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="[&_tr]:border-b">
-              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground w-[80px]">
-                  Image
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                  Product
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                  SKU / Barcode
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground text-center">
-                  Stock
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground text-center">
-                  Batches
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                  Earliest Expiry
-                </th>
-                <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="[&_tr:last-child]:border-0">
-              {isLoading
-                ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i} className="border-b">
-                      <td className="p-4">
-                        <Skeleton className="h-12 w-12 rounded" />
-                      </td>
-                      <td className="p-4">
-                        <Skeleton className="h-4 w-[150px]" />
-                      </td>
-                      <td className="p-4">
-                        <Skeleton className="h-4 w-[100px]" />
-                      </td>
-                      <td className="p-4">
-                        <Skeleton className="h-4 w-[60px]" />
-                      </td>
-                      <td className="p-4">
-                        <Skeleton className="h-4 w-[40px]" />
-                      </td>
-                      <td className="p-4">
-                        <Skeleton className="h-4 w-[100px]" />
-                      </td>
-                      <td className="p-4 text-right">
-                        <Skeleton className="h-8 w-[100px] ml-auto" />
-                      </td>
-                    </tr>
-                  ))
-                : filteredItems?.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-b transition-colors hover:bg-muted/50"
-                    >
-                      <td className="p-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              className="pl-8"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                handlePageChange(1);
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          <DataTable>
+            <DataTableHeader>
+              <DataTableRow>
+                <DataTableHead>Mahsulot</DataTableHead>
+                <DataTableHead>Barcode / SKU</DataTableHead>
+                <DataTableHead className="text-center">
+                  Active Partiyalar
+                </DataTableHead>
+                <DataTableHead className="text-center">
+                  Jami qoldiq
+                </DataTableHead>
+                <DataTableHead className="text-center">Status</DataTableHead>
+                <DataTableHead className="text-right">Harakatlar</DataTableHead>
+              </DataTableRow>
+            </DataTableHeader>
+            <DataTableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <DataTableRow key={i}>
+                    <DataTableCell>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-[200px]" />
+                          <Skeleton className="h-3 w-[100px]" />
+                        </div>
+                      </div>
+                    </DataTableCell>
+                    <DataTableCell>
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-[120px]" />
+                        <Skeleton className="h-3 w-[80px]" />
+                      </div>
+                    </DataTableCell>
+                    <DataTableCell>
+                      <Skeleton className="h-6 w-6 mx-auto rounded-full" />
+                    </DataTableCell>
+                    <DataTableCell>
+                      <Skeleton className="h-6 w-10 mx-auto rounded-full" />
+                    </DataTableCell>
+                    <DataTableCell>
+                      <Skeleton className="h-6 w-[80px] mx-auto rounded-full" />
+                    </DataTableCell>
+                    <DataTableCell>
+                      <Skeleton className="h-8 w-16 ml-auto rounded" />
+                    </DataTableCell>
+                  </DataTableRow>
+                ))
+              ) : paginatedItems.length === 0 ? (
+                <DataTableEmpty colSpan={6} message="Mahsulot topilmadi." />
+              ) : (
+                paginatedItems.map((item: any) => (
+                  <DataTableRow key={item.id} className={activeTab === 'deleted' ? 'bg-muted/10 grayscale-[0.2]' : ''}>
+                  <DataTableCell>
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                      {item.imageUrls && item.imageUrls.length > 0 ? (
                         <img
-                          src={item.imageUrls[0] || '/placeholder.png'}
+                          src={item.imageUrls[0]}
                           alt={item.name}
-                          className="h-12 w-12 rounded object-cover border"
+                          className="h-10 w-10 rounded object-cover border border-stone-200"
                         />
-                      </td>
-                      <td className="p-4">
-                        <div className="font-medium">{item.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {item.brandName}
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded border bg-muted" />
+                      )}
+                      <div>
+                        <div className="font-medium text-stone-900">{item.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.brandName}
+                          </div>
                         </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-xs font-mono">{item.sku}</div>
-                        <div className="text-xs text-muted-foreground font-mono">
-                          {item.barcode}
-                        </div>
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="font-bold">{item.totalStock}</span>
-                          {item.totalStock < LOW_STOCK_THRESHOLD && (
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
+                      </div>
+                    </DataTableCell>
+                    <DataTableCell>
+                      <div className="font-mono text-sm text-stone-900">
+                        {item.barcode}
+                      </div>
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {item.sku}
+                      </div>
+                    </DataTableCell>
+                    <DataTableCell className="text-center font-medium text-stone-900">
+                      {item.activeBatchCount}
+                    </DataTableCell>
+                    <DataTableCell className="text-center">
+                      <span
+                        className={`inline-flex items-center justify-center font-medium ${
+                          item.totalStock <= LOW_STOCK_THRESHOLD
+                            ? 'text-orange-600'
+                            : item.totalStock === 0
+                              ? 'text-red-500'
+                              : 'text-stone-900'
+                        }`}
+                      >
+                        {item.totalStock <= LOW_STOCK_THRESHOLD &&
+                          item.totalStock > 0 && (
+                            <AlertTriangle className="mr-1 h-3 w-3" />
                           )}
-                        </div>
-                        {item.totalStock < LOW_STOCK_THRESHOLD && (
-                          <span className="text-[10px] text-destructive font-medium uppercase">
-                            Low Stock
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-4 text-center">
-                        <Badge variant="secondary">{item.batchCount}</Badge>
-                      </td>
-                      <td className="p-4">
-                        {item.earliestExpiry ? (
-                          <span
-                            className={
-                              new Date(item.earliestExpiry) < new Date()
-                                ? 'text-destructive font-bold'
-                                : ''
-                            }
-                          >
-                            {new Date(item.earliestExpiry).toLocaleDateString()}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">
-                            —
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        {item.totalStock}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell className="text-center">
+                      {item.totalStock > 0 ? (
+                        <Badge variant="success" className="rounded-full">
+                          In Stock
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive" className="rounded-full">
+                          Out of Stock
+                        </Badge>
+                      )}
+                    </DataTableCell>
+                    <DataTableCell className="text-right">
+                      {activeTab === 'active' ? (
+                        <div className="flex items-center justify-end gap-1">
                           <Button
-                            size="sm"
-                            variant="secondary"
-                            className="h-8 text-xs gap-1"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleAddBatch(item)}
+                            className="text-stone-400 hover:text-stone-900"
                           >
-                            <Plus className="h-3 w-3" />
-                            Partiya
+                            <Plus className="h-4 w-4" />
                           </Button>
                           <Button
-                            size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            size="icon"
                             onClick={() =>
-                              navigate({
-                                to: '/inventory/$productId',
-                                params: { productId: item.id },
-                              })
+                              navigate({ to: `/inventory/${item.id}` as any })
                             }
+                            className="text-stone-400 hover:text-stone-900"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
-                            size="icon"
                             variant="ghost"
-                            className="h-8 w-8 text-blue-600"
-                            onClick={() =>
-                              navigate({
-                                to: '/products/$productId',
-                                params: { productId: item.id },
-                              })
-                            }
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
                             size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-destructive"
                             onClick={() => {
                               setProductToDelete(item);
                               setIsDeleteDialogOpen(true);
                             }}
+                            className="text-stone-400 hover:text-red-600"
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-            </tbody>
-          </table>
-          {!isLoading && filteredItems?.length === 0 && (
-            <div className="py-10 text-center text-muted-foreground">
-              No products found in inventory.
-            </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => restoreMutation.mutate(item.id)}
+                          disabled={restoreMutation.isPending}
+                          className="text-stone-400 hover:text-green-600"
+                        >
+                          <RefreshCw
+                            className={`mr-2 h-3 w-3 ${restoreMutation.isPending ? 'animate-spin' : ''}`}
+                          />{' '}
+                          Tiklash
+                        </Button>
+                      )}
+                    </DataTableCell>
+                  </DataTableRow>
+                ))
+              )}
+            </DataTableBody>
+          </DataTable>
+
+          {!isLoading && (
+            <TablePagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={limit}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
           )}
         </div>
-      </div>
+      </Tabs>
 
-      <AddBatchSheet
-        product={selectedProductForBatch}
-        open={isBatchSheetOpen}
-        onOpenChange={setIsBatchSheetOpen}
-        onSuccess={() =>
-          queryClient.invalidateQueries({ queryKey: ['inventory', 'overview'] })
-        }
-      />
+      {selectedProductForBatch && (
+        <AddBatchSheet
+          product={selectedProductForBatch}
+          open={isBatchSheetOpen}
+          onOpenChange={(v) => !v && setIsBatchSheetOpen(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({
+              queryKey: ['inventory', 'overview'],
+            });
+            setIsBatchSheetOpen(false);
+          }}
+        />
+      )}
 
       <AlertDialog
         open={isDeleteDialogOpen}
@@ -306,22 +384,25 @@ export function InventoryOverviewPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Mahsulotni o'chirishni tasdiqlaysizmi?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Mahsulotni o'chirish</AlertDialogTitle>
             <AlertDialogDescription>
-              "{productToDelete?.name}" mahsuloti o'chiriladi. Bu amalni
-              qaytarib bo'lmaydi.
+              Haqiqatan ham "{productToDelete?.name}" mahsulotini
+              o'chirmoqchimisiz? Bu amal mahsulotni korzinaga o'tkazadi va uning
+              qoldiqlari ombordan hisobdan chiqarilmaydi, lekin ro'yxatda
+              ko'rinmaydi.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={confirmDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              className="bg-red-600 hover:bg-red-700"
               disabled={deleteMutation.isPending}
             >
-              O'chirish
+              {deleteMutation.isPending ? "O'chirilmoqda..." : "O'chirish"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

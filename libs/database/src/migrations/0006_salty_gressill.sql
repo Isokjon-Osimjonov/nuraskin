@@ -1,0 +1,1 @@
+ALTER TABLE "order_items" ADD COLUMN "cargo_fee_snapshot" bigint DEFAULT 0 NOT NULL;

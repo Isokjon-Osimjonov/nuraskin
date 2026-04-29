@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function ScanPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [scannedProduct, setScannedProduct] = React.useState<ScannedProduct | null>(null);
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [scannerActive, setScannerActive] = React.useState(true);
@@ -20,16 +22,17 @@ export function ScanPage() {
       const product = await inventoryApi.scan(barcode);
       setScannedProduct(product);
       setSheetOpen(true);
+      toast.success('Mahsulot topildi');
     } catch (error: any) {
       console.error('handleScan failed:', error);
       if (error.message.includes('404') || error.message.includes('not found')) {
-        toast.warning(`Product not found. Redirecting to create...`);
+        toast.info(`Yangi mahsulot — ro'yxatga o'tkazildi`);
         navigate({ 
           to: '/products/new', 
           search: { barcode } 
         });
       } else {
-        toast.error('Scanning error');
+        toast.error(error.message || 'Xatolik yuz berdi');
         setScannerActive(true);
       }
     }
@@ -39,6 +42,8 @@ export function ScanPage() {
     setScanCount(prev => prev + 1);
     setScannedProduct(null);
     setScannerActive(true);
+    queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    queryClient.invalidateQueries({ queryKey: ['products'] });
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -78,7 +83,7 @@ export function ScanPage() {
         <BarcodeScanner
           isActive={scannerActive}
           onScan={handleScan}
-          onError={(err) => toast.error(err.message)}
+          onError={(err) => toast.error(err.message || "Xatolik yuz berdi")}
         />
         
         {!scannerActive && !sheetOpen && (

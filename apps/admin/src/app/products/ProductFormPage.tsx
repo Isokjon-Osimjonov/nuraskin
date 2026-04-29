@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createProductSchema } from '@nuraskin/shared-types';
 import type { CreateProductInput, CategoryResponse } from '@nuraskin/shared-types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Tooltip,
@@ -37,10 +38,12 @@ interface ProductFormPageProps {
     weightGrams: number;
     imageUrls: string[];
     isActive: boolean;
-    uzbRetail: string | null;
-    uzbWholesale: string | null;
-    korRetail: string | null;
-    korWholesale: string | null;
+    showStockCount: boolean;
+    uzbRetail?: string | null;
+    uzbWholesale?: string | null;
+    korRetail?: string | null;
+    korWholesale?: string | null;
+    regionalConfigs?: any[];
   };
   prefilledBarcode?: string;
   categories: CategoryResponse[];
@@ -48,18 +51,9 @@ interface ProductFormPageProps {
   isSubmitting: boolean;
 }
 
-const DEFAULT_CONFIG: RegionalConfig = {
-  regionCode: 'UZB',
-  retailPrice: undefined,
-  wholesalePrice: undefined,
-  currency: 'USD',
-  minWholesaleQty: undefined,
-  minOrderQty: undefined,
-};
-
-function bigintToNumber(val: string | null): number | undefined {
-  if (!val) return undefined;
-  return Number(BigInt(val)) / 100;
+function bigintToNumber(val: string | number | null | undefined): number | undefined {
+  if (val === null || val === undefined || val === '') return undefined;
+  return Number(BigInt(val));
 }
 
 function highlightFields(fields: string[]) {
@@ -80,7 +74,6 @@ export function ProductFormPage({
   isSubmitting,
 }: ProductFormPageProps) {
   const [analyzing, setAnalyzing] = React.useState(false);
-  const [uploadedUrl, setUploadedUrl] = React.useState<string>('');
   const isEdit = !!initialData;
 
   const form = useForm<CreateProductInput>({
@@ -98,19 +91,27 @@ export function ProductFormPage({
       benefits: initialData?.benefits ?? [],
       weightGrams: initialData?.weightGrams ?? undefined,
       imageUrls: initialData?.imageUrls ?? [],
-      regionalConfigs: [
+      showStockCount: initialData?.showStockCount ?? false,
+      regionalConfigs: (initialData?.regionalConfigs?.length ? initialData.regionalConfigs : null)?.map(rc => ({
+        regionCode: rc.regionCode,
+        retailPrice: bigintToNumber(rc.retailPrice),
+        wholesalePrice: bigintToNumber(rc.wholesalePrice),
+        currency: 'KRW',
+        minWholesaleQty: rc.minWholesaleQty,
+        minOrderQty: rc.minOrderQty,
+      })) ?? [
         {
           regionCode: 'UZB' as const,
-          retailPrice: bigintToNumber(initialData?.uzbRetail ?? null),
-          wholesalePrice: bigintToNumber(initialData?.uzbWholesale ?? null),
-          currency: 'USD',
+          retailPrice: bigintToNumber(initialData?.uzbRetail),
+          wholesalePrice: bigintToNumber(initialData?.uzbWholesale),
+          currency: 'KRW',
           minWholesaleQty: 5,
           minOrderQty: 1,
         },
         {
           regionCode: 'KOR' as const,
-          retailPrice: bigintToNumber(initialData?.korRetail ?? null),
-          wholesalePrice: bigintToNumber(initialData?.korWholesale ?? null),
+          retailPrice: bigintToNumber(initialData?.korRetail),
+          wholesalePrice: bigintToNumber(initialData?.korWholesale),
           currency: 'KRW',
           minWholesaleQty: 3,
           minOrderQty: 1,
@@ -118,6 +119,87 @@ export function ProductFormPage({
       ],
     },
   });
+
+  // CRITICAL: Reset form when initialData changes to ensure correct values populate the edit dialog
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({
+        barcode: initialData.barcode,
+        sku: initialData.sku,
+        name: initialData.name,
+        brandName: initialData.brandName,
+        categoryId: initialData.categoryId,
+        descriptionUz: initialData.descriptionUz ?? '',
+        howToUseUz: initialData.howToUseUz ?? '',
+        ingredients: initialData.ingredients,
+        skinTypes: initialData.skinTypes,
+        benefits: initialData.benefits,
+        weightGrams: initialData.weightGrams,
+        imageUrls: initialData.imageUrls,
+        showStockCount: initialData.showStockCount,
+        regionalConfigs: (initialData.regionalConfigs?.length ? initialData.regionalConfigs : null)?.map(rc => ({
+          regionCode: rc.regionCode as 'UZB' | 'KOR',
+          retailPrice: bigintToNumber(rc.retailPrice),
+          wholesalePrice: bigintToNumber(rc.wholesalePrice),
+          currency: 'KRW',
+          minWholesaleQty: rc.minWholesaleQty,
+          minOrderQty: rc.minOrderQty,
+        })) ?? [
+          {
+            regionCode: 'UZB' as const,
+            retailPrice: bigintToNumber(initialData.uzbRetail),
+            wholesalePrice: bigintToNumber(initialData.uzbWholesale),
+            currency: 'KRW',
+            minWholesaleQty: 5,
+            minOrderQty: 1,
+          },
+          {
+            regionCode: 'KOR' as const,
+            retailPrice: bigintToNumber(initialData.korRetail),
+            wholesalePrice: bigintToNumber(initialData.korWholesale),
+            currency: 'KRW',
+            minWholesaleQty: 3,
+            minOrderQty: 1,
+          },
+        ],
+      });
+    } else {
+      // Add Mode
+      form.reset({
+        barcode: prefilledBarcode ?? '',
+        sku: '',
+        name: '',
+        brandName: '',
+        categoryId: '',
+        descriptionUz: '',
+        howToUseUz: '',
+        ingredients: [],
+        skinTypes: [],
+        benefits: [],
+        weightGrams: undefined,
+        imageUrls: [],
+        showStockCount: false,
+        regionalConfigs: [
+          {
+            regionCode: 'UZB',
+            retailPrice: undefined,
+            wholesalePrice: undefined,
+            currency: 'KRW',
+            minWholesaleQty: 5,
+            minOrderQty: 1,
+          },
+          {
+            regionCode: 'KOR',
+            retailPrice: undefined,
+            wholesalePrice: undefined,
+            currency: 'KRW',
+            minWholesaleQty: 3,
+            minOrderQty: 1,
+          },
+        ],
+      });
+    }
+  }, [initialData, prefilledBarcode, form]);
 
   const imageUrls = form.watch('imageUrls');
   const hasImage = imageUrls.length > 0;
@@ -136,7 +218,7 @@ export function ProductFormPage({
       form.setValue('ingredients', result.ingredients, { shouldValidate: true });
       form.setValue('skinTypes', result.skinTypes, { shouldValidate: true });
       form.setValue('benefits', result.benefits, { shouldValidate: true });
-      toast.success("AI filled the fields. Please review before saving.");
+      toast.success("AI ma'lumotlarni to'ldirdi");
       highlightFields(['name', 'brandName', 'descriptionUz', 'howToUseUz', 'ingredients', 'skinTypes', 'benefits']);
     } catch {
       toast.error('AI tahlil qila olmadi. Qo\'lda to\'ldiring.');
@@ -301,6 +383,25 @@ export function ProductFormPage({
                     <Input type="number" min="0" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="showStockCount"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Zaxira miqdorini ko'rsatish</FormLabel>
+                    <div className="text-[10px] text-muted-foreground">
+                      Mijozlarga dona sonini ko'rsatish
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />

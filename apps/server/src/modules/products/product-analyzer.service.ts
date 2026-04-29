@@ -14,7 +14,7 @@ export interface AnalyzeImageResult {
 
 const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-export async function analyzeImage(imageUrl: string): Promise<AnalyzeImageResult> {
+export async function analyzeImage(imageUrl: string): Promise<AnalyzeImageResult | { error: string }> {
   let response;
   try {
     response = await client.chat.completions.create({
@@ -50,9 +50,9 @@ Rules:
       ],
       max_tokens: 400,
     });
-  } catch (error) {
-    logger.error({ error, imageUrl }, 'OpenAI analyzeImage API call failed');
-    throw error;
+  } catch (error: any) {
+    logger.error({ err: error, message: error.message }, 'OpenAI failed');
+    return { error: error.message };
   }
 
   const raw = response.choices[0]?.message?.content ?? '{}';

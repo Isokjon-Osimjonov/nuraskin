@@ -1,8 +1,9 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-router';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { useAuthStore } from '@/stores/auth.store';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: ({ location }) => {
@@ -20,6 +21,16 @@ export const Route = createFileRoute('/_app')({
 });
 
 function AppLayout() {
+  const navigate = useNavigate();
+  const user = useAuthStore(s => s.user);
+
+  useEffect(() => {
+    // If user info in store has mustChangePassword, redirect immediately
+    if (user?.mustChangePassword) {
+        navigate({ to: '/change-password' });
+    }
+  }, [user, navigate]);
+
   return (
     <SidebarProvider
       style={

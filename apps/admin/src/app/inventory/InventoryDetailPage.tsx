@@ -7,21 +7,47 @@ import { useParams, useNavigate } from '@tanstack/react-router';
 import {
   ArrowLeft,
   Plus,
-  Calendar,
   Package,
   Barcode,
   Hash,
+  MoreVertical,
+  Pencil,
+  Scale,
+  Trash2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddBatchSheet } from './components/AddBatchSheet';
+import { EditBatchSheet } from './components/EditBatchSheet';
+import { AdjustQuantityDialog } from './components/AdjustQuantityDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import type { InventoryBatchResponse } from '@nuraskin/shared-types';
 
 export function InventoryDetailPage() {
   const { productId } = useParams({ from: '/_app/inventory/$productId' });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isBatchSheetOpen, setIsBatchSheetOpen] = React.useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = React.useState(false);
+  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [selectedBatch, setSelectedBatch] = React.useState<InventoryBatchResponse | null>(null);
 
   const { data: product, isLoading: isProductLoading } = useQuery({
     queryKey: ['products', productId],
@@ -34,6 +60,25 @@ export function InventoryDetailPage() {
   });
 
   const isLoading = isProductLoading || isBatchesLoading;
+
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: ['inventory', 'batches', productId],
+    });
+    queryClient.invalidateQueries({ queryKey: ['products', productId] });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedBatch) return;
+    try {
+      await inventoryApi.deleteBatch(selectedBatch.id);
+      toast.success('Partiya o\'chirildi');
+      handleSuccess();
+      setIsDeleteDialogOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Xatolik yuz berdi');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,13 +168,14 @@ export function InventoryDetailPage() {
                 <th className="px-4 py-3 text-center font-medium">Currency</th>
                 <th className="px-4 py-3 text-left font-medium">Expiry Date</th>
                 <th className="px-4 py-3 text-left font-medium">Received At</th>
+                <th className="px-4 py-3 text-right font-medium">Amallar</th>
               </tr>
             </thead>
             <tbody>
               {batches?.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-8 text-center text-muted-foreground"
                   >
                     Hozircha partiyalar yo'q.
@@ -151,7 +197,7 @@ export function InventoryDetailPage() {
                       {batch.currentQty}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {(Number(BigInt(batch.costPrice)) / 100).toFixed(2)}
+                      {Number(BigInt(batch.costPrice)).toLocaleString()} {batch.costCurrency === 'KRW' ? '₩' : batch.costCurrency}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <Badge variant="outline">{batch.costCurrency}</Badge>
@@ -174,6 +220,41 @@ export function InventoryDetailPage() {
                     <td className="px-4 py-3 text-muted-foreground">
                       {new Date(batch.receivedAt).toLocaleDateString()}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedBatch(batch);
+                            setIsEditSheetOpen(true);
+                          }}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Tahrirlash
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedBatch(batch);
+                            setIsAdjustDialogOpen(true);
+                          }}>
+                            <Scale className="mr-2 h-4 w-4" />
+                            Miqdorni to'g'irlash
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              setSelectedBatch(batch);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            O'chirish
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
                   </tr>
                 ))
               )}
@@ -186,13 +267,40 @@ export function InventoryDetailPage() {
         product={product as any}
         open={isBatchSheetOpen}
         onOpenChange={setIsBatchSheetOpen}
-        onSuccess={() => {
-          queryClient.invalidateQueries({
-            queryKey: ['inventory', 'batches', productId],
-          });
-          queryClient.invalidateQueries({ queryKey: ['products', productId] });
-        }}
+        onSuccess={handleSuccess}
       />
+
+      <EditBatchSheet
+        batch={selectedBatch}
+        open={isEditSheetOpen}
+        onOpenChange={setIsEditSheetOpen}
+        onSuccess={handleSuccess}
+      />
+
+      <AdjustQuantityDialog
+        batch={selectedBatch}
+        open={isAdjustDialogOpen}
+        onOpenChange={setIsAdjustDialogOpen}
+        onSuccess={handleSuccess}
+      />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Partiyani o'chirish</AlertDialogTitle>
+            <AlertDialogDescription>
+              Haqiqatan ham ushbu partiyani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.
+              Faqatgina sotilmagan (foydalanilmagan) partiyani o'chirish mumkin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              O'chirish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

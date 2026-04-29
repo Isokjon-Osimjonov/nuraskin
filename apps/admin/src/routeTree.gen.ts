@@ -10,25 +10,45 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppTelegramRouteImport } from './routes/_app/telegram'
-import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSalesRouteImport } from './routes/_app/sales'
-import { Route as AppOrdersRouteImport } from './routes/_app/orders'
-import { Route as AppCouponsRouteImport } from './routes/_app/coupons'
 import { Route as AppCategoriesRouteImport } from './routes/_app/categories'
 import { Route as AppAccountingRouteImport } from './routes/_app/accounting'
+import { Route as AppTelegramIndexRouteImport } from './routes/_app/telegram/index'
+import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
 import { Route as AppProductsIndexRouteImport } from './routes/_app/products/index'
+import { Route as AppOrdersIndexRouteImport } from './routes/_app/orders/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
+import { Route as AppCustomersIndexRouteImport } from './routes/_app/customers/index'
+import { Route as AppCouponsIndexRouteImport } from './routes/_app/coupons/index'
+import { Route as AppTelegramChannelsRouteImport } from './routes/_app/telegram/channels'
+import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
+import { Route as AppSettingsShippingTiersRouteImport } from './routes/_app/settings/shipping-tiers'
+import { Route as AppSettingsRatesRouteImport } from './routes/_app/settings/rates'
+import { Route as AppSettingsProfileRouteImport } from './routes/_app/settings/profile'
 import { Route as AppProductsNewRouteImport } from './routes/_app/products/new'
 import { Route as AppProductsProductIdRouteImport } from './routes/_app/products/$productId'
+import { Route as AppOrdersNewRouteImport } from './routes/_app/orders/new'
+import { Route as AppOrdersOrderIdRouteImport } from './routes/_app/orders/$orderId'
 import { Route as AppInventoryScanRouteImport } from './routes/_app/inventory/scan'
 import { Route as AppInventoryProductIdRouteImport } from './routes/_app/inventory/$productId'
+import { Route as AppCustomersIdRouteImport } from './routes/_app/customers/$id'
+import { Route as AppCouponsNewRouteImport } from './routes/_app/coupons/new'
+import { Route as AppCouponsIdIndexRouteImport } from './routes/_app/coupons/$id/index'
+import { Route as AppTelegramPostsNewRouteImport } from './routes/_app/telegram/posts/new'
+import { Route as AppTelegramPostsPostIdRouteImport } from './routes/_app/telegram/posts/$postId'
+import { Route as AppCouponsIdEditRouteImport } from './routes/_app/coupons/$id/edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -40,29 +60,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTelegramRoute = AppTelegramRouteImport.update({
-  id: '/telegram',
-  path: '/telegram',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSalesRoute = AppSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppOrdersRoute = AppOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCouponsRoute = AppCouponsRouteImport.update({
-  id: '/coupons',
-  path: '/coupons',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCategoriesRoute = AppCategoriesRouteImport.update({
@@ -75,14 +75,65 @@ const AppAccountingRoute = AppAccountingRouteImport.update({
   path: '/accounting',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTelegramIndexRoute = AppTelegramIndexRouteImport.update({
+  id: '/telegram/',
+  path: '/telegram/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProductsIndexRoute = AppProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrdersIndexRoute = AppOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/inventory/',
   path: '/inventory/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCustomersIndexRoute = AppCustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCouponsIndexRoute = AppCouponsIndexRouteImport.update({
+  id: '/coupons/',
+  path: '/coupons/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTelegramChannelsRoute = AppTelegramChannelsRouteImport.update({
+  id: '/telegram/channels',
+  path: '/telegram/channels',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
+  id: '/settings/team',
+  path: '/settings/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsShippingTiersRoute =
+  AppSettingsShippingTiersRouteImport.update({
+    id: '/settings/shipping-tiers',
+    path: '/settings/shipping-tiers',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppSettingsRatesRoute = AppSettingsRatesRouteImport.update({
+  id: '/settings/rates',
+  path: '/settings/rates',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsProfileRoute = AppSettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProductsNewRoute = AppProductsNewRouteImport.update({
@@ -95,6 +146,16 @@ const AppProductsProductIdRoute = AppProductsProductIdRouteImport.update({
   path: '/products/$productId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrdersNewRoute = AppOrdersNewRouteImport.update({
+  id: '/orders/new',
+  path: '/orders/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrdersOrderIdRoute = AppOrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInventoryScanRoute = AppInventoryScanRouteImport.update({
   id: '/inventory/scan',
   path: '/inventory/scan',
@@ -105,117 +166,238 @@ const AppInventoryProductIdRoute = AppInventoryProductIdRouteImport.update({
   path: '/inventory/$productId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCustomersIdRoute = AppCustomersIdRouteImport.update({
+  id: '/customers/$id',
+  path: '/customers/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCouponsNewRoute = AppCouponsNewRouteImport.update({
+  id: '/coupons/new',
+  path: '/coupons/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCouponsIdIndexRoute = AppCouponsIdIndexRouteImport.update({
+  id: '/coupons/$id/',
+  path: '/coupons/$id/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTelegramPostsNewRoute = AppTelegramPostsNewRouteImport.update({
+  id: '/telegram/posts/new',
+  path: '/telegram/posts/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTelegramPostsPostIdRoute = AppTelegramPostsPostIdRouteImport.update({
+  id: '/telegram/posts/$postId',
+  path: '/telegram/posts/$postId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCouponsIdEditRoute = AppCouponsIdEditRouteImport.update({
+  id: '/coupons/$id/edit',
+  path: '/coupons/$id/edit',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/accounting': typeof AppAccountingRoute
   '/categories': typeof AppCategoriesRoute
-  '/coupons': typeof AppCouponsRoute
-  '/orders': typeof AppOrdersRoute
   '/sales': typeof AppSalesRoute
-  '/settings': typeof AppSettingsRoute
-  '/telegram': typeof AppTelegramRoute
+  '/coupons/new': typeof AppCouponsNewRoute
+  '/customers/$id': typeof AppCustomersIdRoute
   '/inventory/$productId': typeof AppInventoryProductIdRoute
   '/inventory/scan': typeof AppInventoryScanRoute
+  '/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/orders/new': typeof AppOrdersNewRoute
   '/products/$productId': typeof AppProductsProductIdRoute
   '/products/new': typeof AppProductsNewRoute
+  '/settings/profile': typeof AppSettingsProfileRoute
+  '/settings/rates': typeof AppSettingsRatesRoute
+  '/settings/shipping-tiers': typeof AppSettingsShippingTiersRoute
+  '/settings/team': typeof AppSettingsTeamRoute
+  '/telegram/channels': typeof AppTelegramChannelsRoute
+  '/coupons/': typeof AppCouponsIndexRoute
+  '/customers/': typeof AppCustomersIndexRoute
   '/inventory/': typeof AppInventoryIndexRoute
+  '/orders/': typeof AppOrdersIndexRoute
   '/products/': typeof AppProductsIndexRoute
+  '/settings/': typeof AppSettingsIndexRoute
+  '/telegram/': typeof AppTelegramIndexRoute
+  '/coupons/$id/edit': typeof AppCouponsIdEditRoute
+  '/telegram/posts/$postId': typeof AppTelegramPostsPostIdRoute
+  '/telegram/posts/new': typeof AppTelegramPostsNewRoute
+  '/coupons/$id/': typeof AppCouponsIdIndexRoute
 }
 export interface FileRoutesByTo {
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/accounting': typeof AppAccountingRoute
   '/categories': typeof AppCategoriesRoute
-  '/coupons': typeof AppCouponsRoute
-  '/orders': typeof AppOrdersRoute
   '/sales': typeof AppSalesRoute
-  '/settings': typeof AppSettingsRoute
-  '/telegram': typeof AppTelegramRoute
   '/': typeof AppIndexRoute
+  '/coupons/new': typeof AppCouponsNewRoute
+  '/customers/$id': typeof AppCustomersIdRoute
   '/inventory/$productId': typeof AppInventoryProductIdRoute
   '/inventory/scan': typeof AppInventoryScanRoute
+  '/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/orders/new': typeof AppOrdersNewRoute
   '/products/$productId': typeof AppProductsProductIdRoute
   '/products/new': typeof AppProductsNewRoute
+  '/settings/profile': typeof AppSettingsProfileRoute
+  '/settings/rates': typeof AppSettingsRatesRoute
+  '/settings/shipping-tiers': typeof AppSettingsShippingTiersRoute
+  '/settings/team': typeof AppSettingsTeamRoute
+  '/telegram/channels': typeof AppTelegramChannelsRoute
+  '/coupons': typeof AppCouponsIndexRoute
+  '/customers': typeof AppCustomersIndexRoute
   '/inventory': typeof AppInventoryIndexRoute
+  '/orders': typeof AppOrdersIndexRoute
   '/products': typeof AppProductsIndexRoute
+  '/settings': typeof AppSettingsIndexRoute
+  '/telegram': typeof AppTelegramIndexRoute
+  '/coupons/$id/edit': typeof AppCouponsIdEditRoute
+  '/telegram/posts/$postId': typeof AppTelegramPostsPostIdRoute
+  '/telegram/posts/new': typeof AppTelegramPostsNewRoute
+  '/coupons/$id': typeof AppCouponsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/_app/accounting': typeof AppAccountingRoute
   '/_app/categories': typeof AppCategoriesRoute
-  '/_app/coupons': typeof AppCouponsRoute
-  '/_app/orders': typeof AppOrdersRoute
   '/_app/sales': typeof AppSalesRoute
-  '/_app/settings': typeof AppSettingsRoute
-  '/_app/telegram': typeof AppTelegramRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/coupons/new': typeof AppCouponsNewRoute
+  '/_app/customers/$id': typeof AppCustomersIdRoute
   '/_app/inventory/$productId': typeof AppInventoryProductIdRoute
   '/_app/inventory/scan': typeof AppInventoryScanRoute
+  '/_app/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/_app/orders/new': typeof AppOrdersNewRoute
   '/_app/products/$productId': typeof AppProductsProductIdRoute
   '/_app/products/new': typeof AppProductsNewRoute
+  '/_app/settings/profile': typeof AppSettingsProfileRoute
+  '/_app/settings/rates': typeof AppSettingsRatesRoute
+  '/_app/settings/shipping-tiers': typeof AppSettingsShippingTiersRoute
+  '/_app/settings/team': typeof AppSettingsTeamRoute
+  '/_app/telegram/channels': typeof AppTelegramChannelsRoute
+  '/_app/coupons/': typeof AppCouponsIndexRoute
+  '/_app/customers/': typeof AppCustomersIndexRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
+  '/_app/orders/': typeof AppOrdersIndexRoute
   '/_app/products/': typeof AppProductsIndexRoute
+  '/_app/settings/': typeof AppSettingsIndexRoute
+  '/_app/telegram/': typeof AppTelegramIndexRoute
+  '/_app/coupons/$id/edit': typeof AppCouponsIdEditRoute
+  '/_app/telegram/posts/$postId': typeof AppTelegramPostsPostIdRoute
+  '/_app/telegram/posts/new': typeof AppTelegramPostsNewRoute
+  '/_app/coupons/$id/': typeof AppCouponsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/change-password'
     | '/login'
     | '/accounting'
     | '/categories'
-    | '/coupons'
-    | '/orders'
     | '/sales'
-    | '/settings'
-    | '/telegram'
+    | '/coupons/new'
+    | '/customers/$id'
     | '/inventory/$productId'
     | '/inventory/scan'
+    | '/orders/$orderId'
+    | '/orders/new'
     | '/products/$productId'
     | '/products/new'
+    | '/settings/profile'
+    | '/settings/rates'
+    | '/settings/shipping-tiers'
+    | '/settings/team'
+    | '/telegram/channels'
+    | '/coupons/'
+    | '/customers/'
     | '/inventory/'
+    | '/orders/'
     | '/products/'
+    | '/settings/'
+    | '/telegram/'
+    | '/coupons/$id/edit'
+    | '/telegram/posts/$postId'
+    | '/telegram/posts/new'
+    | '/coupons/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/change-password'
     | '/login'
     | '/accounting'
     | '/categories'
-    | '/coupons'
-    | '/orders'
     | '/sales'
-    | '/settings'
-    | '/telegram'
     | '/'
+    | '/coupons/new'
+    | '/customers/$id'
     | '/inventory/$productId'
     | '/inventory/scan'
+    | '/orders/$orderId'
+    | '/orders/new'
     | '/products/$productId'
     | '/products/new'
+    | '/settings/profile'
+    | '/settings/rates'
+    | '/settings/shipping-tiers'
+    | '/settings/team'
+    | '/telegram/channels'
+    | '/coupons'
+    | '/customers'
     | '/inventory'
+    | '/orders'
     | '/products'
+    | '/settings'
+    | '/telegram'
+    | '/coupons/$id/edit'
+    | '/telegram/posts/$postId'
+    | '/telegram/posts/new'
+    | '/coupons/$id'
   id:
     | '__root__'
     | '/_app'
+    | '/change-password'
     | '/login'
     | '/_app/accounting'
     | '/_app/categories'
-    | '/_app/coupons'
-    | '/_app/orders'
     | '/_app/sales'
-    | '/_app/settings'
-    | '/_app/telegram'
     | '/_app/'
+    | '/_app/coupons/new'
+    | '/_app/customers/$id'
     | '/_app/inventory/$productId'
     | '/_app/inventory/scan'
+    | '/_app/orders/$orderId'
+    | '/_app/orders/new'
     | '/_app/products/$productId'
     | '/_app/products/new'
+    | '/_app/settings/profile'
+    | '/_app/settings/rates'
+    | '/_app/settings/shipping-tiers'
+    | '/_app/settings/team'
+    | '/_app/telegram/channels'
+    | '/_app/coupons/'
+    | '/_app/customers/'
     | '/_app/inventory/'
+    | '/_app/orders/'
     | '/_app/products/'
+    | '/_app/settings/'
+    | '/_app/telegram/'
+    | '/_app/coupons/$id/edit'
+    | '/_app/telegram/posts/$postId'
+    | '/_app/telegram/posts/new'
+    | '/_app/coupons/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  ChangePasswordRoute: typeof ChangePasswordRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -226,6 +408,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -242,39 +431,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/telegram': {
-      id: '/_app/telegram'
-      path: '/telegram'
-      fullPath: '/telegram'
-      preLoaderRoute: typeof AppTelegramRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/sales': {
       id: '/_app/sales'
       path: '/sales'
       fullPath: '/sales'
       preLoaderRoute: typeof AppSalesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/orders': {
-      id: '/_app/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof AppOrdersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/coupons': {
-      id: '/_app/coupons'
-      path: '/coupons'
-      fullPath: '/coupons'
-      preLoaderRoute: typeof AppCouponsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/categories': {
@@ -291,6 +452,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/telegram/': {
+      id: '/_app/telegram/'
+      path: '/telegram'
+      fullPath: '/telegram/'
+      preLoaderRoute: typeof AppTelegramIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/': {
+      id: '/_app/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/products/': {
       id: '/_app/products/'
       path: '/products'
@@ -298,11 +473,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/orders/': {
+      id: '/_app/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof AppOrdersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/inventory/': {
       id: '/_app/inventory/'
       path: '/inventory'
       fullPath: '/inventory/'
       preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/customers/': {
+      id: '/_app/customers/'
+      path: '/customers'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof AppCustomersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/coupons/': {
+      id: '/_app/coupons/'
+      path: '/coupons'
+      fullPath: '/coupons/'
+      preLoaderRoute: typeof AppCouponsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/telegram/channels': {
+      id: '/_app/telegram/channels'
+      path: '/telegram/channels'
+      fullPath: '/telegram/channels'
+      preLoaderRoute: typeof AppTelegramChannelsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/team': {
+      id: '/_app/settings/team'
+      path: '/settings/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/shipping-tiers': {
+      id: '/_app/settings/shipping-tiers'
+      path: '/settings/shipping-tiers'
+      fullPath: '/settings/shipping-tiers'
+      preLoaderRoute: typeof AppSettingsShippingTiersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/rates': {
+      id: '/_app/settings/rates'
+      path: '/settings/rates'
+      fullPath: '/settings/rates'
+      preLoaderRoute: typeof AppSettingsRatesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/profile': {
+      id: '/_app/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AppSettingsProfileRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/products/new': {
@@ -319,6 +550,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsProductIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/orders/new': {
+      id: '/_app/orders/new'
+      path: '/orders/new'
+      fullPath: '/orders/new'
+      preLoaderRoute: typeof AppOrdersNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/orders/$orderId': {
+      id: '/_app/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof AppOrdersOrderIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/inventory/scan': {
       id: '/_app/inventory/scan'
       path: '/inventory/scan'
@@ -333,47 +578,118 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryProductIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/customers/$id': {
+      id: '/_app/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/customers/$id'
+      preLoaderRoute: typeof AppCustomersIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/coupons/new': {
+      id: '/_app/coupons/new'
+      path: '/coupons/new'
+      fullPath: '/coupons/new'
+      preLoaderRoute: typeof AppCouponsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/coupons/$id/': {
+      id: '/_app/coupons/$id/'
+      path: '/coupons/$id'
+      fullPath: '/coupons/$id/'
+      preLoaderRoute: typeof AppCouponsIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/telegram/posts/new': {
+      id: '/_app/telegram/posts/new'
+      path: '/telegram/posts/new'
+      fullPath: '/telegram/posts/new'
+      preLoaderRoute: typeof AppTelegramPostsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/telegram/posts/$postId': {
+      id: '/_app/telegram/posts/$postId'
+      path: '/telegram/posts/$postId'
+      fullPath: '/telegram/posts/$postId'
+      preLoaderRoute: typeof AppTelegramPostsPostIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/coupons/$id/edit': {
+      id: '/_app/coupons/$id/edit'
+      path: '/coupons/$id/edit'
+      fullPath: '/coupons/$id/edit'
+      preLoaderRoute: typeof AppCouponsIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppAccountingRoute: typeof AppAccountingRoute
   AppCategoriesRoute: typeof AppCategoriesRoute
-  AppCouponsRoute: typeof AppCouponsRoute
-  AppOrdersRoute: typeof AppOrdersRoute
   AppSalesRoute: typeof AppSalesRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppTelegramRoute: typeof AppTelegramRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCouponsNewRoute: typeof AppCouponsNewRoute
+  AppCustomersIdRoute: typeof AppCustomersIdRoute
   AppInventoryProductIdRoute: typeof AppInventoryProductIdRoute
   AppInventoryScanRoute: typeof AppInventoryScanRoute
+  AppOrdersOrderIdRoute: typeof AppOrdersOrderIdRoute
+  AppOrdersNewRoute: typeof AppOrdersNewRoute
   AppProductsProductIdRoute: typeof AppProductsProductIdRoute
   AppProductsNewRoute: typeof AppProductsNewRoute
+  AppSettingsProfileRoute: typeof AppSettingsProfileRoute
+  AppSettingsRatesRoute: typeof AppSettingsRatesRoute
+  AppSettingsShippingTiersRoute: typeof AppSettingsShippingTiersRoute
+  AppSettingsTeamRoute: typeof AppSettingsTeamRoute
+  AppTelegramChannelsRoute: typeof AppTelegramChannelsRoute
+  AppCouponsIndexRoute: typeof AppCouponsIndexRoute
+  AppCustomersIndexRoute: typeof AppCustomersIndexRoute
   AppInventoryIndexRoute: typeof AppInventoryIndexRoute
+  AppOrdersIndexRoute: typeof AppOrdersIndexRoute
   AppProductsIndexRoute: typeof AppProductsIndexRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
+  AppTelegramIndexRoute: typeof AppTelegramIndexRoute
+  AppCouponsIdEditRoute: typeof AppCouponsIdEditRoute
+  AppTelegramPostsPostIdRoute: typeof AppTelegramPostsPostIdRoute
+  AppTelegramPostsNewRoute: typeof AppTelegramPostsNewRoute
+  AppCouponsIdIndexRoute: typeof AppCouponsIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountingRoute: AppAccountingRoute,
   AppCategoriesRoute: AppCategoriesRoute,
-  AppCouponsRoute: AppCouponsRoute,
-  AppOrdersRoute: AppOrdersRoute,
   AppSalesRoute: AppSalesRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppTelegramRoute: AppTelegramRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCouponsNewRoute: AppCouponsNewRoute,
+  AppCustomersIdRoute: AppCustomersIdRoute,
   AppInventoryProductIdRoute: AppInventoryProductIdRoute,
   AppInventoryScanRoute: AppInventoryScanRoute,
+  AppOrdersOrderIdRoute: AppOrdersOrderIdRoute,
+  AppOrdersNewRoute: AppOrdersNewRoute,
   AppProductsProductIdRoute: AppProductsProductIdRoute,
   AppProductsNewRoute: AppProductsNewRoute,
+  AppSettingsProfileRoute: AppSettingsProfileRoute,
+  AppSettingsRatesRoute: AppSettingsRatesRoute,
+  AppSettingsShippingTiersRoute: AppSettingsShippingTiersRoute,
+  AppSettingsTeamRoute: AppSettingsTeamRoute,
+  AppTelegramChannelsRoute: AppTelegramChannelsRoute,
+  AppCouponsIndexRoute: AppCouponsIndexRoute,
+  AppCustomersIndexRoute: AppCustomersIndexRoute,
   AppInventoryIndexRoute: AppInventoryIndexRoute,
+  AppOrdersIndexRoute: AppOrdersIndexRoute,
   AppProductsIndexRoute: AppProductsIndexRoute,
+  AppSettingsIndexRoute: AppSettingsIndexRoute,
+  AppTelegramIndexRoute: AppTelegramIndexRoute,
+  AppCouponsIdEditRoute: AppCouponsIdEditRoute,
+  AppTelegramPostsPostIdRoute: AppTelegramPostsPostIdRoute,
+  AppTelegramPostsNewRoute: AppTelegramPostsNewRoute,
+  AppCouponsIdIndexRoute: AppCouponsIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  ChangePasswordRoute: ChangePasswordRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

@@ -4,11 +4,12 @@ import { createProductSchema, updateProductSchema, analyzeImageSchema } from '@n
 import { logger } from '../../common/utils/logger';
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const { categoryId, isActive, search } = req.query;
+  const { categoryId, isActive, search, deleted } = req.query;
   const filters = {
     categoryId: categoryId as string | undefined,
     isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
     search: search as string | undefined,
+    deleted: deleted === 'true',
   };
   const result = await service.listProducts(filters);
   res.json(result);
@@ -39,6 +40,11 @@ export async function update(req: Request, res: Response): Promise<void> {
 export async function remove(req: Request, res: Response): Promise<void> {
   await service.deleteProduct(req.params.id);
   res.status(204).send();
+}
+
+export async function restore(req: Request, res: Response): Promise<void> {
+  const result = await service.restoreProduct(req.params.id);
+  res.json(result);
 }
 
 export async function analyzeImage(req: Request, res: Response): Promise<void> {

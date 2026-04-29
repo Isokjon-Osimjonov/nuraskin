@@ -47,7 +47,7 @@ export function SiteHeader() {
     return 'NuraSkin Admin'
   }
 
-  const userName = user?.name || "Admin"
+  const userName = user?.fullName || "Admin"
   const userEmail = user?.email || "admin@nuraskin.uz"
 
   return (

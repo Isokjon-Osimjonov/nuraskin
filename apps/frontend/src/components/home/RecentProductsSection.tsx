@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Heart, ShoppingBag, Bell } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
+import { useCart, useAddToCart } from '@/hooks/useCart';
 
 interface Product {
   id: string;
@@ -73,7 +74,10 @@ function formatPrice(price: number): string {
 }
 
 export function RecentProductsSection() {
-  const { cart, addToCart } = useAppStore();
+  const { isAuthenticated } = useAppStore();
+  const navigate = useNavigate();
+  const { data: cartData } = useCart();
+  const addToCart = useAddToCart();
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   const toggleFav = (id: string, e: React.MouseEvent) => {
@@ -111,6 +115,7 @@ export function RecentProductsSection() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
           {PLACEHOLDER_PRODUCTS.map((product) => {
             const isFav = favorites.has(product.id);
+            const isInCart = cartData?.items?.some((i: any) => i.productId === product.id);
 
             return (
               <div
@@ -181,16 +186,16 @@ export function RecentProductsSection() {
                     ) : (
                       <button
                         aria-label="Savatga qo'shish"
-                        onClick={() => addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.currentPriceUZS,
-                          image: product.image,
-                          slug: product.slug,
-                          stock: 100, // placeholder
-                        })}
+                        onClick={() => {
+                          if (!isAuthenticated) { navigate({ to: '/login' }); return; }
+                          addToCart.mutate({
+                            productId: product.id,
+                            quantity: 1,
+                          });
+                        }}
+                        disabled={addToCart.isPending}
                         className={`w-8 h-8 rounded-full transition-colors flex items-center justify-center border ${
-                          cart.some((i) => i.product.id === product.id)
+                          isInCart
                             ? 'bg-[#4A1525] border-[#4A1525] text-white hover:bg-[#6B2540]'
                             : 'bg-white border-stone-200 text-[#4A1525] hover:border-[#4A1525]'
                         }`}

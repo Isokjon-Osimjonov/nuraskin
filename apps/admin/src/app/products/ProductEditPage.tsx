@@ -23,7 +23,7 @@ export function ProductEditPage({ productId }: ProductEditPageProps) {
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_URL}/categories`).then(
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`).then(
         (r) => r.json() as Promise<CategoryResponse[]>
       ),
   });
@@ -32,12 +32,13 @@ export function ProductEditPage({ productId }: ProductEditPageProps) {
     mutationFn: (data: any) => productsApi.update(productId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products', productId] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success('Product updated successfully');
+      toast.success('Mahsulot yangilandi');
       navigate({ to: '/inventory' });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to update product');
+      toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
 

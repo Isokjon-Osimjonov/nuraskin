@@ -40,27 +40,115 @@ describe('InventoryService', () => {
     });
   });
 
-  describe('addBatch', () => {
-    it('should convert price to cents and call repository', async () => {
-      const input = {
-        productId: 'p1',
-        initialQty: 10,
-        costPrice: 12.50,
-        costCurrency: 'USD' as const,
+  describe('updateBatch', () => {
+    it('should update batch and add adjustments', async () => {
+      const batchId = 'batch-1';
+      const adminId = 'admin-1';
+      const mockBatch = {
+        id: batchId,
+        productId: 'prod-1',
+        batchRef: 'old-ref',
+        initialQty: 100,
+        currentQty: 100,
+        costPrice: 50000n,
+        costCurrency: 'KRW',
+        expiryDate: '2025-01-01',
+        receivedAt: new Date('2024-01-01'),
       };
 
-      await inventoryService.addBatch(input);
+      vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
+      vi.mocked(repository.updateBatch).mockResolvedValue({ ...mockBatch, batchRef: 'new-ref' } as any);
 
-      expect(repository.createBatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          costPrice: 1250n,
-          initialQty: 10,
-        }),
-        expect.objectContaining({
-          movementType: 'STOCK_IN',
-          quantityDelta: 10,
-        })
+      const result = await inventoryService.updateBatch(batchId, { batch_ref: 'new-ref' }, adminId);
+
+      expect(repository.updateBatch).toHaveBeenCalledWith(
+        batchId,
+        { batchRef: 'new-ref' },
+        [expect.objectContaining({ fieldChanged: 'batch_ref', oldValue: 'old-ref', newValue: 'new-ref' })]
       );
+    });
+
+    it('should throw error when changing initialQty if stock was already sold', async () => {
+      const batchId = 'batch-1';
+      const mockBatch = {
+        id: batchId,
+        initialQty: 100,
+        currentQty: 90, // Sold 10
+      };
+
+      vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
+
+      await expect(inventoryService.updateBatch(batchId, { initial_qty: 110 }, 'admin-1'))
+        .rejects.toThrow("Sotilgan partiyaning dastlabki miqdorini o'zgartirib bo'lmaydi");
+    });
+  });
+
+  describe('adjustQuantity', () => {
+    it('should adjust quantity and call repository', async () => {
+      const batchId = 'batch-1';
+      const adminId = 'admin-1';
+      const mockBatch = {
+        id: batchId,
+        initialQty: 100,
+        currentQty: 50,
+      };
+
+      vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
+
+      await inventoryService.adjustQuantity(batchId, { adjustment: 10, reason: 'Found more' }, adminId);
+
+      expect(repository.adjustBatchQuantity).toHaveBeenCalledWith(
+        batchId,
+        60,
+        10,
+        adminId,
+        'Found more'
+      );
+    });
+
+    it('should throw error if resulting quantity is negative', async () => {
+      const batchId = 'batch-1';
+      const mockBatch = {
+        id: batchId,
+        currentQty: 5,
+      };
+
+      vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
+
+      await expect(inventoryService.adjustQuantity(batchId, { adjustment: -10, reason: 'Lost' }, 'admin-1'))
+        .rejects.toThrow("Miqdor manfiy bo'la olmaydi");
+    });
+  });
+
+  describe('deleteBatch', () => {
+    it('should delete batch if not used', async () => {
+      const batchId = 'batch-1';
+      const mockBatch = {
+        id: batchId,
+        initialQty: 100,
+        currentQty: 100,
+      };
+
+      vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
+      vi.mocked(repository.deleteBatch).mockResolvedValue([{ id: batchId }] as any);
+
+      const result = await inventoryService.deleteBatch(batchId);
+      expect(result.success).toBe(true);
+      expect(repository.deleteBatch).toHaveBeenCalledWith(batchId);
+    });
+
+    it('should throw error if batch was used', async () => {
+      const batchId = 'batch-1';
+      const mockBatch = {
+        id: batchId,
+        initialQty: 100,
+        currentQty: 50,
+      };
+
+      vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
+
+      await expect(inventoryService.deleteBatch(batchId))
+        .rejects.toThrow("Foydalanilgan partiyani o'chirib bo'lmaydi");
     });
   });
 });

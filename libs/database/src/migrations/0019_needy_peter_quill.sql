@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "cargo_cost_krw" bigint DEFAULT 0 NOT NULL;

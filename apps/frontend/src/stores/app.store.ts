@@ -38,25 +38,29 @@ interface AppState {
   removeAddress: (id: string) => void;
   setDefaultAddress: (id: string) => void;
   
-  cart: any[];
-  addToCart: (product: any, quantity?: number) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
-  
   favorites: any[];
   toggleFavorite: (product: any) => void;
+
+  // Region
+  regionCode: 'UZB' | 'KOR' | null;
+  setRegion: (region: 'UZB' | 'KOR') => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Initial Auth State (Secure)
       token: null,
       user: null,
       isAuthenticated: false,
       setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
+      logout: () => set({ token: null, user: null, isAuthenticated: false, favorites: [], addresses: [] }),
+
+      // Region
+      regionCode: null,
+      setRegion: (region) => {
+        set({ regionCode: region });
+      },
 
       // Addresses
       addresses: [],
@@ -81,27 +85,6 @@ export const useAppStore = create<AppState>()(
             a.id === id ? { ...a, isDefault: true } : { ...a, isDefault: false }
           ),
         })),
-
-      // Cart
-      cart: [],
-      addToCart: (product, quantity = 1) => set((state) => {
-        const existing = state.cart.find((i) => i.product.id === product.id);
-        if (existing) {
-          return {
-            cart: state.cart.map((i) =>
-              i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i
-            ),
-          };
-        }
-        return { cart: [...state.cart, { product, quantity }] };
-      }),
-      removeFromCart: (id) => set((state) => ({
-        cart: state.cart.filter((i) => i.product.id !== id),
-      })),
-      updateQuantity: (id, quantity) => set((state) => ({
-        cart: state.cart.map((i) => i.product.id === id ? { ...i, quantity } : i),
-      })),
-      clearCart: () => set({ cart: [] }),
 
       // Favorites
       favorites: [],

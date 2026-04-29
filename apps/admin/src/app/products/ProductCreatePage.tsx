@@ -17,7 +17,7 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_URL}/categories`).then(
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`).then(
         (r) => r.json() as Promise<CategoryResponse[]>
       ),
   });
@@ -26,11 +26,12 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
     mutationFn: productsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Product created successfully');
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast.success('Mahsulot yaratildi');
       navigate({ to: '/inventory/scan' });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to create product');
+      toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
 

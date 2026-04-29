@@ -7,10 +7,12 @@ const EnvSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1).transform((v) => v.trim()),
   TELEGRAM_BOT_ID: z.string().min(1).transform((v) => v.trim()),
   TELEGRAM_BOT_USERNAME: z.string().min(1).transform((v) => v.trim()),
+  TELEGRAM_ADMIN_CHAT_ID: z.string().optional(),
   PORT: z.coerce.number().default(4000),
   CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
   CLOUDINARY_API_KEY: z.string().min(1).optional(),
   CLOUDINARY_API_SECRET: z.string().min(1).optional(),
+  REDIS_URL: z.string().url().default("redis://localhost:6379"),
   OPENAI_API_KEY: z.string().min(1),
 });
 

@@ -9,6 +9,9 @@ router.use(requireAuth);
 
 router.get('/scan/:barcode', asyncHandler(controller.scanProduct));
 router.post('/batches', asyncHandler(controller.addBatch));
+router.patch('/batches/:batchId', asyncHandler(controller.updateBatch));
+router.post('/batches/:batchId/adjust-quantity', asyncHandler(controller.adjustQuantity));
+router.delete('/batches/:batchId', asyncHandler(controller.deleteBatch));
 router.get('/overview', asyncHandler(controller.getInventoryOverview));
 router.get('/batches/:productId', asyncHandler(controller.getProductBatches));
 

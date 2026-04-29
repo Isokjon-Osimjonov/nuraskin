@@ -31,9 +31,13 @@ export const orders = pgTable('orders', {
   status: varchar('status', { length: 25 }).notNull().default('DRAFT'),
   subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(bigintZero),
   cargoFee: bigint('cargo_fee', { mode: 'bigint' }).notNull().default(bigintZero),
+  cargoCostKrw: bigint('cargo_cost_krw', { mode: 'bigint' }).notNull().default(bigintZero),
   totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(bigintZero),
   currency: varchar('currency', { length: 3 }).notNull(),
   totalWeightGrams: integer('total_weight_grams').notNull().default(0),
+  couponId: uuid('coupon_id'),
+  couponCode: varchar('coupon_code', { length: 50 }),
+  discountAmount: bigint('discount_amount', { mode: 'bigint' }).notNull().default(bigintZero),
   rateSnapshotId: uuid('rate_snapshot_id').references(() => exchangeRateSnapshots.id, {
     onDelete: 'set null',
   }),
@@ -74,8 +78,10 @@ export const orderItems = pgTable('order_items', {
     .references(() => products.id, { onDelete: 'restrict' }),
   batchId: uuid('batch_id').references(() => inventoryBatches.id, { onDelete: 'set null' }),
   quantity: integer('quantity').notNull(),
+  costAtSaleKrw: bigint('cost_at_sale_krw', { mode: 'bigint' }),
   unitPriceSnapshot: bigint('unit_price_snapshot', { mode: 'bigint' }).notNull(),
   subtotalSnapshot: bigint('subtotal_snapshot', { mode: 'bigint' }).notNull(),
+  cargoFeeSnapshot: bigint('cargo_fee_snapshot', { mode: 'bigint' }).notNull().default(bigintZero),
   currencySnapshot: varchar('currency_snapshot', { length: 3 }).notNull(),
   isScanned: boolean('is_scanned').notNull().default(false),
   scannedAt: timestamp('scanned_at', { withTimezone: true }),
@@ -103,10 +109,32 @@ export const orderStatusHistory = pgTable('order_status_history', {
   createdAtIdx: index('order_status_history_created_at_idx').on(t.createdAt),
 }));
 
+export const orderExpenses = pgTable('order_expenses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orderId: uuid('order_id')
+    .notNull()
+    .references(() => orders.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  amountKrw: bigint('amount_krw', { mode: 'bigint' }).notNull(),
+  note: text('note'),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  isAuto: boolean('is_auto').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  orderIdIdx: index('idx_order_expenses_order_id').on(t.orderId),
+  createdAtIdx: index('idx_order_expenses_created_at').on(t.createdAt),
+}));
+
+import { coupons } from './coupons';
+
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   customer: one(customers, {
     fields: [orders.customerId],
     references: [customers.id],
+  }),
+  coupon: one(coupons, {
+    fields: [orders.couponId],
+    references: [coupons.id],
   }),
   rateSnapshot: one(exchangeRateSnapshots, {
     fields: [orders.rateSnapshotId],
@@ -114,6 +142,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
   items: many(orderItems),
   statusHistory: many(orderStatusHistory),
+  expenses: many(orderExpenses),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -135,6 +164,17 @@ export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one 
   order: one(orders, {
     fields: [orderStatusHistory.orderId],
     references: [orders.id],
+  }),
+}));
+
+export const orderExpensesRelations = relations(orderExpenses, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderExpenses.orderId],
+    references: [orders.id],
+  }),
+  createdByUser: one(users, {
+    fields: [orderExpenses.createdBy],
+    references: [users.id],
   }),
 }));
 

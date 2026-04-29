@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
-import { getMyOrders, submitReceipt } from '@/api/orders';
-import type { ApiOrder } from '@/api/orders';
+import { getMyOrders, uploadReceipt } from '@/api/orders';
+import { formatUzs, formatKrw } from '@/lib/utils';
+import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
   ArrowLeft, Package, Truck, CheckCircle2, Clock, CreditCard,
   XCircle, AlertCircle, Send, Loader2, Camera,
@@ -14,22 +15,56 @@ export const Route = createFileRoute('/_protected/orders')({
 });
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Package }> = {
-  pending_payment: { label: 'To\'lov kutilmoqda', color: 'text-amber-600 bg-amber-50', icon: CreditCard },
-  payment_submitted: { label: 'Chek yuborildi', color: 'text-blue-600 bg-blue-50', icon: Send },
-  payment_confirmed: { label: 'To\'lov tasdiqlandi', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
-  payment_rejected: { label: 'To\'lov rad etildi', color: 'text-red-600 bg-red-50', icon: XCircle },
-  pending: { label: 'Kutilmoqda', color: 'text-amber-600 bg-amber-50', icon: Clock },
-  confirmed: { label: 'Tasdiqlandi', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
-  processing: { label: 'Tayyorlanmoqda', color: 'text-blue-600 bg-blue-50', icon: Package },
-  shipped: { label: 'Yo\'lda', color: 'text-purple-600 bg-purple-50', icon: Truck },
-  delivered: { label: 'Yetkazilgan', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
-  cancelled: { label: 'Bekor qilindi', color: 'text-stone-500 bg-stone-100', icon: XCircle },
+  PENDING_PAYMENT: { label: 'To\'lov kutilmoqda', color: 'text-amber-600 bg-amber-50', icon: CreditCard },
+  PAID: { label: 'To\'lov tasdiqlandi', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
+  PACKING: { label: 'Tayyorlanmoqda', color: 'text-blue-600 bg-blue-50', icon: Package },
+  SHIPPED: { label: 'Yo\'lda', color: 'text-purple-600 bg-purple-50', icon: Truck },
+  DELIVERED: { label: 'Yetkazilgan', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
+  CANCELED: { label: 'Bekor qilindi', color: 'text-stone-500 bg-stone-100', icon: XCircle },
 };
 
-const formatPrice = (price: number) => price.toLocaleString('uz-UZ') + ' so\'m';
+const formatPrice = (price: number | string, currency: string) => {
+  if (currency === 'KRW') return formatKrw(price);
+  return formatUzs(price);
+};
 
-function OrderCard({ order }: { order: ApiOrder }) {
-  const cfg = statusConfig[order.orderStatus] || statusConfig.pending;
+function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const expiry = new Date(expiresAt).getTime();
+      const now = new Date().getTime();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setTimeLeft('Muddat tugadi');
+        setIsExpired(true);
+        clearInterval(interval);
+        return;
+      }
+
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(`${mins} daqiqa ${secs.toString().padStart(2, '0')} soniya`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (!timeLeft) return null;
+
+  return (
+    <span className={`text-[11px] font-medium flex items-center gap-1 ${isExpired ? 'text-red-500' : 'text-amber-600'}`}>
+      <Clock className="w-3 h-3" />
+      {timeLeft}
+    </span>
+  );
+}
+
+function OrderCard({ order }: { order: StorefrontOrderResponse }) {
+  const cfg = statusConfig[order.status] || statusConfig.PENDING_PAYMENT;
   const StatusIcon = cfg.icon;
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -38,7 +73,8 @@ function OrderCard({ order }: { order: ApiOrder }) {
   const [error, setError] = useState('');
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const needsReceipt = order.orderStatus === 'pending_payment' || order.orderStatus === 'payment_rejected';
+  const isExpired = order.paymentExpiresAt ? new Date(order.paymentExpiresAt) < new Date() : false;
+  const needsReceipt = order.status === 'PENDING_PAYMENT' && !order.paymentReceiptUrl && !order.paymentSubmittedAt && !isExpired;
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -62,7 +98,10 @@ function OrderCard({ order }: { order: ApiOrder }) {
     if (!selectedFile) return;
     setUploading(true);
     try {
-      await submitReceipt(order._id, selectedFile);
+      const base64Data = preview?.split(',')[1];
+      if (!base64Data) throw new Error('Rasm formati noto\'g\'ri');
+
+      await uploadReceipt(order.id, base64Data, selectedFile.type);
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
     } catch {
       setError('Chek yuborishda xatolik. Qayta urinib ko\'ring.');
@@ -72,39 +111,48 @@ function OrderCard({ order }: { order: ApiOrder }) {
   }
 
   return (
-    <div className="bg-[#f8f7f5] rounded-2xl p-6">
+    <div className="bg-[#f8f7f5] rounded-2xl p-6 shadow-sm border border-stone-100">
       {/* Order header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[14px] font-normal text-stone-800">{order.shortId || order.orderNumber}</p>
+          <p className="text-[14px] font-medium text-stone-800">{order.orderNumber}</p>
           <p className="text-[12px] font-light text-stone-400">
             {new Date(order.createdAt).toLocaleDateString('uz-UZ')}
           </p>
         </div>
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-normal ${cfg.color}`}>
-          <StatusIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
-          {cfg.label}
-        </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-normal ${cfg.color}`}>
+            <StatusIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
+            {cfg.label}
+          </span>
+          {order.status === 'PENDING_PAYMENT' && order.paymentExpiresAt && (
+            <PaymentCountdown expiresAt={order.paymentExpiresAt} />
+          )}
+        </div>
       </div>
 
       {/* Items */}
       <div className="space-y-2 mb-4">
-        {order.items.map((item, idx) => (
+        {order.items?.map((item: any, idx: number) => (
           <div key={idx} className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-stone-200 flex items-center justify-center shrink-0">
-              <Package className="w-4 h-4 text-stone-400" strokeWidth={1.5} />
+            <div className="w-10 h-10 rounded-lg bg-stone-200 flex items-center justify-center shrink-0 overflow-hidden border border-stone-100">
+              {item.imageUrls?.[0] ? (
+                <img src={item.imageUrls[0]} alt={item.productName} className="w-full h-full object-cover" />
+              ) : (
+                <Package className="w-4 h-4 text-stone-400" strokeWidth={1.5} />
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-normal text-stone-700 truncate">{item.name}</p>
+              <p className="text-[13px] font-normal text-stone-700 truncate">{item.productName}</p>
               <p className="text-[12px] font-light text-stone-400">
-                {item.quantity} dona × {formatPrice(item.price)}
+                {item.quantity} dona × {formatPrice(item.unitPrice, item.currency)}
               </p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Receipt upload for pending_payment / payment_rejected */}
+      {/* Receipt upload for pending_payment */}
       {needsReceipt && (
         <div className="mb-4">
           {preview ? (
@@ -146,7 +194,7 @@ function OrderCard({ order }: { order: ApiOrder }) {
               className="w-full flex items-center justify-center gap-2 bg-[#4A1525] text-white text-[12px] font-normal py-3 rounded-xl hover:bg-[#3a1020] transition-colors disabled:opacity-40"
             >
               <Camera className="w-4 h-4" strokeWidth={1.5} />
-              {order.orderStatus === 'payment_rejected' ? 'Chekni qayta yuborish' : 'To\'lov chekini yuborish'}
+              To'lov chekini yuborish
             </button>
           )}
           <input
@@ -167,46 +215,29 @@ function OrderCard({ order }: { order: ApiOrder }) {
       )}
 
       {/* Payment submitted — waiting for review */}
-      {order.orderStatus === 'payment_submitted' && (
+      {(order.paymentReceiptUrl || order.paymentSubmittedAt) && order.status === 'PENDING_PAYMENT' && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 flex items-center gap-2">
           <Clock className="w-4 h-4 text-blue-500 shrink-0" strokeWidth={1.5} />
-          <p className="text-[12px] text-blue-700">Chekingiz tekshirilmoqda. Tez orada tasdiqlanadi.</p>
+          <p className="text-[12px] text-blue-700">Chek yuborildi. Admin tasdiqlashini kuting.</p>
         </div>
       )}
 
-      {/* Payment rejection */}
-      {order.orderStatus === 'payment_rejected' && order.payment?.rejectionReason && (
+      {/* Payment rejection info */}
+      {order.paymentNote && order.status === 'PENDING_PAYMENT' && (
         <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-4 flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" strokeWidth={1.5} />
-          <p className="text-[12px] text-red-600">{order.payment.rejectionReason}</p>
-        </div>
-      )}
-
-      {/* Tracking */}
-      {order.trackingNumber && (
-        <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 mb-4 flex items-center gap-2">
-          <Truck className="w-4 h-4 text-purple-500 shrink-0" strokeWidth={1.5} />
-          <p className="text-[12px] text-purple-700">
-            Trek raqam: <span className="font-mono font-normal">{order.trackingNumber}</span>
-          </p>
+          <p className="text-[12px] text-red-600">{order.paymentNote}</p>
         </div>
       )}
 
       {/* Footer */}
       <div className="border-t border-stone-200 pt-3 flex items-center justify-between">
-        <p className="text-[12px] font-light text-stone-400 truncate max-w-[55%]">
-          {order.shippingAddress.city}, {order.shippingAddress.address}
+        <p className="text-[14px] font-medium text-[#4A1525]">
+          {formatPrice(order.totalAmount, order.currency)}
         </p>
-        <div className="text-right">
-          {order.discountAmount > 0 && (
-            <p className="text-[11px] text-stone-400 line-through">
-              {formatPrice(order.totalAmount)}
-            </p>
-          )}
-          <p className="text-[14px] font-normal text-[#4A1525]">
-            {formatPrice(order.finalAmount || order.totalAmount)}
-          </p>
-        </div>
+        {order.cargoFee && Number(order.cargoFee) > 0 && (
+           <p className="text-[10px] text-stone-400">Yetkazib berish bilan</p>
+        )}
       </div>
     </div>
   );
@@ -216,7 +247,7 @@ function Orders() {
   const { isAuthenticated, token } = useAppStore();
   const navigate = useNavigate();
 
-  const { data, isLoading } = useQuery({
+  const { data: orders = [], isLoading } = useQuery({
     queryKey: ['my-orders'],
     queryFn: getMyOrders,
     enabled: !!token,
@@ -228,7 +259,7 @@ function Orders() {
 
   if (!isAuthenticated) return null;
 
-  const orders = data?.data || [];
+  const ordersList = Array.isArray(orders) ? orders : [];
 
   return (
     <div className="min-h-[80vh] py-12 px-6 bg-white">
@@ -245,7 +276,7 @@ function Orders() {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-[#4A1525] animate-spin" strokeWidth={1.5} />
           </div>
-        ) : orders.length === 0 ? (
+        ) : ordersList.length === 0 ? (
           <div className="bg-[#f8f7f5] rounded-2xl p-12 text-center">
             <Package className="w-12 h-12 text-stone-300 mx-auto mb-4" strokeWidth={1.2} />
             <p className="text-[14px] font-light text-stone-500">Hali buyurtmalar yo'q</p>
@@ -255,8 +286,8 @@ function Orders() {
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
-              <OrderCard key={order._id} order={order} />
+            {ordersList.map((order) => (
+              <OrderCard key={order.id} order={order} />
             ))}
           </div>
         )}

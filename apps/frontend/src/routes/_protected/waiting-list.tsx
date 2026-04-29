@@ -2,16 +2,19 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Bell, ChevronRight, Trash2, ShoppingBag } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlist, useToggleWaitlist } from '@/hooks/useWaitlist';
+import { useAddToCart } from '@/hooks/useCart';
+import { formatUzs, formatKrw } from '@/lib/utils';
 
 export const Route = createFileRoute('/_protected/waiting-list')({
   component: WaitingListPage,
 });
 
 function WaitingListPage() {
-  const { isAuthenticated, addToCart } = useAppStore();
+  const { isAuthenticated, regionCode } = useAppStore();
   const navigate = useNavigate();
-  const { data, isLoading } = useMyWaitlist();
+  const { data: entries = [], isLoading } = useMyWaitlist();
   const { remove } = useToggleWaitlist();
+  const addToCart = useAddToCart();
 
   if (!isAuthenticated) {
     return (
@@ -29,7 +32,10 @@ function WaitingListPage() {
     );
   }
 
-  const entries = data?.data ?? [];
+  const formatPrice = (price: number | string) => {
+    if (regionCode === 'KOR') return formatKrw(price);
+    return formatUzs(Number(price) * 100); // utils.ts formatUzs divides by 100
+  };
 
   return (
     <div className="bg-white min-h-screen py-10">
@@ -50,15 +56,9 @@ function WaitingListPage() {
         </div>
 
         {isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-[#f8f7f5] rounded-2xl overflow-hidden animate-pulse">
-                <div className="aspect-square bg-stone-200" />
-                <div className="p-4 space-y-2">
-                  <div className="h-4 bg-stone-200 rounded w-3/4" />
-                  <div className="h-3 bg-stone-200 rounded w-1/2" />
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-24 bg-[#f8f7f5] rounded-xl animate-pulse" />
             ))}
           </div>
         )}
@@ -84,84 +84,67 @@ function WaitingListPage() {
             <p className="text-[13px] font-light text-stone-500 mb-6">
               Quyidagi mahsulotlar omborda paydo bo'lganda Telegram orqali xabardor qilinasiz.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {entries.map((entry: { _id: string; productId: Record<string, any> }) => {
-                const product = entry.productId;
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {entries.map((entry) => {
+                const product = entry.product;
                 const isAvailable = product.inStock;
-                const formatPrice = (p: number) =>
-                  new Intl.NumberFormat('uz-UZ').format(p) + ' so\'m';
 
                 return (
-                  <div key={entry._id} className="flex flex-col bg-[#f8f7f5] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-                    <Link to={`/products`} className="block relative aspect-square overflow-hidden">
+                  <div key={entry.id} className="flex gap-3 p-3 bg-white rounded-xl border border-stone-100 hover:border-stone-200 transition-colors shadow-sm">
+                    {/* Image: fixed small square */}
+                    <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-stone-100 p-1">
                       <img
-                        src={product.images[0] || ''}
+                        src={product.imageUrls?.[0] || ''}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
-                      {!isAvailable && (
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                          <span className="bg-white/90 text-red-600 text-[11px] font-normal px-3 py-1 rounded-full">
-                            Mavjud emas
-                          </span>
-                        </div>
-                      )}
-                      {isAvailable && (
-                        <div className="absolute top-3 left-3">
-                          <span className="bg-emerald-500 text-white text-[11px] font-normal px-3 py-1 rounded-full">
+                    </div>
+                    
+                    {/* Content: flex-1 */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] text-stone-400 uppercase tracking-tight truncate">{product.brand}</p>
+                        <Link to="/products/$slug" params={{ slug: product.slug }}>
+                          <p className="text-sm font-medium text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">{product.name}</p>
+                        </Link>
+                        <p className="text-sm font-semibold text-[#4A1525]">{formatPrice(product.currentPriceUZS)}</p>
+                      </div>
+                      
+                      {/* Status badge */}
+                      <div>
+                        {isAvailable ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                             Mavjud!
                           </span>
-                        </div>
-                      )}
-                    </Link>
-
-                    <div className="flex flex-col flex-1 p-4">
-                      {product.brand && (
-                        <span className="text-[11px] font-light text-stone-400 mb-1">{product.brand}</span>
-                      )}
-                      <Link to={`/products`}>
-                        <h3 className="text-[13px] font-normal text-[#4A1525] leading-snug mb-2 line-clamp-2 hover:opacity-80 transition-opacity">
-                          {product.name}
-                        </h3>
-                      </Link>
-                      <span className="text-[13px] font-normal text-[#4A1525] mb-4">
-                        {formatPrice(product.currentPriceUZS)}
-                      </span>
-
-                      <div className="flex items-center gap-2 mt-auto">
-                        {isAvailable ? (
-                          <button
-                            onClick={() =>
-                              addToCart({
-                                id: product._id,
-                                name: product.name,
-                                price: product.currentPriceUZS,
-                                image: product.images[0] || '',
-                                slug: product.slug,
-                                stock: product.totalStock,
-                              })
-                            }
-                            className="flex-1 h-9 bg-[#4A1525] text-white text-[12px] font-light rounded-full hover:bg-[#6B2540] transition-colors flex items-center justify-center gap-2"
-                          >
-                            <ShoppingBag className="w-3.5 h-3.5" />
-                            Savatchaga
-                          </button>
                         ) : (
-                          <div className="flex-1 flex items-center gap-2 h-9 bg-stone-100 rounded-full px-4">
-                            <Bell className="w-3.5 h-3.5 text-[#4A1525]" />
-                            <span className="text-[12px] font-light text-stone-600">Kutilmoqda</span>
-                          </div>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-stone-50 text-stone-500 border border-stone-100">
+                            Kutilmoqda
+                          </span>
                         )}
-
-                        <button
-                          onClick={() => remove.mutate(product._id)}
-                          disabled={remove.isPending}
-                          aria-label="O'chirish"
-                          className="w-9 h-9 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 hover:text-red-500 hover:border-red-200 transition-colors disabled:opacity-50"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
                       </div>
+                    </div>
+                    
+                    {/* Actions: right side */}
+                    <div className="flex flex-col gap-2 items-end justify-between">
+                      <button 
+                        onClick={() => remove.mutate(product.id)}
+                        disabled={remove.isPending}
+                        className="text-stone-300 hover:text-red-500 transition-colors"
+                        aria-label="O'chirish"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      
+                      {isAvailable && (
+                        <button 
+                          onClick={() => addToCart.mutate({ productId: product.id, quantity: 1 })}
+                          disabled={addToCart.isPending}
+                          className="h-8 px-3 bg-[#4A1525] text-white text-[11px] font-medium rounded-lg hover:bg-[#6B2540] transition-colors flex items-center gap-1.5"
+                        >
+                          <ShoppingBag className="w-3 h-3" />
+                          Savatchaga
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

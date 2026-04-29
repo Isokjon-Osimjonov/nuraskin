@@ -6,7 +6,6 @@ import { addBatchSchema, type AddBatchInput } from '@nuraskin/shared-types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { inventoryApi, type ScannedProduct } from '../api/inventory.api';
 import { toast } from 'sonner';
 
@@ -26,7 +25,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
       productId: product?.id || '',
       initialQty: undefined as any,
       costPrice: undefined as any,
-      costCurrency: 'USD',
+      costCurrency: 'KRW',
       batchRef: '',
       expiryDate: '',
       notes: '',
@@ -39,7 +38,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
         productId: product.id,
         initialQty: undefined as any,
         costPrice: undefined as any,
-        costCurrency: 'USD',
+        costCurrency: 'KRW',
         batchRef: '',
         expiryDate: '',
         notes: '',
@@ -51,11 +50,11 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
     setIsSubmitting(true);
     try {
       await inventoryApi.addBatch(data);
-      toast.success(`✓ ${data.initialQty} ta ${product?.name} qo'shildi`);
+      toast.success(`Partiya qo'shildi`);
       onSuccess();
       onOpenChange(false);
-    } catch (error) {
-      toast.error('Batch qo\'shishda xatolik yuz berdi');
+    } catch (error: any) {
+      toast.error(error.message || 'Xatolik yuz berdi');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,9 +95,9 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       name="costPrice"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Cost (Unit)</FormLabel>
+                          <FormLabel>Cost (Unit KRW)</FormLabel>
                           <FormControl>
-                            <Input type="number" step="0.01" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
+                            <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -106,28 +105,26 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      name="costCurrency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Currency</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="USD" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="USD">USD</SelectItem>
-                              <SelectItem value="UZS">UZS</SelectItem>
-                              <SelectItem value="KRW">KRW</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Calculated Total Cost Display */}
+                  {(() => {
+                    const quantity = form.watch('initialQty') || 0;
+                    const costPerUnit = form.watch('costPrice') || 0;
+                    const totalCost = quantity * costPerUnit;
+
+                    if (quantity > 0 && costPerUnit > 0) {
+                      return (
+                        <div className="bg-stone-50 border border-stone-100 rounded-lg p-3 text-sm flex items-center justify-between">
+                          <span className="text-stone-500">Jami tan narx:</span>
+                          <strong className="text-stone-900 font-mono text-base">
+                            {totalCost.toLocaleString()} ₩
+                          </strong>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
+                  <div className="grid grid-cols-1">
                     <FormField
                       name="expiryDate"
                       render={({ field }) => (

@@ -19,6 +19,7 @@ export const customers = pgTable('customers', {
   debtLimitOverride: bigint('debt_limit_override', { mode: 'bigint' }),
   notes: text('notes'),
   isActive: boolean('is_active').notNull().default(true),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({

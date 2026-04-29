@@ -9,6 +9,11 @@ import {
   WalletIcon,
   SendIcon,
   TicketIcon,
+  UsersIcon,
+  ShieldCheckIcon,
+  BarChartIcon,
+  RadioIcon,
+  MailIcon,
 } from "lucide-react"
 import { useAuthStore } from "@/stores/auth.store"
 import { useShallow } from "zustand/shallow"
@@ -44,12 +49,44 @@ const navMain = [
   {
     title: "Inventory",
     url: "/inventory",
-    icon: PackageIcon, // Or a different icon like Database/Boxes if available
+    icon: PackageIcon, 
   },
   {
     title: "Orders",
-    url: "/orders",
+    url: "/orders/",
     icon: ShoppingCartIcon,
+  },
+  {
+    title: "Customers",
+    url: "/customers",
+    icon: UsersIcon,
+  },
+  {
+    title: "Team",
+    url: "/settings/team",
+    icon: ShieldCheckIcon,
+  },
+  {
+    title: "Telegram",
+    url: "/telegram",
+    icon: SendIcon,
+    items: [
+      {
+        title: "Dashboard",
+        url: "/telegram",
+        icon: BarChartIcon,
+      },
+      {
+        title: "Channels",
+        url: "/telegram/channels",
+        icon: RadioIcon,
+      },
+      {
+        title: "New Post",
+        url: "/telegram/posts/new",
+        icon: MailIcon,
+      },
+    ],
   },
   {
     title: "Coupons",
@@ -67,20 +104,25 @@ const navMain = [
     icon: WalletIcon,
   },
   {
-    title: "Telegram",
-    url: "/telegram",
-    icon: SendIcon,
+    title: "Settings",
+    url: "/settings/",
+    icon: SettingsIcon,
   },
   {
-    title: "Settings",
-    url: "/settings",
-    icon: SettingsIcon,
+    title: "Exchange Rates",
+    url: "/settings/rates",
+    icon: TrendingUpIcon,
+  },
+  {
+    title: "Shipping Tiers",
+    url: "/settings/shipping-tiers",
+    icon: ShoppingCartIcon,
   },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore(useShallow((s) => ({
-    name: s.user?.name || "Admin",
+    name: (s.user as any)?.fullName || "Admin",
     email: s.user?.email || "admin@nuraskin.uz",
     avatar: "",
   })))

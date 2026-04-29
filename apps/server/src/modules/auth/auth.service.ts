@@ -11,7 +11,7 @@ const TELEGRAM_AUTH_MAX_AGE_SECONDS = 86_400; // 24 h
 
 export interface AuthTokenResponse {
   token: string;
-  user: { id: string; email: string; role: string };
+  user: { id: string; email: string; fullName: string; role: string };
 }
 
 export interface TelegramTokenResponse {
@@ -19,25 +19,29 @@ export interface TelegramTokenResponse {
   user: { id: string; telegramId: string; firstName: string };
 }
 
-export async function adminLogin({ input }: { input: LoginInput }): Promise<AuthTokenResponse> {
-  const user = await repository.findByEmail(input.email);
+export async function login(email: string, pass: string): Promise<AuthTokenResponse> {
+  const user = await repository.findByEmail(email);
   if (!user) {
     throw new UnauthorizedError('Invalid credentials');
   }
   if (!user.isActive) {
     throw new UnauthorizedError('Account is inactive');
   }
-  const valid = await bcryptjs.compare(input.password, user.passwordHash);
+  const valid = await bcryptjs.compare(pass, user.passwordHash);
   if (!valid) {
     throw new UnauthorizedError('Invalid credentials');
   }
   await repository.updateLastLogin(user.id);
   const token = jwt.sign(
-    { sub: user.id, email: user.email, role: user.role },
+    { sub: user.id, email: user.email, role: user.role, fullName: user.fullName },
     env.JWT_SECRET,
     { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] },
   );
-  return { token, user: { id: user.id, email: user.email, role: user.role } };
+  return { token, user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName } };
+}
+
+export async function adminLogin({ input }: { input: LoginInput }): Promise<AuthTokenResponse> {
+  return await login(input.email, input.password);
 }
 
 export async function telegramAuth({
@@ -67,7 +71,14 @@ export async function telegramAuth({
   }
 
   const token = jwt.sign(
-    { sub: tgUser.id, telegramId: tgUser.telegramId.toString(), role: 'customer' },
+    {
+      sub: tgUser.telegramId.toString(),
+      telegramId: tgUser.telegramId.toString(),
+      firstName: tgUser.firstName,
+      lastName: tgUser.lastName,
+      username: tgUser.username,
+      role: 'customer',
+    },
     env.JWT_SECRET,
     { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] },
   );

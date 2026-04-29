@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
-import { ShoppingBag, Menu, User } from 'lucide-react';
+import { ShoppingBag, Menu, User, Globe, ChevronDown, Check, Bell } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
+import { toast } from 'sonner';
+import { useCart, useClearCart } from '@/hooks/useCart';
+import { useMyWaitlist } from '@/hooks/useWaitlist';
 
 export interface NavbarProps {
   variant?: 'dark' | 'light';
@@ -15,10 +18,19 @@ const leftLinks = [
 const rightLinks = [{ label: 'Aloqa', to: '/contact' }];
 
 export function Navbar({ variant = 'light' }: NavbarProps) {
-  const { cart } = useAppStore();
+  const { regionCode, setRegion, isAuthenticated } = useAppStore();
+  const { data: cartData } = useCart();
+  const { data: waitlistData } = useMyWaitlist();
+  const clearCart = useClearCart();
+
+  const cart = cartData?.items ?? [];
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
+  
+  const waitlist = waitlistData ?? [];
+  const waitlistCount = waitlist.length;
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [regionOpen, setRegionOpen] = useState(false);
   const [anyScroll, setAnyScroll] = useState(false);   // first pixel of scroll
   const [pastHero, setPastHero] = useState(false);     // scrolled past hero section
 
@@ -33,6 +45,19 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
     window.addEventListener('scroll', check, { passive: true });
     return () => window.removeEventListener('scroll', check);
   }, [variant]);
+
+  const handleRegionSwitch = (newRegion: 'UZB' | 'KOR') => {
+    if (newRegion === regionCode) return;
+    
+    if (cart.length > 0) {
+      clearCart.mutate();
+      toast.warning("Mintaqa o'zgartirildi. Savat tozalandi.");
+    }
+    setRegion(newRegion);
+    setRegionOpen(false);
+  };
+
+  const currentRegionLabel = regionCode === 'KOR' ? '🇰🇷 Koreya' : '🇺🇿 O\'zbekiston';
 
   // ① At rest on hero      → fully transparent
   // ② Scrolling in hero    → glass
@@ -73,7 +98,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
         <nav className="relative max-w-[1280px] mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
 
           {/* Left — Mobile: Hamburger | Desktop: Links */}
-          <div className="flex flex-1 items-center">
+          <div className="flex flex-1 items-center gap-6">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Menyu"
@@ -104,8 +129,37 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             NURASKIN
           </Link>
 
-          {/* Right — contact + cart */}
+          {/* Right — contact + region + cart */}
           <div className="flex items-center justify-end gap-3 md:gap-6 flex-1">
+            <div className="hidden lg:relative lg:block">
+               <button 
+                onClick={() => setRegionOpen(!regionOpen)}
+                className={`flex items-center gap-1 ${linkBase} border-none bg-transparent cursor-pointer`}
+               >
+                 <span>{currentRegionLabel}</span>
+                 <ChevronDown className={`h-3 w-3 transition-transform ${regionOpen ? 'rotate-180' : ''}`} />
+               </button>
+               
+               {regionOpen && (
+                 <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-stone-100 rounded-xl shadow-xl p-1 z-50 animate-in fade-in slide-in-from-top-1">
+                    <button 
+                      onClick={() => handleRegionSwitch('UZB')}
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-stone-50 rounded-lg transition-colors"
+                    >
+                      <span className="flex items-center gap-2">🇺🇿 O'zbekiston</span>
+                      {regionCode === 'UZB' && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                    <button 
+                      onClick={() => handleRegionSwitch('KOR')}
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-stone-50 rounded-lg transition-colors"
+                    >
+                      <span className="flex items-center gap-2">🇰🇷 Koreya</span>
+                      {regionCode === 'KOR' && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                 </div>
+               )}
+            </div>
+
             {rightLinks.map((link) => (
               <Link
                 key={link.to}
@@ -134,9 +188,14 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             <Link
               to="/profile"
               aria-label="Profil"
-              className={`flex items-center justify-center rounded-full size-8 transition-all duration-200 ${cartStyle}`}
+              className={`flex items-center justify-center rounded-full size-8 transition-all duration-200 relative ${cartStyle}`}
             >
               <User className="size-4 md:size-4" />
+              {isAuthenticated && waitlistCount > 0 && (
+                 <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[8px] size-3.5 rounded-full flex items-center justify-center border border-white">
+                   {waitlistCount}
+                 </span>
+              )}
             </Link>
           </div>
         </nav>
@@ -148,6 +207,24 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
           } ${!isDarkMode && menuOpen ? 'border-b border-stone-100' : ''}`}
         >
           <div className="px-6 py-6 flex flex-col gap-1">
+            <div className="px-4 py-2 mb-2 flex flex-col gap-2">
+               <p className="text-[10px] uppercase tracking-widest text-stone-400 font-medium">Mintaqa</p>
+               <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleRegionSwitch('UZB')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${regionCode === 'UZB' ? 'bg-[#4A1525] text-white' : 'bg-stone-50 text-stone-600 border border-stone-100'}`}
+                  >
+                    🇺🇿 UZ
+                  </button>
+                  <button 
+                    onClick={() => handleRegionSwitch('KOR')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${regionCode === 'KOR' ? 'bg-[#4A1525] text-white' : 'bg-stone-50 text-stone-600 border border-stone-100'}`}
+                  >
+                    🇰🇷 KR
+                  </button>
+               </div>
+            </div>
+
             {[...leftLinks, ...rightLinks].map((link) => (
               <Link
                 key={link.to}
@@ -171,10 +248,13 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
         </div>
       </header>
 
-      {menuOpen && (
+      {(menuOpen || regionOpen) && (
         <div
-          className="fixed inset-0 z-40 md:hidden"
-          onClick={() => setMenuOpen(false)}
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setMenuOpen(false);
+            setRegionOpen(false);
+          }}
         />
       )}
     </>

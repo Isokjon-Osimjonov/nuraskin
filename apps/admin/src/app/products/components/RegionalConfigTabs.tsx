@@ -2,15 +2,14 @@ import * as React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export type RegionalConfig = {
   regionCode: 'UZB' | 'KOR';
-  retailPrice: number | undefined;
-  wholesalePrice: number | undefined;
-  currency: string;
-  minWholesaleQty: number | undefined;
-  minOrderQty: number | undefined;
+  retailPrice?: number | undefined;
+  wholesalePrice?: number | undefined;
+  currency?: string | undefined;
+  minWholesaleQty?: number | undefined;
+  minOrderQty?: number | undefined;
 };
 
 interface RegionalConfigTabsProps {
@@ -23,17 +22,18 @@ const REGIONS = [
   { code: 'KOR' as const, label: 'Koreya', flag: '🇰🇷' },
 ];
 
-const CURRENCIES = ['USD', 'UZS', 'KRW'] as const;
-
 export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProps) {
   const [activeTab, setActiveTab] = React.useState(0);
-  const { setValue } = useFormContext();
 
   const currentConfig = configs[activeTab]!;
 
   const handleChange = (field: keyof RegionalConfig, value: string | number | undefined) => {
     const updated = [...configs] as RegionalConfig[];
     (updated[activeTab] as Record<string, unknown>)[field as string] = value;
+    
+    // Always force currency to KRW in state
+    updated[activeTab].currency = 'KRW';
+    
     onChange(updated);
   };
 
@@ -56,41 +56,24 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
         ))}
       </div>
       <div className="pt-4 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <FormLabel>Retail Price</FormLabel>
+            <FormLabel>Retail Price (KRW)</FormLabel>
             <Input
               type="number"
-              step="0.01"
-              placeholder="0.00"
+              placeholder="0"
               value={currentConfig.retailPrice ?? ''}
-              onChange={(e) => handleChange('retailPrice', e.target.value === '' ? undefined : parseFloat(e.target.value))}
+              onChange={(e) => handleChange('retailPrice', e.target.value === '' ? undefined : parseInt(e.target.value))}
             />
+            <p className="text-[10px] text-muted-foreground mt-1">Ushbu narx asosida UZB uchun UZS hisoblanadi</p>
           </div>
           <div>
-            <FormLabel>Currency</FormLabel>
-            <Select
-              value={currentConfig.currency}
-              onValueChange={(v) => handleChange('currency', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="USD" />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <FormLabel>Wholesale Price</FormLabel>
+            <FormLabel>Wholesale Price (KRW)</FormLabel>
             <Input
               type="number"
-              step="0.01"
-              placeholder="0.00"
+              placeholder="0"
               value={currentConfig.wholesalePrice ?? ''}
-              onChange={(e) => handleChange('wholesalePrice', e.target.value === '' ? undefined : parseFloat(e.target.value))}
+              onChange={(e) => handleChange('wholesalePrice', e.target.value === '' ? undefined : parseInt(e.target.value))}
             />
           </div>
           <div>

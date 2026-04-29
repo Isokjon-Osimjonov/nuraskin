@@ -21,7 +21,7 @@ export const productRegionalConfigs = pgTable('product_regional_configs', {
   regionCode: varchar('region_code', { length: 5 }).notNull(),
   retailPrice: bigint('retail_price', { mode: 'bigint' }).notNull(),
   wholesalePrice: bigint('wholesale_price', { mode: 'bigint' }).notNull(),
-  currency: varchar('currency', { length: 3 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('KRW'),
   minWholesaleQty: integer('min_wholesale_qty').notNull().default(5),
   minOrderQty: integer('min_order_qty').notNull().default(1),
   isAvailable: boolean('is_available').notNull().default(true),
@@ -39,7 +39,7 @@ export const productRegionalConfigs = pgTable('product_regional_configs', {
   ),
   currencyCheck: check(
     'product_regional_configs_currency_check',
-    sql`${t.currency} IN ('USD', 'UZS', 'KRW')`,
+    sql`${t.currency} IN ('UZS', 'KRW')`,
   ),
 }));
 

@@ -2,6 +2,8 @@ import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Navbar } from '@/components/shared/Navbar';
 import { Footer } from '@/components/shared/Footer';
+import { RegionSelectionModal } from '@/components/shared/RegionSelectionModal';
+import { Toaster } from 'sonner';
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ function RootLayout() {
         </main>
         {!isLogin && <Footer />}
       </div>
+      <RegionSelectionModal />
+      <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
 }

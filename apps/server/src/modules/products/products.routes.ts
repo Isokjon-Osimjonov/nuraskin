@@ -17,5 +17,6 @@ router.get('/:id', asyncHandler(ctrl.get));
 router.get('/barcode/:barcode', asyncHandler(ctrl.getByBarcode));
 router.post('/', requireAuth, limiter, asyncHandler(ctrl.create));
 router.patch('/:id', requireAuth, limiter, asyncHandler(ctrl.update));
+router.patch('/:id/restore', requireAuth, asyncHandler(ctrl.restore));
 router.patch('/:id/regional-config/:region', requireAuth, asyncHandler(ctrl.updateRegionalConfig));
 router.delete('/:id', requireAuth, asyncHandler(ctrl.remove));

@@ -31,6 +31,29 @@ export const stockMovementSchema = z.object({
 
 export type StockMovementInput = z.infer<typeof stockMovementSchema>;
 
+export const updateBatchSchema = z.object({
+  batch_ref: z.string().optional(),
+  initial_qty: z.coerce.number().int().positive().optional(),
+  cost_price_krw: z.coerce.number().int().positive().optional(),
+  expiry_date: z.string().optional().refine((val) => !val || !isNaN(Date.parse(val)), {
+    message: 'Invalid date format',
+  }),
+  received_at: z.string().optional().refine((val) => !val || !isNaN(Date.parse(val)), {
+    message: 'Invalid date format',
+  }),
+});
+
+export type UpdateBatchInput = z.infer<typeof updateBatchSchema>;
+
+export const adjustQuantitySchema = z.object({
+  adjustment: z.coerce.number().int().refine((val) => val !== 0, {
+    message: 'Adjustment must be non-zero',
+  }),
+  reason: z.string().min(5),
+});
+
+export type AdjustQuantityInput = z.infer<typeof adjustQuantitySchema>;
+
 export interface InventoryBatchResponse {
   id: string;
   productId: string;

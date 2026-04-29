@@ -32,10 +32,10 @@ function CategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       handleClose();
-      toast.success('Category created successfully');
+      toast.success('Kategoriya yaratildi');
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create category');
+      toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
 
@@ -44,10 +44,10 @@ function CategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       handleClose();
-      toast.success('Category updated successfully');
+      toast.success('Kategoriya yangilandi');
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to update category');
+      toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
 
@@ -55,11 +55,11 @@ function CategoriesPage() {
     mutationFn: categoriesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category deleted successfully');
+      toast.success('Kategoriya o\'chirildi');
       setCategoryToDelete(undefined);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete category');
+      toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
 

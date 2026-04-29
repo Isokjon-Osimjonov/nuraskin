@@ -1,23 +1,28 @@
 import { useState, useMemo } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Search, SlidersHorizontal, X, ShoppingBag, Heart, Bell } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ShoppingBag, Heart, Bell, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
+import { formatUzs, formatKrw } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useCart, useAddToCart } from '@/hooks/useCart';
 
 export const Route = createFileRoute('/products/')({
   component: CategoryPage,
 });
 
 function CategoryPage() {
-  const { cart, addToCart, favorites, toggleFavorite, isAuthenticated } = useAppStore();
-  const { data: waitlistIds } = useMyWaitlistIds();
+  const { favorites, toggleFavorite, isAuthenticated, regionCode } = useAppStore();
+  const { data: waitlistIds = [] } = useMyWaitlistIds();
   const { add: addWaitlist, remove: removeWaitlist } = useToggleWaitlist();
   const navigate = useNavigate();
+  
+  const { data: cartData } = useCart();
+  const addToCart = useAddToCart();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<'arzon' | 'qimmat' | 'yangi'>('yangi');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -27,8 +32,8 @@ function CategoryPage() {
 
   const sortMap: Record<string, string> = {
     yangi: '-createdAt',
-    arzon: 'currentPriceUZS',
-    qimmat: '-currentPriceUZS',
+    arzon: 'calculatedPrice',
+    qimmat: '-calculatedPrice',
   };
 
   const { data: productsData, isLoading } = useProducts({
@@ -39,37 +44,24 @@ function CategoryPage() {
 
   const allProducts = productsData?.data ?? [];
 
-  // Extract unique brands and skin types from loaded products for filter options
+  // Extract unique brands from loaded products for filter options
   const availableBrands = useMemo(() => {
     const brands = new Set<string>();
-    allProducts.forEach((p) => { if (p.brand) brands.add(p.brand); });
+    allProducts.forEach((p) => { if (p.brandName) brands.add(p.brandName); });
     return Array.from(brands).sort();
   }, [allProducts]);
 
-  const availableSkinTypes = useMemo(() => {
-    const types = new Set<string>();
-    allProducts.forEach((p) => p.skinTypes?.forEach((t) => types.add(t)));
-    return Array.from(types).sort();
-  }, [allProducts]);
-
-  // Client-side filtering for skin types and brands
+  // Client-side filtering for brands
   const filteredProducts = useMemo(() => {
     return allProducts.filter((product) => {
-      if (selectedSkinTypes.length > 0) {
-        const matches = selectedSkinTypes.some((type) => product.skinTypes?.includes(type));
-        if (!matches) return false;
-      }
-      if (selectedBrands.length > 0 && (!product.brand || !selectedBrands.includes(product.brand))) return false;
+      if (selectedBrands.length > 0 && (!product.brandName || !selectedBrands.includes(product.brandName))) return false;
       return true;
     });
-  }, [allProducts, selectedSkinTypes, selectedBrands]);
+  }, [allProducts, selectedBrands]);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
-  };
-
-  const toggleSkinType = (type: string) => {
-    setSelectedSkinTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]);
+  const displayPrice = (val: string) => {
+    if (regionCode === 'KOR') return formatKrw(val);
+    return formatUzs(val);
   };
 
   const toggleBrand = (brand: string) => {
@@ -90,7 +82,7 @@ function CategoryPage() {
           >
             Barchasi
           </Link>
-          {categories.filter((c) => c.isActive).map((cat) => (
+          {categories.filter((c: any) => c.isActive).map((cat: any) => (
             <Link
               key={cat.id}
               to="/products"
@@ -102,27 +94,6 @@ function CategoryPage() {
           ))}
         </div>
       </div>
-
-      {availableSkinTypes.length > 0 && (
-        <div>
-          <h3 className="text-[14px] font-light text-[#4A1525] mb-4">Teri turi</h3>
-          <div className="space-y-2">
-            {availableSkinTypes.map((type) => (
-              <label key={type} className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={selectedSkinTypes.includes(type)}
-                  onChange={() => toggleSkinType(type)}
-                  className="rounded border-stone-300 text-[#4A1525] focus:ring-inset focus:ring-[#4A1525] h-4 w-4 accent-[#4A1525]"
-                />
-                <span className="text-[13px] font-light text-stone-500 group-hover:text-stone-700 transition-colors">
-                  {type}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
 
       {availableBrands.length > 0 && (
         <div>
@@ -206,7 +177,7 @@ function CategoryPage() {
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-[#f8f7f5] rounded-2xl overflow-hidden animate-pulse">
-                  <div className="aspect-square bg-stone-200" />
+                  <div className="h-[200px] bg-stone-200" />
                   <div className="p-4 space-y-2">
                     <div className="h-4 bg-stone-200 rounded w-3/4" />
                     <div className="h-3 bg-stone-200 rounded w-1/2" />
@@ -221,24 +192,25 @@ function CategoryPage() {
           {!isLoading && (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
               {filteredProducts.map((product) => {
-                const isOnWaitlist = waitlistIds?.data?.includes(product._id) ?? false;
-                const isInCart = cart.some((i) => i.product.id === product._id);
+                const isOnWaitlist = waitlistIds.includes(product.id);
+                const isInCart = cartData?.items?.some((i: any) => i.productId === product.id);
                 return (
-                <div key={product._id} className="group flex flex-col bg-[#f8f7f5] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-                  <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative aspect-[4/3] overflow-hidden">
+                <div key={product.id} className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition-all duration-300">
+                  <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative h-[200px] w-full overflow-hidden bg-stone-100 p-2">
                     <img
-                      src={product.images[0] || ''}
+                      src={product.imageUrls[0] || ''}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                     />
-                    {product.brand && (
-                      <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-[11px] text-[#4A1525] font-light">
-                        {product.brand}
+                    
+                    {product.availableStock === 0 && (
+                      <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center backdrop-blur-[2px] transition-all duration-500">
+                        <span className="text-white text-[10px] font-bold tracking-widest uppercase">Tez orada keladi</span>
                       </div>
                     )}
-                    {!product.inStock && (
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                        <span className="bg-white/90 text-red-600 text-[11px] font-medium px-3 py-1 rounded-full">Mavjud emas</span>
+                    {product.showStockCount && product.availableStock > 0 && product.availableStock <= 5 && (
+                      <div className="absolute bottom-3 left-3 bg-orange-500/90 text-white px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                        Faqat {product.availableStock} ta
                       </div>
                     )}
                     <button
@@ -247,16 +219,21 @@ function CategoryPage() {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleFavorite({
-                          id: product._id,
+                          id: product.id,
                           name: product.name,
-                          price: product.currentPriceUZS,
-                          image: product.images[0] || '',
+                          price: product.calculatedPrice,
+                          image: product.imageUrls[0] || '',
                           slug: product.slug,
-                          stock: product.totalStock,
+                          stock: product.availableStock,
+                          availableStock: product.availableStock,
+                          showStockCount: product.showStockCount,
+                          currency: product.currency,
+                          wholesalePrice: product.wholesalePrice,
+                          minWholesaleQty: product.minWholesaleQty,
                         });
                       }}
                       className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-colors ${
-                        favorites.some((p) => p.id === product._id)
+                        favorites.some((p) => p.id === product.id)
                           ? 'text-[#4A1525]'
                           : 'text-stone-400 hover:text-[#4A1525]'
                       }`}
@@ -264,53 +241,63 @@ function CategoryPage() {
                       <Heart
                         className="w-4 h-4"
                         strokeWidth={1.5}
-                        fill={favorites.some((p) => p.id === product._id) ? 'currentColor' : 'none'}
+                        fill={favorites.some((p) => p.id === product.id) ? 'currentColor' : 'none'}
                       />
                     </button>
                   </Link>
-                  <div className="flex flex-col flex-1 p-3 pt-2">
+
+                  <div className="flex flex-col flex-1 p-3">
+                    <div className="flex flex-col mb-2">
+                       <span className="text-[10px] text-stone-400 uppercase tracking-tight">{product.categoryName}</span>
+                       {product.brandName && (
+                        <span className="text-[10px] text-stone-400 font-light">{product.brandName}</span>
+                       )}
+                    </div>
+                    
                     <Link to="/products/$slug" params={{ slug: product.slug }}>
-                      <h3 className="text-[12px] font-light text-[#4A1525] leading-snug mb-1 group-hover:opacity-80 transition-opacity line-clamp-2">
+                      <h3 className="text-sm font-medium text-[#4A1525] leading-snug mb-3 group-hover:text-[#6B2540] transition-colors truncate">
                         {product.name}
                       </h3>
                     </Link>
-                    <p className="text-[10px] font-light text-stone-400 leading-relaxed line-clamp-1 mb-2">{product.description}</p>
+
                     <div className="mt-auto flex items-center justify-between">
-                      <span className="text-[12px] font-medium text-[#4A1525]">
-                        {formatPrice(product.currentPriceUZS)}
+                      <span className="text-sm font-semibold text-[#4A1525]">
+                        {displayPrice(product.calculatedPrice)}
                       </span>
-                      {!product.inStock ? (
+                      {product.availableStock === 0 ? (
                         <button
                           aria-label="Xabardor qiling"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             if (!isAuthenticated) { navigate({ to: '/login' }); return; }
                             if (isOnWaitlist) {
-                              removeWaitlist.mutate(product._id);
+                              removeWaitlist.mutate(product.id);
                             } else {
-                              addWaitlist.mutate(product._id);
+                              addWaitlist.mutate(product.id);
                             }
                           }}
                           disabled={addWaitlist.isPending || removeWaitlist.isPending}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border ${
                             isOnWaitlist
-                              ? 'bg-[#4A1525] text-white hover:bg-[#6B2540]'
-                              : 'bg-stone-200 text-stone-600 hover:bg-[#4A1525] hover:text-white'
+                              ? 'bg-[#4A1525] text-white border-[#4A1525]'
+                              : 'bg-white text-stone-400 border-stone-200 hover:border-[#4A1525] hover:text-[#4A1525]'
                           }`}
                         >
-                          <Bell className="w-3.5 h-3.5" strokeWidth={1.5} />
+                          <Bell className={`w-3.5 h-3.5 ${isOnWaitlist ? 'fill-current' : ''}`} strokeWidth={1.5} />
                         </button>
                       ) : (
                         <button
-                          onClick={() => {
-                            addToCart({
-                              id: product._id,
-                              name: product.name,
-                              price: product.currentPriceUZS,
-                              image: product.images[0] || '',
-                              slug: product.slug,
-                              stock: product.totalStock,
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!isAuthenticated) { navigate({ to: '/login' }); return; }
+                            addToCart.mutate({
+                              productId: product.id,
+                              quantity: 1,
                             });
                           }}
+                          disabled={addToCart.isPending}
                           className={`w-8 h-8 rounded-full transition-colors flex items-center justify-center border ${
                             isInCart
                               ? 'bg-[#4A1525] border-[#4A1525] text-white hover:bg-[#6B2540]'
@@ -331,7 +318,7 @@ function CategoryPage() {
                   <h3 className="text-lg font-medium text-stone-400 mb-2">Hech narsa topilmadi</h3>
                   <p className="text-[13px] font-light text-stone-400">Qidiruv yoki filtrlaringizni o'zgartirib ko'ring.</p>
                   <button
-                    onClick={() => { setSearchQuery(''); setSelectedBrands([]); setSelectedSkinTypes([]); }}
+                    onClick={() => { setSearchQuery(''); setSelectedBrands([]); }}
                     className="mt-6 border border-stone-300 text-stone-700 text-[13px] font-light px-6 py-2.5 rounded-full hover:border-[#4A1525] hover:text-[#4A1525] transition-colors"
                   >
                     Filtrlarni tozalash
@@ -346,7 +333,7 @@ function CategoryPage() {
       {/* Mobile Filters Drawer */}
       {isMobileFiltersOpen && (
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex justify-end">
-          <div className="w-[85%] max-w-sm h-full bg-white flex flex-col">
+          <div className="w-[85%] max-sm h-full bg-white flex flex-col">
             <div className="p-5 border-b border-stone-100 flex justify-between items-center">
               <h2 className="text-[16px] font-medium text-[#4A1525]">Filtrlar</h2>
               <button className="text-stone-400 hover:text-stone-700 transition-colors" onClick={() => setIsMobileFiltersOpen(false)}>
@@ -359,7 +346,7 @@ function CategoryPage() {
             <div className="p-5 border-t border-stone-100 flex gap-3">
               <button
                 className="flex-1 border border-stone-300 text-stone-700 text-[13px] font-light py-2.5 rounded-full hover:border-[#4A1525] hover:text-[#4A1525] transition-colors"
-                onClick={() => { setSelectedBrands([]); setSelectedSkinTypes([]); }}
+                onClick={() => { setSelectedBrands([]); }}
               >
                 Tozalash
               </button>

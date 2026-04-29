@@ -1,7 +1,7 @@
 import { useAuthStore } from '../../../stores/auth.store';
 import type { CategoryResponse, CreateCategoryInput, UpdateCategoryInput } from '@nuraskin/shared-types';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   const token = useAuthStore.getState().token;
@@ -15,7 +15,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+  const response = await fetch(`${API_BASE}/api${endpoint}`, { ...options, headers });
   
   if (!response.ok) {
     const errorBody = await response.text();

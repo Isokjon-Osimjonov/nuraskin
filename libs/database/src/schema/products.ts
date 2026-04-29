@@ -29,6 +29,7 @@ export const products = pgTable('products', {
   weightGrams: integer('weight_grams').notNull().default(0),
   imageUrls: jsonb('image_urls').$type<string[]>().notNull().default([]),
   isActive: boolean('is_active').notNull().default(true),
+  showStockCount: boolean('show_stock_count').notNull().default(false),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

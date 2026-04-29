@@ -1,5 +1,5 @@
 import { db, products, productRegionalConfigs, inventoryBatches } from '@nuraskin/database';
-import { eq, isNull, and, like, or, sql, inArray } from 'drizzle-orm';
+import { eq, isNull, and, like, or, sql, inArray, isNotNull } from 'drizzle-orm';
 import type { Product, NewProduct, ProductRegionalConfig, NewProductRegionalConfig } from '@nuraskin/database';
 import { ConflictError, NotFoundError } from '../../common/errors/AppError';
 
@@ -18,14 +18,17 @@ export interface ProductWithStock {
   weightGrams: number;
   imageUrls: string[];
   isActive: boolean;
+  showStockCount: boolean;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   totalStock: number;
   uzbRetail: string | null;
   uzbWholesale: string | null;
+  uzbCurrency: string | null;
   korRetail: string | null;
   korWholesale: string | null;
+  korCurrency: string | null;
 }
 
 export interface ProductDetail extends Omit<ProductWithStock, 'uzbRetail' | 'uzbWholesale' | 'korRetail' | 'korWholesale'> {
@@ -36,8 +39,11 @@ export async function findAll(filters?: {
   categoryId?: string;
   isActive?: boolean;
   search?: string;
+  deleted?: boolean;
 }): Promise<ProductWithStock[]> {
-  const conditions = [isNull(products.deletedAt)];
+  const conditions = [
+    filters?.deleted ? isNotNull(products.deletedAt) : isNull(products.deletedAt),
+  ];
 
   if (filters?.categoryId) conditions.push(eq(products.categoryId, filters.categoryId));
   if (filters?.isActive !== undefined) conditions.push(eq(products.isActive, filters.isActive));
@@ -92,12 +98,16 @@ export async function findAll(filters?: {
 
   return rows.map((p) => {
     const cfg = configMap.get(p.id) ?? [];
+    const uzb = cfg.find((c) => c.regionCode === 'UZB');
+    const kor = cfg.find((c) => c.regionCode === 'KOR');
     return {
       ...p,
-      uzbRetail: cfg.find((c) => c.regionCode === 'UZB')?.retailPrice?.toString() ?? null,
-      uzbWholesale: cfg.find((c) => c.regionCode === 'UZB')?.wholesalePrice?.toString() ?? null,
-      korRetail: cfg.find((c) => c.regionCode === 'KOR')?.retailPrice?.toString() ?? null,
-      korWholesale: cfg.find((c) => c.regionCode === 'KOR')?.wholesalePrice?.toString() ?? null,
+      uzbRetail: uzb?.retailPrice?.toString() ?? null,
+      uzbWholesale: uzb?.wholesalePrice?.toString() ?? null,
+      uzbCurrency: uzb?.currency ?? null,
+      korRetail: kor?.retailPrice?.toString() ?? null,
+      korWholesale: kor?.wholesalePrice?.toString() ?? null,
+      korCurrency: kor?.currency ?? null,
     } as ProductWithStock;
   });
 }
@@ -121,9 +131,14 @@ export async function findById(id: string): Promise<ProductDetail | null> {
     .from(inventoryBatches)
     .where(eq(inventoryBatches.productId, id));
 
+  const uzb = configs.find(c => c.regionCode === 'UZB');
+  const kor = configs.find(c => c.regionCode === 'KOR');
+
   return {
     ...product,
     totalStock: stockRow?.total ?? 0,
+    uzbCurrency: uzb?.currency ?? null,
+    korCurrency: kor?.currency ?? null,
     regionalConfigs: configs.map((c) => ({
       ...c,
       retailPrice: c.retailPrice.toString(),
@@ -151,9 +166,14 @@ export async function findByBarcode(barcode: string): Promise<ProductDetail | nu
     .from(inventoryBatches)
     .where(eq(inventoryBatches.productId, product.id));
 
+  const uzb = configs.find(c => c.regionCode === 'UZB');
+  const kor = configs.find(c => c.regionCode === 'KOR');
+
   return {
     ...product,
     totalStock: stockRow?.total ?? 0,
+    uzbCurrency: uzb?.currency ?? null,
+    korCurrency: kor?.currency ?? null,
     regionalConfigs: configs.map((c) => ({
       ...c,
       retailPrice: c.retailPrice.toString(),
@@ -198,11 +218,22 @@ export async function update(id: string, data: Partial<Product>): Promise<Produc
   const [updated] = await db
     .update(products)
     .set({ ...data, updatedAt: new Date() })
-    .where(and(eq(products.id, id), isNull(products.deletedAt)))
+    .where(eq(products.id, id))
     .returning();
 
   if (!updated) throw new NotFoundError('Product not found');
   return updated;
+}
+
+export async function restore(id: string): Promise<Product> {
+  const [restored] = await db
+    .update(products)
+    .set({ deletedAt: null, updatedAt: new Date() })
+    .where(eq(products.id, id))
+    .returning();
+
+  if (!restored) throw new NotFoundError('Product not found');
+  return restored;
 }
 
 export async function softDelete(id: string): Promise<void> {

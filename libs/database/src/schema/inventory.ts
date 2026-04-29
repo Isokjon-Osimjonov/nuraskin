@@ -72,7 +72,7 @@ export const stockMovements = pgTable('stock_movements', {
   createdAtIdx: index('stock_movements_created_at_idx').on(t.createdAt),
   movementTypeCheck: check(
     'stock_movements_type_check',
-    sql`${t.movementType} IN ('STOCK_IN', 'RESERVED', 'RESERVATION_RELEASED', 'DEDUCTED', 'ADJUSTED', 'RETURNED')`,
+    sql`${t.movementType} IN ('STOCK_IN', 'RESERVED', 'RESERVATION_RELEASED', 'DEDUCTED', 'ADJUSTED', 'RETURNED', 'ADJUSTMENT_IN', 'ADJUSTMENT_OUT')`,
   ),
 }));
 
@@ -80,11 +80,13 @@ export const stockMovements = pgTable('stock_movements', {
 export const stockReservations = pgTable('stock_reservations', {
   id: uuid('id').primaryKey().defaultRandom(),
   orderId: uuid('order_id').notNull(), // FK → orders(id), enforced at application layer
+  customerId: uuid('customer_id'), // FK → customers(id), enforced at application layer
   orderItemId: uuid('order_item_id').notNull(), // FK → order_items(id), enforced at application layer
   batchId: uuid('batch_id').notNull().references(() => inventoryBatches.id),
   productId: uuid('product_id').notNull().references(() => products.id),
   quantity: integer('quantity').notNull(),
   status: varchar('status', { length: 20 }).notNull().default('ACTIVE'),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
@@ -98,9 +100,26 @@ export const stockReservations = pgTable('stock_reservations', {
   ),
 }));
 
+export const batchAdjustments = pgTable('batch_adjustments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  batchId: uuid('batch_id')
+    .notNull()
+    .references(() => inventoryBatches.id, { onDelete: 'cascade' }),
+  adminId: uuid('admin_id').references(() => users.id, { onDelete: 'set null' }),
+  fieldChanged: text('field_changed').notNull(),
+  oldValue: text('old_value').notNull(),
+  newValue: text('new_value').notNull(),
+  reason: text('reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  batchIdIdx: index('idx_batch_adj_batch_id').on(t.batchId),
+}));
+
 export type InventoryBatch = typeof inventoryBatches.$inferSelect;
 export type NewInventoryBatch = typeof inventoryBatches.$inferInsert;
 export type StockMovement = typeof stockMovements.$inferSelect;
 export type NewStockMovement = typeof stockMovements.$inferInsert;
 export type StockReservation = typeof stockReservations.$inferSelect;
 export type NewStockReservation = typeof stockReservations.$inferInsert;
+export type BatchAdjustment = typeof batchAdjustments.$inferSelect;
+export type NewBatchAdjustment = typeof batchAdjustments.$inferInsert;
