@@ -38,12 +38,21 @@ export function OrderDetailPage() {
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState<string | null>(null);
+  const [receiptUrl, setReceiptUrl] = React.useState<string | null>(null);
   const token = useAuthStore(s => s.token);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['orders', orderId],
     queryFn: () => ordersApi.getById(orderId),
   });
+
+  React.useEffect(() => {
+    if (orderId) {
+      ordersApi.getReceipt(orderId)
+        .then(res => setReceiptUrl(res.receipt_url))
+        .catch(() => setReceiptUrl(null));
+    }
+  }, [orderId]);
 
   React.useEffect(() => {
     if (order?.status === 'PENDING_PAYMENT' && order.paymentExpiresAt) {
@@ -96,27 +105,8 @@ export function OrderDetailPage() {
 
   const handleDownloadReceipt = async () => {
     if (!order) return;
-    setIsDownloading(true);
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/orders/${order.id}/receipt`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Receipt loading failed');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const printWindow = window.open(url, '_blank');
-      if (!printWindow) {
-        throw new Error('Please allow popups to view receipt');
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Xatolik yuz berdi");
-    } finally {
-      setIsDownloading(false);
-    }
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+    window.open(`${API_BASE}/api/orders/${order.id}/download-receipt`, '_blank');
   };
 
   if (isLoading) {
@@ -240,6 +230,43 @@ export function OrderDetailPage() {
                   </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Receipt Section */}
+          <Card>
+            <CardHeader className="py-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Kvitansiya</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!receiptUrl ? (
+                <div className="text-sm text-muted-foreground italic py-4 text-center border rounded-lg bg-muted/20">
+                  Chek yuklanmagan
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative group">
+                    <img
+                      src={receiptUrl}
+                      className="w-full max-w-[200px] mx-auto rounded-lg cursor-pointer border hover:opacity-80 transition"
+                      onClick={() => window.open(receiptUrl, '_blank')}
+                      alt="To'lov cheki"
+                    />
+                    <div className="text-[10px] text-center text-muted-foreground mt-2">
+                      Kattalashtirish uchun bosing
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => window.open(receiptUrl, '_blank')}
+                  >
+                    <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                    Chekni ochish
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

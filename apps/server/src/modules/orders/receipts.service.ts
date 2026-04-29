@@ -4,7 +4,7 @@ import { db, exchangeRateSnapshots } from '@nuraskin/database';
 import { eq } from 'drizzle-orm';
 import { NotFoundError } from '../../common/errors/AppError';
 
-export async function generateOrderReceipt(orderId: string): Promise<string> {
+export async function generateOrderReceiptHtml(orderId: string): Promise<string> {
   const order = await ordersRepository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
 
@@ -17,14 +17,23 @@ export async function generateOrderReceipt(orderId: string): Promise<string> {
       .limit(1);
   }
 
-  const subtotal = Number(BigInt(order.subtotal)) / 100;
-  const cargoFee = Number(BigInt(order.cargoFee)) / 100;
-  const totalAmount = Number(BigInt(order.totalAmount)) / 100;
+  const formatPrice = (amount: string | bigint) => {
+    const val = BigInt(amount);
+    // UZS and USD are stored in minor units (cents/tiyin), KRW is stored as-is
+    if (order.currency === 'UZS' || order.currency === 'USD') {
+      return Number(val) / 100;
+    }
+    return Number(val);
+  };
+
+  const subtotal = formatPrice(order.subtotal);
+  const cargoFee = formatPrice(order.cargoFee);
+  const totalAmount = formatPrice(order.totalAmount);
 
   const itemsHtml = order.items
     .map((item, index) => {
-      const itemPrice = Number(BigInt(item.unitPriceSnapshot)) / 100;
-      const itemSubtotal = Number(BigInt(item.subtotalSnapshot)) / 100;
+      const itemPrice = formatPrice(item.unitPriceSnapshot);
+      const itemSubtotal = formatPrice(item.subtotalSnapshot);
       return `
       <tr>
         <td>${index + 1}</td>

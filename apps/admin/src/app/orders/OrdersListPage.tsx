@@ -144,8 +144,12 @@ export function OrdersListPage() {
                     <div className="flex justify-center">
                       <img 
                         src={order.paymentReceiptUrl} 
-                        className="h-8 w-8 rounded object-cover border border-stone-200" 
+                        className="h-8 w-8 rounded object-cover border border-stone-200 cursor-zoom-in hover:opacity-80 transition" 
                         alt="Receipt"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(order.paymentReceiptUrl, '_blank');
+                        }}
                       />
                     </div>
                   ) : (

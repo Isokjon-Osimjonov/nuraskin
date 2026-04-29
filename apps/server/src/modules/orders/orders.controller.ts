@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express';
 import * as service from './orders.service';
 import * as orderExpensesService from './order-expenses.service';
+import * as receiptsService from './receipts.service';
 import { addOrderItemSchema, updateOrderStatusSchema, scanItemSchema, createOrderExpenseSchema } from '@nuraskin/shared-types';
+import { NotFoundError } from '../../common/errors/AppError';
 
 export async function listOrders(req: Request, res: Response) {
   const filters = {
@@ -75,5 +77,23 @@ export async function deleteOrderExpense(req: Request, res: Response) {
   const isAdminSuper = req.user?.role === 'SUPER_ADMIN';
   const result = await orderExpensesService.deleteOrderExpense(req.params.id, req.params.expenseId, adminId, isAdminSuper);
   res.json(result);
+}
+
+export async function getPaymentReceipt(req: Request, res: Response) {
+  const order = await service.getOrderDetail(req.params.id);
+  if (!order) throw new NotFoundError('Buyurtma topilmadi');
+  
+  if (!order.paymentReceiptUrl) {
+    res.status(404).json({ error: 'Chek topilmadi' });
+    return;
+  }
+
+  res.json({ receipt_url: order.paymentReceiptUrl });
+}
+
+export async function downloadReceipt(req: Request, res: Response) {
+  const html = await receiptsService.generateOrderReceiptHtml(req.params.id);
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 }
 

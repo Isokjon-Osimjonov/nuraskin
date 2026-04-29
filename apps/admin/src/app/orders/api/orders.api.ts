@@ -38,6 +38,9 @@ export const ordersApi = {
   
   getById: (id: string): Promise<OrderResponse> =>
     fetchWithAuth(`/orders/${id}`),
+
+  getReceipt: (id: string): Promise<{ receipt_url: string }> =>
+    fetchWithAuth(`/orders/${id}/receipt`),
     
   addItem: (id: string, data: AddOrderItemInput): Promise<any> =>
     fetchWithAuth(`/orders/${id}/items`, { method: 'POST', body: JSON.stringify(data) }),
