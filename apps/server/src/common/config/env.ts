@@ -3,7 +3,7 @@ import { z } from 'zod';
 const EnvSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
-  JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_EXPIRES_IN: z.string().default('30d'),
   TELEGRAM_BOT_TOKEN: z.string().min(1).transform((v) => v.trim()),
   TELEGRAM_BOT_ID: z.string().min(1).transform((v) => v.trim()),
   TELEGRAM_BOT_USERNAME: z.string().min(1).transform((v) => v.trim()),

@@ -20,6 +20,9 @@ function CartPage() {
   const removeItems = useRemoveCartItem();
   const clearCart = useClearCart();
 
+  const cart = cartData?.items ?? [];
+  const cartRegion = cartData?.regionCode || regionCode;
+
   const { data: settings } = useQuery({
     queryKey: ['storefront-settings'],
     queryFn: () => apiFetch<StorefrontSettings>('/storefront/settings'),
@@ -28,15 +31,13 @@ function CartPage() {
   const { data: shippingTiers = [] } = useQuery({
     queryKey: ['shipping-tiers'],
     queryFn: () => apiFetch<KorShippingTierResponse[]>('/storefront/shipping-tiers'),
-    enabled: regionCode === 'KOR',
+    enabled: cartRegion === 'KOR',
   });
-
-  const cart = cartData?.items ?? [];
 
   const subtotal = cart.reduce((total, item) => total + (Number(item.price) * item.quantity), 0);
   
   let shipping = 0;
-  if (regionCode === 'KOR') {
+  if (cartRegion === 'KOR') {
     const matchedTier = shippingTiers.find(t => t.maxOrderKrw === null || subtotal < Number(BigInt(t.maxOrderKrw)));
     shipping = matchedTier ? Number(BigInt(matchedTier.cargoFeeKrw)) : 0;
   }
@@ -46,7 +47,7 @@ function CartPage() {
   const hasStockError = cart.some(item => item.quantity > (item.availableStock ?? 999));
 
   const formatPrice = (val: number | string) => {
-    if (regionCode === 'KOR') return formatKrw(val);
+    if (cartRegion === 'KOR') return formatKrw(val);
     return formatUzs(val);
   };
 
@@ -100,7 +101,7 @@ function CartPage() {
             <div className="bg-[#f8f7f5] rounded-2xl p-5 md:p-8">
               <div className="flex justify-between items-center border-b border-stone-200 pb-4 mb-6">
                 <span className="text-[13px] font-light text-stone-500">{cart.length} ta mahsulot</span>
-                <button onClick={() => clearCart.mutate()} className="text-[12px] font-light text-red-500 hover:text-red-600 tracking-wide">
+                <button onClick={() => clearCart.mutate(regionCode as string)} className="text-[12px] font-light text-red-500 hover:text-red-600 tracking-wide">
                   Barchasini tozalash
                 </button>
               </div>

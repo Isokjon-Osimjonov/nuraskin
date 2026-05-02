@@ -35,11 +35,10 @@ export function calculateUzbPrice(priceKrw: bigint, weightGrams: number, rate: {
  * productKrw = priceKrw
  * 
  * INPUTS: priceKrw (whole KRW)
- * OUTPUTS: Values in whole KRW (rounded to nearest 100)
+ * OUTPUTS: Values in whole KRW
  */
 export function calculateKorPrice(priceKrw: bigint) {
-  // Rounded to nearest 100 KRW
-  return (priceKrw / 100n) * 100n + (priceKrw % 100n >= 50n ? 100n : 0n);
+  return priceKrw;
 }
 
 /**

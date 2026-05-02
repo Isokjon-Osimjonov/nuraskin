@@ -191,10 +191,9 @@ export function ProductsPage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-medium tracking-tight">Products</h1>
+          <h1 className="text-3xl font-medium tracking-tight">Mahsulotlar</h1>
           <p className="text-muted-foreground">
-            {totalItems} products in{' '}
-            {activeTab === 'active' ? 'catalog' : 'trash'}
+            {totalItems} ta mahsulot {activeTab === 'active' ? 'katalogda' : 'savatda'}
           </p>
         </div>
         <Dialog
@@ -204,13 +203,13 @@ export function ProductsPage() {
           <DialogTrigger asChild>
             <Button onClick={() => setEditingProduct(undefined)}>
               <PlusIcon className="w-4 h-4 mr-2" />
-              Add Product
+              Mahsulot qo'shish
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingProduct ? 'Edit Product' : 'Add Product'}
+                {editingProduct ? 'Mahsulotni tahrirlash' : 'Mahsulot qo\'shish'}
               </DialogTitle>
             </DialogHeader>
             <ProductFormPage
@@ -242,7 +241,7 @@ export function ProductsPage() {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, barcode, sku, brand..."
+              placeholder="Nomi, barkod, SKU, brend bo'yicha qidiring..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -261,25 +260,25 @@ export function ProductsPage() {
               <DataTable>
                 <DataTableHeader>
                   <DataTableRow>
-                    <DataTableHead>Image</DataTableHead>
-                    <DataTableHead>Name / Brand</DataTableHead>
-                    <DataTableHead>Barcode</DataTableHead>
+                    <DataTableHead>Rasm</DataTableHead>
+                    <DataTableHead>Nomi / Brend</DataTableHead>
+                    <DataTableHead>Barkod</DataTableHead>
                     <DataTableHead>SKU</DataTableHead>
                     <DataTableHead className="text-right">
-                      UZB Price (est)
+                      Narxi (UZS)
                     </DataTableHead>
                     <DataTableHead className="text-right">
-                      KOR Price
+                      Narxi (KRW)
                     </DataTableHead>
-                    <DataTableHead className="text-center">Stock</DataTableHead>
+                    <DataTableHead className="text-center">Zaxira</DataTableHead>
                     {activeTab === 'deleted' && (
                       <DataTableHead>O'chirilgan sana</DataTableHead>
                     )}
                     <DataTableHead className="text-center">
-                      Status
+                      Holati
                     </DataTableHead>
                     <DataTableHead className="text-right">
-                      Actions
+                      Amallar
                     </DataTableHead>
                   </DataTableRow>
                 </DataTableHeader>
@@ -289,10 +288,10 @@ export function ProductsPage() {
                       colSpan={10}
                       message={
                         search
-                          ? 'No products match your search.'
+                          ? 'Qidiruv bo\'yicha mahsulot topilmadi.'
                           : activeTab === 'active'
-                            ? 'No products yet. Add your first one!'
-                            : 'Trash is empty.'
+                            ? 'Mahsulotlar mavjud emas.'
+                            : 'Savat bo\'sh.'
                       }
                     />
                   ) : (
@@ -368,7 +367,7 @@ export function ProductsPage() {
                             variant={p.isActive ? 'success' : 'secondary'}
                             className="rounded-full"
                           >
-                            {p.isActive ? 'Active' : 'Inactive'}
+                            {p.isActive ? 'Faol' : 'Nofaol'}
                           </Badge>
                         </DataTableCell>
                         <DataTableCell className="text-right">
@@ -432,9 +431,10 @@ export function ProductsPage() {
           productToDelete && deleteMutation.mutate(productToDelete.id)
         }
         isLoading={deleteMutation.isPending}
-        title="Delete Product"
-        description={`Delete "${productToDelete?.name}"? This cannot be undone.`}
+        title="Mahsulotni o'chirish"
+        description={`Haqiqatan ham "${productToDelete?.name}" mahsulotini o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`}
       />
     </div>
   );
 }
+

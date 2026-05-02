@@ -7,58 +7,58 @@ import * as usersRepository from '../../modules/users/users.repository';
 
 const SUPER_ADMIN_ROLE = 'SUPER_ADMIN';
 
-export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
-  const header = req.headers['authorization'];
-  if (!header?.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Missing or malformed Authorization header');
-  }
-
-  const token = header.slice(7);
+export const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return next(new UnauthorizedError('Avtorizatsiya talab qilinadi'));
+    }
+
+    const token = authHeader.split(' ')[1];
     const payload = jwt.verify(token, env.JWT_SECRET) as AuthUser;
-    
+
     // For admin users, check mustChangePassword
     if (payload.role !== 'customer') {
       const user = await usersRepository.findById(payload.sub);
-      if (!user) throw new UnauthorizedError('User not found');
-      if (!user.isActive) throw new UnauthorizedError('User is inactive');
-      
+      if (!user) return next(new UnauthorizedError('User not found'));
+      if (!user.isActive) return next(new UnauthorizedError('User is inactive'));
+
       if (user.mustChangePassword && !req.path.endsWith('/change-password')) {
-        _res.status(403).json({ code: 'MUST_CHANGE_PASSWORD', message: 'Parolni o\'zgartirishingiz shart' });
+        res.status(403).json({ code: 'MUST_CHANGE_PASSWORD', message: 'Parolni o\'zgartirishingiz shart' });
         return;
       }
     }
 
     req.user = payload;
     next();
-  } catch (err: any) {
-    if (err.statusCode === 403) {
-        // already handled mustChangePassword
-        return;
-    }
-    throw new UnauthorizedError('Invalid or expired token');
+  } catch (err) {
+    next(new UnauthorizedError('Token muddati tugagan yoki noto\'g\'ri'));
   }
-}
+};
 
 export function requirePermission(permission: string) {
   return (req: Request, _res: Response, next: NextFunction): void => {
-    const user = req.user;
-    if (!user) {
-      throw new UnauthorizedError('Not authenticated');
-    }
-    
-    // Normalize role check
-    const currentRole = user.role.toUpperCase();
-    if (currentRole === SUPER_ADMIN_ROLE) {
-      next();
-      return;
-    }
+    try {
+      const user = req.user;
+      if (!user) {
+        return next(new UnauthorizedError('Not authenticated'));
+      }
 
-    const allowed = ROLE_PERMISSIONS[currentRole] ?? [];
-    if (!allowed.includes(permission)) {
-      throw new ForbiddenError(`Permission denied: ${permission}`);
+      // Normalize role check
+      const currentRole = user.role.toUpperCase();
+      if (currentRole === SUPER_ADMIN_ROLE) {
+        next();
+        return;
+      }
+
+      const allowed = ROLE_PERMISSIONS[currentRole] ?? [];
+      if (!allowed.includes(permission)) {
+        return next(new ForbiddenError(`Permission denied: ${permission}`));
+      }
+      next();
+    } catch (err) {
+      next(err);
     }
-    next();
   };
 }
 

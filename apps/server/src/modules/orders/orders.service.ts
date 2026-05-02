@@ -117,7 +117,7 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
     return order.id;
   });
 
-  return await repository.findById(orderId);
+  return await repository.findById(orderId, runner);
 }
 
 async function generateOrderNumber() {

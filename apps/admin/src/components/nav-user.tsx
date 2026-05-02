@@ -66,7 +66,7 @@ export function NavUser({
                   {user.email}
                 </span>
               </div>
-              <MoreVerticalIcon className="ml-auto size-4" />
+              <MoreVerticalIcon className="ml-auto size-5" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -92,21 +92,21 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => navigate({ to: '/settings/profile' })}>
-                <UserCircleIcon className="mr-2 size-4" />
+                <UserCircleIcon className="mr-2 size-5" />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <CreditCardIcon className="mr-2 size-4" />
+                <CreditCardIcon className="mr-2 size-5" />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <BellIcon className="mr-2 size-4" />
+                <BellIcon className="mr-2 size-5" />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOutIcon className="mr-2 size-4" />
+              <LogOutIcon className="mr-2 size-5" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

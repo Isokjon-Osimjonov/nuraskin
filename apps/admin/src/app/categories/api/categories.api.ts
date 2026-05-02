@@ -27,7 +27,13 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 }
 
 export const categoriesApi = {
-  getAll: (): Promise<CategoryResponse[]> => fetchWithAuth('/categories'),
+  getAll: (params?: { page?: number; limit?: number }): Promise<{ data: CategoryResponse[]; total: number; page: number; limit: number }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return fetchWithAuth(`/categories${query}`);
+  },
   create: (data: CreateCategoryInput): Promise<CategoryResponse> =>
     fetchWithAuth('/categories', { method: 'POST', body: JSON.stringify(data) }),
   update: ({ id, data }: { id: string; data: UpdateCategoryInput }): Promise<CategoryResponse> =>

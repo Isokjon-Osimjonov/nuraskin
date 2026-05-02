@@ -35,15 +35,17 @@ export function SiteHeader() {
 
   const getTitle = () => {
     const path = location.pathname
-    if (path === '/') return 'Dashboard'
-    if (path.startsWith('/products')) return 'Products'
-    if (path.startsWith('/orders')) return 'Orders'
-    if (path.startsWith('/categories')) return 'Categories'
-    if (path.startsWith('/coupons')) return 'Coupons'
-    if (path.startsWith('/sales')) return 'Sales'
-    if (path.startsWith('/accounting')) return 'Accounting'
+    if (path === '/') return 'Boshqaruv paneli'
+    if (path.startsWith('/products')) return 'Mahsulotlar'
+    if (path.startsWith('/orders')) return 'Buyurtmalar'
+    if (path.startsWith('/categories')) return 'Kategoriyalar'
+    if (path.startsWith('/inventory')) return 'Ombor'
+    if (path.startsWith('/customers')) return 'Mijozlar'
+    if (path.startsWith('/coupons')) return 'Kuponlar'
+    if (path.startsWith('/sales')) return 'Sotuvlar'
+    if (path.startsWith('/accounting')) return 'Buxgalteriya'
     if (path.startsWith('/telegram')) return 'Telegram'
-    if (path.startsWith('/settings')) return 'Settings'
+    if (path.startsWith('/settings')) return 'Sozlamalar'
     return 'NuraSkin Admin'
   }
 
@@ -62,7 +64,7 @@ export function SiteHeader() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <input
             type="search"
-            placeholder="Search..."
+            placeholder="Qidiruv..."
             className="h-9 w-64 rounded-md border border-input bg-background pl-9 text-sm outline-none focus:ring-1 focus:ring-ring"
           />
         </form>
@@ -88,17 +90,17 @@ export function SiteHeader() {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <span>Profil</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>Sozlamalar</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>Chiqish</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

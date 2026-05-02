@@ -3,6 +3,8 @@ import * as ctrl from './storefront.controller';
 import { asyncHandler } from '../../common/utils/async-handler';
 import { requireAuth } from '../../common/middleware/auth.middleware';
 import * as service from './storefront.service';
+import { db, customers } from '@nuraskin/database';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -42,6 +44,18 @@ router.get('/shipping-tiers', asyncHandler(ctrl.listShippingTiers));
 // Customer protected routes (Telegram Login)
 router.use(requireAuth);
 router.use(resolveCustomer);
+
+router.patch('/profile/region', asyncHandler(async (req, res) => {
+  const { region } = req.body;
+  if (!['UZB', 'KOR'].includes(region)) {
+    res.status(400).json({ error: "Noto'g'ri mintaqa" });
+    return;
+  }
+  await db.update(customers)
+    .set({ regionCode: region })
+    .where(eq(customers.id, (req as any).customer.id));
+  res.json({ success: true });
+}));
 
 router.post('/coupons/validate', asyncHandler(ctrl.validateCoupon));
 router.post('/orders', asyncHandler(ctrl.createOrder));

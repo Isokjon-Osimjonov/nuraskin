@@ -5,6 +5,18 @@ import { useAppStore } from '@/stores/app.store';
 import { toast } from 'sonner';
 import { useCart, useClearCart } from '@/hooks/useCart';
 import { useMyWaitlist } from '@/hooks/useWaitlist';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateRegion } from '@/api/profile';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export interface NavbarProps {
   variant?: 'dark' | 'light';
@@ -18,10 +30,19 @@ const leftLinks = [
 const rightLinks = [{ label: 'Aloqa', to: '/contact' }];
 
 export function Navbar({ variant = 'light' }: NavbarProps) {
-  const { regionCode, setRegion, isAuthenticated } = useAppStore();
+  const { 
+    regionCode, 
+    setRegion, 
+    isAuthenticated,
+    pendingRegion,
+    setPendingRegion,
+    showRegionConfirm,
+    setShowRegionConfirm
+  } = useAppStore();
   const { data: cartData } = useCart();
   const { data: waitlistData } = useMyWaitlist();
   const clearCart = useClearCart();
+  const queryClient = useQueryClient();
 
   const cart = cartData?.items ?? [];
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -46,15 +67,44 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
     return () => window.removeEventListener('scroll', check);
   }, [variant]);
 
-  const handleRegionSwitch = (newRegion: 'UZB' | 'KOR') => {
+  const handleRegionSwitch = async (newRegion: 'UZB' | 'KOR') => {
     if (newRegion === regionCode) return;
     
-    if (cart.length > 0) {
-      clearCart.mutate();
-      toast.warning("Mintaqa o'zgartirildi. Savat tozalandi.");
+    const hasItems = cart.length > 0;
+    
+    if (!hasItems) {
+      setRegion(newRegion);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      if (isAuthenticated) {
+        await updateRegion(newRegion);
+      }
+      setRegionOpen(false);
+      return;
     }
-    setRegion(newRegion);
+    
+    setPendingRegion(newRegion);
+    setShowRegionConfirm(true);
     setRegionOpen(false);
+  };
+
+  const confirmRegionSwitch = async () => {
+    if (!pendingRegion) return;
+    
+    const updatedCart = await clearCart.mutateAsync(pendingRegion);
+    setRegion(pendingRegion);
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+    queryClient.invalidateQueries({ queryKey: ['product'] });
+    queryClient.setQueryData(['cart'], updatedCart);
+    
+    if (isAuthenticated) {
+      await updateRegion(pendingRegion);
+    }
+    
+    setPendingRegion(null);
+    setShowRegionConfirm(false);
+    toast.success("Mintaqa o'zgartirildi");
   };
 
   const currentRegionLabel = regionCode === 'KOR' ? '🇰🇷 Koreya' : '🇺🇿 O\'zbekiston';
@@ -257,6 +307,33 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
           }}
         />
       )}
+
+      <AlertDialog 
+        open={showRegionConfirm} 
+        onOpenChange={setShowRegionConfirm}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Mintaqani o'zgartirish
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Savatingizda {cart.length} ta mahsulot bor. 
+              Mintaqani o'zgartirish uchun savatni 
+              tozalash kerak.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-end gap-2 sm:gap-2">
+            <AlertDialogCancel>
+              Bekor qilish
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRegionSwitch}
+              className="bg-red-600 hover:bg-red-700 text-white border-0 ml-2">
+              Tozalash
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

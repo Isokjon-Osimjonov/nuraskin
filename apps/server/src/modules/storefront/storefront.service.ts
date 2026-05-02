@@ -2,12 +2,14 @@ import * as storefrontRepository from './storefront.repository';
 import * as ordersRepository from '../orders/orders.repository';
 import * as ordersService from '../orders/orders.service';
 import * as cartService from '../carts/carts.service';
+import * as cartsRepository from '../carts/carts.repository';
 import * as inventoryRepository from '../inventory/inventory.repository';
 import * as couponsService from '../coupons/coupons.service';
 import * as couponsRepository from '../coupons/coupons.repository';
 import { db, customers, orders, orderItems, orderStatusHistory, products, settings, korShippingTiers, inventoryBatches, stockReservations, productWaitlist, exchangeRateSnapshots, productRegionalConfigs } from '@nuraskin/database';
 import { eq, desc, sql, and, asc, gt, isNull } from 'drizzle-orm';
-import { NotFoundError, BadRequestError } from '../../common/errors/AppError';
+import { NotFoundError, BadRequestError, PriceChangedError } from '../../common/errors/AppError';
+import { logger } from '../../common/utils/logger';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '../../common/config/env';
 import { calculateUzbPrice, calculateKorPrice, calculateKorCargo } from '../../common/utils/pricing';
@@ -138,6 +140,58 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     });
     if (!customer) throw new NotFoundError('Mijoz topilmadi');
 
+    const cart = await cartsRepository.findByCustomerId(customerId, tx);
+    if (!cart || cart.items.length === 0) {
+      throw new BadRequestError('Savatda mahsulot yo\'q');
+    }
+
+    for (const cartItem of cart.items) {
+      const regionalConfig = await tx.query.productRegionalConfigs.findFirst({
+        where: and(
+          eq(productRegionalConfigs.productId, cartItem.productId),
+          eq(productRegionalConfigs.regionCode, cart.regionCode)
+        )
+      });
+
+      if (!regionalConfig) continue;
+
+      let freshPrice: bigint;
+      if (cart.regionCode === 'UZB') {
+        const rateSnapshot = await cartsRepository.getLatestRateSnapshot(tx);
+        if (!rateSnapshot) {
+          throw new BadRequestError('Valyuta kursi topilmadi');
+        }
+        const product = await tx.query.products.findFirst({
+          where: eq(products.id, cartItem.productId)
+        });
+        const { productPrice, cargoFee } = calculateUzbPrice(
+          BigInt(regionalConfig.retailPrice),
+          product?.weightGrams || 0,
+          rateSnapshot
+        );
+        freshPrice = productPrice + cargoFee;
+      } else {
+        freshPrice = calculateKorPrice(BigInt(regionalConfig.retailPrice));
+      }
+
+      const snapshotPrice = BigInt(cartItem.priceSnapshot);
+
+      const diff = freshPrice > snapshotPrice ? freshPrice - snapshotPrice : snapshotPrice - freshPrice;
+      const tolerance = snapshotPrice / 100n;
+
+      if (diff > tolerance) {
+        throw new PriceChangedError({
+          message: "Narxlar o'zgardi. Savatni yangilab, qayta urinib ko'ring.",
+          changedItems: [{
+            productId: cartItem.productId,
+            productName: cartItem.productName,
+            oldPrice: snapshotPrice.toString(),
+            newPrice: freshPrice.toString()
+          }]
+        });
+      }
+    }
+
     let couponData = null;
     const couponCode = input.couponCode;
 
@@ -173,15 +227,27 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
         couponData = await couponsService.validateAndApply(couponCode, customerId, fullItems, customer.regionCode, tx);
     }
 
-    const order = await ordersService.createOrder({
-      ...input,
-      customerId,
-      regionCode: customer.regionCode as 'UZB' | 'KOR',
-      currency: (customer.regionCode === 'UZB' ? 'UZS' : 'KRW') as any,
-      couponId: couponData?.couponId,
-      couponCode: couponCode,
-      discountAmount: couponData?.discountAmount || 0n,
-    }, tx);
+    let order;
+    try {
+        order = await ordersService.createOrder({
+            ...input,
+            customerId,
+            regionCode: customer.regionCode as 'UZB' | 'KOR',
+            currency: (customer.regionCode === 'UZB' ? 'UZS' : 'KRW') as any,
+            couponId: couponData?.couponId,
+            couponCode: couponCode,
+            discountAmount: couponData?.discountAmount || 0n,
+        }, tx);
+    } catch (err: any) {
+        logger.error({
+            msg: 'Order creation transaction failed',
+            error: err.message,
+            stack: err.stack,
+            detail: err.detail,
+            constraint: err.constraint
+        });
+        throw err;
+    }
 
     if (couponData && order) {
         await couponsRepository.incrementUsage(couponData.couponId, tx);
@@ -195,7 +261,7 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
 
     if (!order) throw new Error('Failed to create order');
 
-    await cartService.clearCart(customerId, tx);
+    await cartService.clearCart(customerId, undefined, tx);
 
     return {
         id: order.id,

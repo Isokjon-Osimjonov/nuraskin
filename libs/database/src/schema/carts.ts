@@ -4,8 +4,10 @@ import {
   integer,
   timestamp,
   uniqueIndex,
+  text,
+  bigint,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { customers } from './customers';
 import { products } from './products';
 
@@ -15,6 +17,7 @@ export const carts = pgTable('carts', {
     .notNull()
     .references(() => customers.id, { onDelete: 'cascade' })
     .unique(),
+  regionCode: text('region_code').notNull().default('UZB'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -28,6 +31,7 @@ export const cartItems = pgTable('cart_items', {
     .notNull()
     .references(() => products.id, { onDelete: 'cascade' }),
   quantity: integer('quantity').notNull(),
+  priceSnapshot: bigint('price_snapshot', { mode: 'bigint' }).notNull().default(sql`'0'`),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({

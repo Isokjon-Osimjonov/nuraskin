@@ -44,6 +44,10 @@ interface AppState {
   // Region
   regionCode: 'UZB' | 'KOR' | null;
   setRegion: (region: 'UZB' | 'KOR') => void;
+  pendingRegion: 'UZB' | 'KOR' | null;
+  showRegionConfirm: boolean;
+  setPendingRegion: (region: 'UZB' | 'KOR' | null) => void;
+  setShowRegionConfirm: (show: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -61,6 +65,10 @@ export const useAppStore = create<AppState>()(
       setRegion: (region) => {
         set({ regionCode: region });
       },
+      pendingRegion: null,
+      showRegionConfirm: false,
+      setPendingRegion: (region) => set({ pendingRegion: region }),
+      setShowRegionConfirm: (show) => set({ showRegionConfirm: show }),
 
       // Addresses
       addresses: [],

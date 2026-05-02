@@ -27,7 +27,7 @@ export function CategoriesSection() {
           <div key={i} className="shrink-0 w-64 h-72 rounded-2xl bg-zinc-50 animate-pulse border border-zinc-100" />
         ))}
         
-        {!isLoading && categories.filter(c => c.isActive).map((cat) => (
+        {!isLoading && ((categories as any)?.data || categories || []).filter((c: any) => c.isActive).map((cat: any) => (
           <Link
             key={cat.id}
             to="/products"

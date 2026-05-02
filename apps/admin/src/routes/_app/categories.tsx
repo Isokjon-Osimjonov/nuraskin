@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,21 +11,43 @@ import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { CategoryResponse } from '@nuraskin/shared-types';
+import { TablePagination } from '@/components/ui/TablePagination';
+import { z } from 'zod';
+
+const categorySearchSchema = z.object({
+  page: z.number().catch(1),
+  limit: z.number().catch(10),
+});
 
 export const Route = createFileRoute('/_app/categories')({
+  validateSearch: (search) => categorySearchSchema.parse(search),
   component: CategoriesPage,
 });
 
 function CategoriesPage() {
+  const { page, limit } = Route.useSearch();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryResponse | undefined>();
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryResponse | undefined>();
   const queryClient = useQueryClient();
 
-  const { data: categories = [], isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoriesApi.getAll,
+  const { data: categoriesResult, isLoading } = useQuery({
+    queryKey: ['categories', page, limit],
+    queryFn: () => categoriesApi.getAll({ page, limit }),
   });
+
+  const categories = categoriesResult?.data || [];
+  const totalItems = categoriesResult?.total || 0;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const handlePageChange = (newPage: number) => {
+    navigate({ search: { page: newPage, limit } as any });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    navigate({ search: { page: 1, limit: newSize } as any });
+  };
 
   const createMutation = useMutation({
     mutationFn: categoriesApi.create,
@@ -34,7 +56,7 @@ function CategoriesPage() {
       handleClose();
       toast.success('Kategoriya yaratildi');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
@@ -46,7 +68,7 @@ function CategoriesPage() {
       handleClose();
       toast.success('Kategoriya yangilandi');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
@@ -58,7 +80,7 @@ function CategoriesPage() {
       toast.success('Kategoriya o\'chirildi');
       setCategoryToDelete(undefined);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || 'Xatolik yuz berdi');
     },
   });
@@ -98,19 +120,19 @@ function CategoriesPage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-medium tracking-tight">Categories</h1>
-          <p className="text-muted-foreground">Manage your product categories</p>
+          <h1 className="text-3xl font-bold tracking-tight">Kategoriyalar</h1>
+          <p className="text-muted-foreground">Mahsulot kategoriyalarini boshqaring</p>
         </div>
-        <Dialog open={open} onOpenChange={(val) => (val ? setOpen(true) : handleClose())}>
+        <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingCategory(undefined)}>
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Add Category
+            <Button onClick={() => setOpen(true)}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Kategoriya qo'shish
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
+              <DialogTitle>{editingCategory ? 'Kategoriyani tahrirlash' : 'Kategoriya qo\'shish'}</DialogTitle>
             </DialogHeader>
             <CategoryForm 
               initialData={editingCategory}
@@ -126,18 +148,27 @@ function CategoriesPage() {
         onOpenChange={(open) => !open && setCategoryToDelete(undefined)}
         onConfirm={confirmDelete}
         isLoading={deleteMutation.isPending}
-        title="Delete Category"
-        description={`Are you sure you want to delete the category "${categoryToDelete?.name}"? This action cannot be undone.`}
+        title="Kategoriyani o'chirish"
+        description={`Haqiqatan ham "${categoryToDelete?.name}" kategoriyasini o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`}
       />
       
       {isLoading ? (
         <DataTableSkeleton columnCount={5} rowCount={5} />
       ) : (
-        <CategoriesTable 
-          data={categories} 
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        <div className="space-y-4">
+          <CategoriesTable 
+            data={categories} 
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            pageSize={limit}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
       )}
     </div>
   );

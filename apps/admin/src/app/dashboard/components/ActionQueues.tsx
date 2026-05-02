@@ -57,10 +57,10 @@ export function ActionQueues({ data, isLoading }: ActionQueuesProps) {
     {
       title: 'Muddati tugayotgan bronlar',
       count: data.action_queues.reservations_expiring_soon,
-      description: '2 soat ichida muddati tugaydi',
+      description: "To'lanmagan buyurtmalar — bron muddati tugayapti",
       icon: Clock,
-      href: '/inventory',
-      cta: 'Ko\'rish →',
+      href: '/orders?status=PENDING_PAYMENT',
+      cta: "Ko'rish →",
       urgency: data.action_queues.reservations_expiring_soon > 0 ? 'high' : 'none',
     },
     {

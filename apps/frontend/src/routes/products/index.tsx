@@ -82,7 +82,7 @@ function CategoryPage() {
           >
             Barchasi
           </Link>
-          {categories.filter((c: any) => c.isActive).map((cat: any) => (
+          {((categories as any)?.data || categories || []).filter((c: any) => c.isActive).map((cat: any) => (
             <Link
               key={cat.id}
               to="/products"

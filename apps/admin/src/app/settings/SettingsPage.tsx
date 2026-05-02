@@ -9,6 +9,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { UZ, translateServerError } from '@/lib/uz';
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
@@ -55,21 +56,21 @@ export function SettingsPage() {
     mutationFn: settingsApi.update,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success("Sozlamalar saqlandi");
+      toast.success(UZ.settings.saved);
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: any) => toast.error(translateServerError(err.message)),
   });
 
   const onSubmit = (data: UpdateSettingsInput) => {
     updateMutation.mutate(data);
   };
 
-  if (isLoading) return <div className="p-6">Yuklanmoqda...</div>;
+  if (isLoading) return <div className="p-6">{UZ.common.loading}</div>;
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Sozlamalar</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{UZ.settings.title}</h1>
         <p className="text-muted-foreground">Tizim sozlamalari va to'lov ma'lumotlari</p>
       </div>
 
@@ -208,7 +209,7 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Karta egasi</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ism familiya" {...field} value={field.value || ''} />
+                      <Input placeholder={UZ.common.placeholderName} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -232,7 +233,7 @@ export function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Yetkazib berish sozlamalari</CardTitle>
+              <CardTitle>{UZ.settings.deliverySettings}</CardTitle>
               <CardDescription>Koreya ichida yetkazib berish (Delivery Settings)</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -241,7 +242,7 @@ export function SettingsPage() {
                 name="freeShippingThresholdKrw"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bepul yetkazib berish chegarasi (KOR)</FormLabel>
+                    <FormLabel>{UZ.settings.freeShippingThreshold} (KOR)</FormLabel>
                     <FormControl>
                       <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
                     </FormControl>
@@ -261,7 +262,7 @@ export function SettingsPage() {
                 name="standardShippingFeeKrw"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Standart yetkazib berish narxi (KOR)</FormLabel>
+                    <FormLabel>{UZ.settings.standardShippingFee} (KOR)</FormLabel>
                     <FormControl>
                       <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
                     </FormControl>
@@ -280,7 +281,7 @@ export function SettingsPage() {
           </Card>
 
           <Button type="submit" className="w-full" disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? 'Saqlanmoqda...' : 'Saqlash'}
+            {updateMutation.isPending ? UZ.common.loading : UZ.common.save}
           </Button>
         </form>
       </Form>

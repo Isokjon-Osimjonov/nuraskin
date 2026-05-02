@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { UploadCloudIcon, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UZ, translateServerError } from '@/lib/uz';
 
 interface AddExpenseSheetProps {
   open: boolean;

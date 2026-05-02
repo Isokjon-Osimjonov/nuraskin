@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, User, Eye, UserMinus, UserCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { UZ, translateServerError } from '@/lib/uz';
 import {
   DataTable,
   DataTableHeader,
@@ -52,23 +53,24 @@ export function CustomersListPage() {
         customersApi.update(id, { isActive }),
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['customers'] });
-        toast.success("Mijoz holati yangilandi");
+        toast.success(UZ.common.success);
     },
+    onError: (err: any) => toast.error(translateServerError(err.message)),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => customersApi.delete(id),
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['customers'] });
-        toast.success("Mijoz o'chirildi");
+        toast.success(UZ.common.success);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => toast.error(translateServerError(err.message)),
   });
 
   const getDebtBadge = (outstanding: string, debtLimit: string) => {
     const debt = BigInt(outstanding);
     const lim = BigInt(debtLimit);
-    if (lim === 0n) return <Badge variant="outline" className="rounded-full">Limit yo'q</Badge>;
+    if (lim === 0n) return <Badge variant="outline" className="rounded-full">{UZ.accounting.noDebt}</Badge>;
     
     const usage = Number(debt * 100n / lim);
     if (usage >= 100) return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none rounded-full">Bloklangan</Badge>;
@@ -87,44 +89,44 @@ export function CustomersListPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Mijozlar</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{UZ.customers.title}</h1>
       </div>
 
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Filtrlar</CardTitle>
+          <CardTitle className="text-sm font-medium">{UZ.common.filter}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Ism, telefon yoki ID..."
+                placeholder={UZ.common.placeholderSearch}
                 className="pl-8"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); handlePageChange(1); }}
               />
             </div>
             <Select value={region} onValueChange={(v) => { setRegion(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder="Region" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={UZ.common.region} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Barcha regionlar</SelectItem>
+                <SelectItem value="ALL">{UZ.common.all}</SelectItem>
                 <SelectItem value="UZB">O'zbekiston</SelectItem>
                 <SelectItem value="KOR">Koreya</SelectItem>
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={(v) => { setStatus(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder="Holat" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={UZ.common.status} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Barcha holatlar</SelectItem>
+                <SelectItem value="all">{UZ.common.all}</SelectItem>
                 <SelectItem value="active">Faol</SelectItem>
                 <SelectItem value="inactive">Bloklangan</SelectItem>
               </SelectContent>
             </Select>
             <Select value={debtStatus} onValueChange={(v) => { setDebtStatus(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder="Qarzdorlik" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={UZ.accounting.outstandingDebt} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Barchasi</SelectItem>
+                <SelectItem value="ALL">{UZ.common.all}</SelectItem>
                 <SelectItem value="GOOD">Yaxshi</SelectItem>
                 <SelectItem value="WARNING">Ogohlantirish</SelectItem>
                 <SelectItem value="BLOCKED">Bloklangan</SelectItem>
@@ -139,44 +141,44 @@ export function CustomersListPage() {
           <DataTableHeader>
             <DataTableRow>
               <DataTableHead className="w-[50px]"></DataTableHead>
-              <DataTableHead>F.I.SH</DataTableHead>
-              <DataTableHead>Region</DataTableHead>
-              <DataTableHead>Telefon</DataTableHead>
-              <DataTableHead className="text-right">Buyurtmalar</DataTableHead>
-              <DataTableHead className="text-right">Jami xarid</DataTableHead>
-              <DataTableHead className="text-right">Qarzdorlik</DataTableHead>
+              <DataTableHead>{UZ.customers.customerName}</DataTableHead>
+              <DataTableHead>{UZ.common.region}</DataTableHead>
+              <DataTableHead>{UZ.customers.phone}</DataTableHead>
+              <DataTableHead className="text-right">{UZ.customers.totalOrders}</DataTableHead>
+              <DataTableHead className="text-right">{UZ.customers.totalSpent}</DataTableHead>
+              <DataTableHead className="text-right">{UZ.accounting.outstandingDebt}</DataTableHead>
               <DataTableHead>Qarz holati</DataTableHead>
-              <DataTableHead>Holat</DataTableHead>
-              <DataTableHead className="text-right">Amallar</DataTableHead>
+              <DataTableHead>{UZ.common.status}</DataTableHead>
+              <DataTableHead className="text-right">{UZ.common.actions}</DataTableHead>
             </DataTableRow>
           </DataTableHeader>
           <DataTableBody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <DataTableRow key={i}>
-                  <DataTableCell><Skeleton className="h-8 w-8 rounded-full" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[120px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-5 w-[60px] rounded-full" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-10 w-10 rounded-full" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-4 w-[150px]" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-4 w-[60px]" /></DataTableCell>
                   <DataTableCell><Skeleton className="h-4 w-[100px]" /></DataTableCell>
                   <DataTableCell><Skeleton className="h-4 w-[40px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[80px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[80px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-6 w-[80px] rounded-full" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-6 w-[60px] rounded-full" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-8 w-16 ml-auto rounded" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-4 w-[100px] ml-auto" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-4 w-[100px] ml-auto" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-6 w-[80px]" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-6 w-[60px]" /></DataTableCell>
+                  <DataTableCell><Skeleton className="h-8 w-20 ml-auto" /></DataTableCell>
                 </DataTableRow>
               ))
             ) : customers.length === 0 ? (
-              <DataTableEmpty colSpan={10} message="Mijozlar topilmadi" />
+                <DataTableEmpty colSpan={10} message={UZ.customers.errors.notFound} />
             ) : (
               customers.map((customer) => (
                 <DataTableRow key={customer.id}>
                   <DataTableCell>
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                      <User className="h-4 w-4 text-muted-foreground" />
+                    <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-bold">
+                      {customer.fullName[0]}
                     </div>
                   </DataTableCell>
-                  <DataTableCell className="font-medium text-stone-900">{customer.fullName}</DataTableCell>
+                  <DataTableCell className="font-medium">{customer.fullName}</DataTableCell>
                   <DataTableCell>
                     <Badge variant="outline" className="rounded-full text-xs font-normal bg-stone-50">{customer.regionCode}</Badge>
                   </DataTableCell>

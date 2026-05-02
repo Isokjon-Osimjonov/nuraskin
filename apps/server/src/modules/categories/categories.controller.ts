@@ -3,7 +3,10 @@ import { createCategorySchema, updateCategorySchema } from '@nuraskin/shared-typ
 import * as service from './categories.service';
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const result = await service.getCategories();
+  const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+  const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+
+  const result = await service.getCategories({ page, limit });
   res.json(result);
 }
 

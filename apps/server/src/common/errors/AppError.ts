@@ -59,6 +59,19 @@ export class InternalError extends AppError {
   }
 }
 
+export class PriceChangedError extends Error {
+  statusCode = 422;
+  data: any;
+  constructor({ message, changedItems }: {
+    message: string;
+    changedItems: any[];
+  }) {
+    super(message);
+    this.name = 'PriceChangedError';
+    this.data = { changedItems };
+  }
+}
+
 // Domain Specific Errors
 export class DebtLimitSoftError extends BadRequestError {
   constructor(message = 'Debt limit soft warning') {

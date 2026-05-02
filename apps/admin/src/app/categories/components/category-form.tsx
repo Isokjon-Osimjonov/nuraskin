@@ -44,19 +44,20 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl><Input placeholder="Skincare" {...field} /></FormControl>
+              <FormLabel>Nomi</FormLabel>
+              <FormControl><Input placeholder="Masalan: Terini parvarish" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="slug"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Slug</FormLabel>
-              <FormControl><Input placeholder="skincare" {...field} /></FormControl>
+              <FormLabel>Slug (URL uchun)</FormLabel>
+              <FormControl><Input placeholder="masalan: terini-parvarish" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -66,7 +67,7 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image</FormLabel>
+              <FormLabel>Rasm</FormLabel>
               <FormControl><DualSourceImage value={field.value || ''} onChange={field.onChange} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -78,9 +79,9 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Active Status</FormLabel>
+                <FormLabel>Faol holati</FormLabel>
                 <div className="text-xs text-muted-foreground">
-                  Hide or show this category
+                  Kategoriyani ko'rsatish yoki yashirish
                 </div>
               </div>
               <FormControl>
@@ -94,7 +95,7 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
         />
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting && <Spinner className="mr-2 h-4 w-4" />}
-          {initialData ? 'Update Category' : 'Save Category'}
+          {initialData ? 'Yangilash' : 'Saqlash'}
         </Button>
       </form>
     </Form>

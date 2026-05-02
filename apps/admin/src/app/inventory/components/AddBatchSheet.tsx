@@ -70,7 +70,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
             
             <div className="max-w-md mx-auto">
               <Drawer.Title className="text-xl font-semibold mb-2">
-                Stock-In: {product?.name}
+                Kirim: {product?.name}
               </Drawer.Title>
               <Drawer.Description className="text-muted-foreground mb-6">
                 {product?.brandName} • SKU: {product?.sku}
@@ -83,7 +83,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       name="initialQty"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Quantity</FormLabel>
+                          <FormLabel>Miqdor</FormLabel>
                           <FormControl>
                             <Input type="number" min="1" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} />
                           </FormControl>
@@ -95,7 +95,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       name="costPrice"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Cost (Unit KRW)</FormLabel>
+                          <FormLabel>Tan narxi (KRW)</FormLabel>
                           <FormControl>
                             <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} />
                           </FormControl>
@@ -129,7 +129,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       name="expiryDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Expiry Date</FormLabel>
+                          <FormLabel>Yaroqlilik muddati (Expiry Date)</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -143,9 +143,9 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                     name="batchRef"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Batch Reference</FormLabel>
+                        <FormLabel>Partiya raqami (Zavod)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Factory batch number..." {...field} />
+                          <Input placeholder="Zavod partiya raqami..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -156,9 +156,9 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>Izohlar</FormLabel>
                         <FormControl>
-                          <Input placeholder="Optional notes..." {...field} />
+                          <Input placeholder="Ixtiyoriy izohlar..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -172,10 +172,10 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       className="flex-1"
                       onClick={() => onOpenChange(false)}
                     >
-                      Cancel
+                      Bekor qilish
                     </Button>
                     <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                      {isSubmitting ? 'Saving...' : 'Add Stock'}
+                      {isSubmitting ? "Saqlanmoqda..." : "Qabul qilish"}
                     </Button>
                   </div>
                 </form>

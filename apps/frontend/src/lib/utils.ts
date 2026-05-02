@@ -12,6 +12,5 @@ export function formatUzs(amount: number | string): string {
 }
 
 export function formatKrw(amount: number | string): string {
-  const rounded = Math.round(Number(amount) / 100) * 100;
-  return new Intl.NumberFormat('ko-KR').format(rounded) + " ₩";
+  return new Intl.NumberFormat('ko-KR').format(Number(amount)) + " ₩";
 }

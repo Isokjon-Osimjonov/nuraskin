@@ -207,6 +207,7 @@ function ProductPage() {
                       addToCart.mutate({
                         productId: product.id,
                         quantity: quantity,
+                        regionCode: regionCode as string,
                       });
                     }}
                   >

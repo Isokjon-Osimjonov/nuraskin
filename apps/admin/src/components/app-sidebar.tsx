@@ -32,37 +32,37 @@ import {
 
 const navMain = [
   {
-    title: "Dashboard",
+    title: "Boshqaruv paneli",
     url: "/",
     icon: LayoutDashboardIcon,
   },
   {
-    title: "Categories",
+    title: "Kategoriyalar",
     url: "/categories",
     icon: TagsIcon,
   },
   {
-    title: "Products",
+    title: "Mahsulotlar",
     url: "/products",
     icon: PackageIcon,
   },
   {
-    title: "Inventory",
+    title: "Ombor",
     url: "/inventory",
     icon: PackageIcon, 
   },
   {
-    title: "Orders",
+    title: "Buyurtmalar",
     url: "/orders/",
     icon: ShoppingCartIcon,
   },
   {
-    title: "Customers",
+    title: "Mijozlar",
     url: "/customers",
     icon: UsersIcon,
   },
   {
-    title: "Team",
+    title: "Jamoa",
     url: "/settings/team",
     icon: ShieldCheckIcon,
   },
@@ -72,49 +72,49 @@ const navMain = [
     icon: SendIcon,
     items: [
       {
-        title: "Dashboard",
+        title: "Statistika",
         url: "/telegram",
         icon: BarChartIcon,
       },
       {
-        title: "Channels",
+        title: "Kanallar",
         url: "/telegram/channels",
         icon: RadioIcon,
       },
       {
-        title: "New Post",
+        title: "Yangi post",
         url: "/telegram/posts/new",
         icon: MailIcon,
       },
     ],
   },
   {
-    title: "Coupons",
+    title: "Kuponlar",
     url: "/coupons",
     icon: TicketIcon,
   },
   {
-    title: "Sales",
+    title: "Sotuvlar",
     url: "/sales",
     icon: TrendingUpIcon,
   },
   {
-    title: "Accounting",
+    title: "Buxgalteriya",
     url: "/accounting",
     icon: WalletIcon,
   },
   {
-    title: "Settings",
+    title: "Sozlamalar",
     url: "/settings/",
     icon: SettingsIcon,
   },
   {
-    title: "Exchange Rates",
+    title: "Valyuta kurslari",
     url: "/settings/rates",
     icon: TrendingUpIcon,
   },
   {
-    title: "Shipping Tiers",
+    title: "Yetkazib berish",
     url: "/settings/shipping-tiers",
     icon: ShoppingCartIcon,
   },

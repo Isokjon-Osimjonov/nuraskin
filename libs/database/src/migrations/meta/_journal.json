@@ -176,6 +176,13 @@
       "when": 1777479664414,
       "tag": "0024_lucky_gorilla_man",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1777631541042,
+      "tag": "0025_cheerful_cerise",
+      "breakpoints": true
     }
   ]
 }

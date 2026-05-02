@@ -15,7 +15,7 @@ export function useCart() {
 
 export function useAddToCart() {
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAppStore();
+  const { setPendingRegion, setShowRegionConfirm } = useAppStore();
 
   return useMutation({
     mutationFn: cartApi.addToCart,
@@ -23,7 +23,18 @@ export function useAddToCart() {
       queryClient.setQueryData(['cart'], data);
       toast.success('Savatchaga qo\'shildi');
     },
-    onError: (err: any) => {
+    onError: (err: any, variables) => {
+      const isRegionMismatch = 
+        err.status === 409 || 
+        err.error === 'REGION_MISMATCH' || 
+        err.message?.includes('REGION_MISMATCH') ||
+        err.message?.includes('mintaqa');
+
+      if (isRegionMismatch && variables.regionCode) {
+        setPendingRegion(variables.regionCode as any);
+        setShowRegionConfirm(true);
+        return;
+      }
       toast.error(err.message || 'Xatolik yuz berdi');
     },
   });
@@ -59,9 +70,9 @@ export function useClearCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: cartApi.clearCart,
-    onSuccess: () => {
-      queryClient.setQueryData(['cart'], null);
+    mutationFn: (regionCode?: string) => cartApi.clearCart(regionCode),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['cart'], data);
     },
   });
 }

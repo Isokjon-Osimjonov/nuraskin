@@ -90,18 +90,18 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
+                    control={form.control}
                     name="batch_ref"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Batch Reference</FormLabel>
+                        <FormLabel>Partiya raqami (Zavod)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Factory batch number..." {...field} />
+                          <Input placeholder="Zavod partiya raqami..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       name="initial_qty"

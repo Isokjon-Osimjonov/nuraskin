@@ -504,7 +504,7 @@ export function ProductFormPage({
         />
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {initialData ? 'Update Product' : 'Create Product'}
+          {initialData ? "Saqlash" : "Yaratish"}
         </Button>
       </form>
     </Form>

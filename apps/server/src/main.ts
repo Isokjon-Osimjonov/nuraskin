@@ -19,6 +19,17 @@ import { env } from './common/config/env';
 // Start BullMQ workers
 import './modules/queues';
 
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL - Uncaught Exception:', err.message);
+  console.error(err.stack);
+  // DO NOT call process.exit() — keep server running
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('CRITICAL - Unhandled Rejection:', reason);
+  // DO NOT call process.exit() — keep server running
+});
+
 app.listen(env.PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${env.PORT}`);
 });

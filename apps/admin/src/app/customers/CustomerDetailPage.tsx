@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Save, ShoppingBag, Clock, Bell, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { UZ, translateServerError } from '@/lib/uz';
 
 export function CustomerDetailPage() {
   const { id } = useParams({ from: '/_app/customers/$id' as any });
@@ -34,12 +35,13 @@ export function CustomerDetailPage() {
     mutationFn: (data: any) => customersApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers', id] });
-      toast.success("Ma'lumotlar saqlandi");
+      toast.success(UZ.settings.saved);
     },
+    onError: (err: any) => toast.error(translateServerError(err.message)),
   });
 
-  if (isLoading) return <div className="p-6">Yuklanmoqda...</div>;
-  if (!customer) return <div className="p-6 text-center">Mijoz topilmadi</div>;
+  if (isLoading) return <div className="p-6">{UZ.common.loading}</div>;
+  if (!customer) return <div className="p-6 text-center">{UZ.customers.errors.notFound}</div>;
 
   const debtValue = BigInt(customer.stats.outstandingDebt);
   const limitValue = customer.debtLimitOverride ? BigInt(customer.debtLimitOverride) : 100000000n; // fallback to dummy or actual default if we had it
@@ -90,13 +92,13 @@ export function CustomerDetailPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase font-bold">Buyurtmalar</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.customers.totalOrders}</p>
                 <p className="text-2xl font-bold">{customer.stats.orderCount}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase font-bold">Jami xarid</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.customers.totalSpent}</p>
                 <p className="text-2xl font-bold">
                     {customer.regionCode === 'UZB' 
                         ? (Number(BigInt(customer.stats.totalSpent)) / 100).toLocaleString() 
@@ -106,7 +108,7 @@ export function CustomerDetailPage() {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase font-bold">Qarzdorlik</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.accounting.outstandingDebt}</p>
                 <p className="text-2xl font-bold text-red-600">
                     {customer.regionCode === 'UZB' 
                         ? (Number(BigInt(customer.stats.outstandingDebt)) / 100).toLocaleString() 
@@ -129,8 +131,8 @@ export function CustomerDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order#</TableHead>
-                    <TableHead>Sana</TableHead>
-                    <TableHead>Holat</TableHead>
+                    <TableHead>{UZ.common.date}</TableHead>
+                    <TableHead>{UZ.common.status}</TableHead>
                     <TableHead className="text-right">Summa</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
@@ -145,12 +147,12 @@ export function CustomerDetailPage() {
                         {Number(BigInt(o.totalAmount) / (o.currency === 'UZS' ? 100n : 1n)).toLocaleString()} {o.currency}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/orders/${o.id}` } as any)}>Ko'rish</Button>
+                        <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/orders/${o.id}` } as any)}>{UZ.common.view}</Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {customer.orders.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center h-24">Buyurtmalar mavjud emas</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center h-24">{UZ.customers.noOrders}</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -236,7 +238,7 @@ export function CustomerDetailPage() {
                      </TableRow>
                    ))}
                    {customer.waitlist.length === 0 && (
-                     <TableRow><TableCell className="text-center py-6 text-muted-foreground text-sm italic">Kutish listi bo'sh</TableCell></TableRow>
+                     <TableRow><TableCell className="text-center py-6 text-muted-foreground text-sm italic">{UZ.coupons.noCoupons}</TableCell></TableRow>
                    )}
                  </TableBody>
                </Table>

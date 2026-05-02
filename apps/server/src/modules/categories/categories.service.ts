@@ -13,8 +13,22 @@ if (env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SE
   });
 }
 
-export async function getCategories() {
-  return repository.findAll();
+export async function getCategories(options: { page?: number; limit?: number } = {}) {
+  const page = options.page || 1;
+  const limit = options.limit || 10;
+  const offset = (page - 1) * limit;
+
+  const [data, total] = await Promise.all([
+    repository.findAll({ limit, offset }),
+    repository.count(),
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+  };
 }
 
 export async function getCategory(id: string) {

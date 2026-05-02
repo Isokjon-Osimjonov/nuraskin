@@ -316,6 +316,25 @@ Paste in this exact order:
 
 ---
 
+## PHASE 14 — Admin UI Enhancements & Localisation
+**Status: ✅ COMPLETE**
+
+### Major Changes:
+- [x] **Categories Pagination:** Added backend-supported pagination for categories (repository, service, controller). Updated frontend to use `TablePagination` component.
+- [x] **Localisation (Uzbek):** Translated key Admin UI elements to Uzbek (Latin).
+- [x] **Branding:** Updated browser tab title to "NuraSkin Admin".
+
+### Implementation Details:
+- [x] **Backend:** Updated `categories` module to support `limit` and `offset` in queries and return total count.
+- [x] **Admin App:**
+    - Translated Sidebar navigation titles.
+    - Translated Topbar titles (dynamic based on route).
+    - Translated Products table headers and common dialogs.
+    - Updated Category form labels and buttons.
+    - Implemented `TablePagination` in Categories page with URL state sync.
+
+---
+
 ## KNOWN ISSUES / BUGS
 > Add any bugs found but not yet fixed.
 

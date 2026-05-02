@@ -94,8 +94,9 @@ export async function findAll(filters: {
   }));
 }
 
-export async function findById(id: string) {
-  const [row] = await db
+export async function findById(id: string, txIn: any = db) {
+  const runner = txIn;
+  const [row] = await runner
     .select({
       order: orders,
       customerName: customers.fullName,
@@ -107,7 +108,7 @@ export async function findById(id: string) {
 
   if (!row) return null;
 
-  const items = await db
+  const items = await runner
     .select({
       item: orderItems,
       productName: products.name,
@@ -120,7 +121,7 @@ export async function findById(id: string) {
     .innerJoin(products, eq(orderItems.productId, products.id))
     .where(eq(orderItems.orderId, id));
 
-  const [resRow] = await db
+  const [resRow] = await runner
     .select({ earliest: sql`min(${stockReservations.expiresAt})` })
     .from(stockReservations)
     .where(and(

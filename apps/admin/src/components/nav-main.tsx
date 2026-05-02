@@ -48,7 +48,7 @@ export function NavMain({
                             : "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200"
                         )}
                       >
-                        <item.icon className="size-4" />
+                        <item.icon className="size-5" />
                       </div>
                     )}
                     <span className={cn(

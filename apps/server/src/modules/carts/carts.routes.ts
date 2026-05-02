@@ -36,8 +36,8 @@ router.use(resolveCustomer);
 
 router.get('/', asyncHandler(ctrl.getCart));
 router.post('/items', asyncHandler(ctrl.addToCart));
-router.patch('/items/:productId', asyncHandler(ctrl.updateItemQuantity));
-router.delete('/items/:productId', asyncHandler(ctrl.removeItem));
+router.patch('/items/:itemId', asyncHandler(ctrl.updateItemQuantity));
+router.delete('/items/:itemId', asyncHandler(ctrl.removeItem));
 router.delete('/', asyncHandler(ctrl.clearCart));
 
 export default router;

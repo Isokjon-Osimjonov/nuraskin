@@ -21,6 +21,7 @@ export const cartResponseSchema = z.object({
   id: z.string().uuid(),
   customerId: z.string().uuid(),
   items: z.array(cartItemSchema),
+  regionCode: z.string(),
   updatedAt: z.string(),
 });
 
@@ -29,6 +30,7 @@ export type CartResponse = z.infer<typeof cartResponseSchema>;
 export const addToCartSchema = z.object({
   productId: z.string().uuid(),
   quantity: z.number().int().min(1),
+  regionCode: z.string().optional(),
 });
 
 export type AddToCartInput = z.infer<typeof addToCartSchema>;

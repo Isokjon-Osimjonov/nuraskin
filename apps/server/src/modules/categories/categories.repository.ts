@@ -6,8 +6,8 @@ export interface CategoryWithProductCount extends Category {
   productCount: number;
 }
 
-export async function findAll(): Promise<CategoryWithProductCount[]> {
-  const rows = await db
+export async function findAll(options: { limit?: number; offset?: number } = {}): Promise<CategoryWithProductCount[]> {
+  const query = db
     .select({
       id: categories.id,
       name: categories.name,
@@ -24,7 +24,22 @@ export async function findAll(): Promise<CategoryWithProductCount[]> {
     .where(isNull(categories.deletedAt))
     .groupBy(categories.id);
 
-  return rows;
+  if (options.limit !== undefined) {
+    query.limit(options.limit);
+  }
+  if (options.offset !== undefined) {
+    query.offset(options.offset);
+  }
+
+  return query;
+}
+
+export async function count(): Promise<number> {
+  const [result] = await db
+    .select({ value: sql<number>`count(*)` })
+    .from(categories)
+    .where(isNull(categories.deletedAt));
+  return result?.value ?? 0;
 }
 
 export async function findById(id: string): Promise<CategoryWithProductCount | null> {

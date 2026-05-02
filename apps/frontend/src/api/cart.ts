@@ -20,7 +20,8 @@ export const removeCartItem = (itemId: string) =>
     method: 'DELETE',
   });
 
-export const clearCart = () =>
-  apiFetch<void>('/storefront/cart', {
+export const clearCart = (regionCode?: string) =>
+  apiFetch<CartResponse>('/storefront/cart', {
     method: 'DELETE',
+    body: regionCode ? JSON.stringify({ regionCode }) : undefined,
   });

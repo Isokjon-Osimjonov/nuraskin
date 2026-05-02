@@ -21,7 +21,7 @@ export function CategoriesTable({ data, onEdit, onDelete }: CategoriesTableProps
   const columns: ColumnDef<CategoryResponse>[] = React.useMemo(() => [
     {
       accessorKey: 'imageUrl',
-      header: 'Image',
+      header: 'Rasm',
       cell: ({ row }) => {
         const url = row.getValue('imageUrl') as string;
         return url ? (
@@ -29,13 +29,13 @@ export function CategoriesTable({ data, onEdit, onDelete }: CategoriesTableProps
             <img src={url} alt="Category" className="object-cover h-full w-full" />
           </div>
         ) : (
-          <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-xs">No img</div>
+          <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-xs">Rasm yo'q</div>
         );
       },
     },
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: 'Nomi',
     },
     {
       accessorKey: 'slug',
@@ -43,19 +43,19 @@ export function CategoriesTable({ data, onEdit, onDelete }: CategoriesTableProps
     },
     {
       accessorKey: 'productCount',
-      header: 'Products',
+      header: 'Mahsulotlar',
       cell: ({ row }) => {
         return <div className="font-medium">{row.getValue('productCount')}</div>;
       }
     },
     {
       accessorKey: 'isActive',
-      header: 'Status',
+      header: 'Holat',
       cell: ({ row }) => {
         const isActive = row.getValue('isActive') as boolean;
         return (
           <Badge variant={isActive ? 'success' : 'secondary'}>
-            {isActive ? 'Active' : 'Inactive'}
+            {isActive ? 'Faol' : 'Nofaol'}
           </Badge>
         );
       },
@@ -73,7 +73,7 @@ export function CategoriesTable({ data, onEdit, onDelete }: CategoriesTableProps
               className="h-8 w-8 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 border-none shadow-none"
             >
               <Edit className="h-4 w-4" />
-              <span className="sr-only">Edit Category</span>
+              <span className="sr-only">Tahrirlash</span>
             </Button>
             <Button 
               variant="secondary" 
@@ -82,7 +82,7 @@ export function CategoriesTable({ data, onEdit, onDelete }: CategoriesTableProps
               className="h-8 w-8 rounded-md bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border-none shadow-none"
             >
               <Trash className="h-4 w-4" />
-              <span className="sr-only">Delete Category</span>
+              <span className="sr-only">O'chirish</span>
             </Button>
           </div>
         );
@@ -126,7 +126,7 @@ export function CategoriesTable({ data, onEdit, onDelete }: CategoriesTableProps
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No categories found.
+                Kategoriyalar topilmadi.
               </TableCell>
             </TableRow>
           )}

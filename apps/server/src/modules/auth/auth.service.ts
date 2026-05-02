@@ -80,7 +80,7 @@ export async function telegramAuth({
       role: 'customer',
     },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] },
+    { expiresIn: '90d' },
   );
 
   return {
