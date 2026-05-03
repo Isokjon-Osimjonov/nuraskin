@@ -15,6 +15,8 @@ import {
   Info,
   Clock,
   Scan,
+  MapPin,
+  Phone,
 } from 'lucide-react';
 import { OrderStatusBadge } from './components/OrderStatusBadge';
 import { OrderItemsTable } from './components/OrderItemsTable';
@@ -230,6 +232,42 @@ export function OrderDetailPage() {
                   </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Delivery Address Card */}
+          <Card>
+            <CardHeader className="py-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Yetkazib berish manzili</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.deliveryFullName ? (
+                <div className="space-y-1.5 text-sm">
+                  <p className="font-bold text-base">{order.deliveryFullName}</p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <Phone className="h-3.5 w-3.5" />
+                    {order.deliveryPhone}
+                  </p>
+                  <div className="pt-2 border-t mt-2 space-y-1 text-stone-600 font-light">
+                    <p className="flex items-start gap-2">
+                        <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                        <span>
+                            {order.deliveryAddressLine1}
+                            {order.deliveryAddressLine2 && `, ${order.deliveryAddressLine2}`}
+                        </span>
+                    </p>
+                    <p className="ml-5">
+                      {order.deliveryPostalCode && `[${order.deliveryPostalCode}] `}
+                      {order.deliveryCity}
+                    </p>
+                    <p className="ml-5 uppercase text-[10px] font-bold text-stone-400 tracking-widest">{order.deliveryRegionCode}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground italic py-4 text-center border rounded-lg bg-muted/20">
+                  Manzil ko'rsatilmagan
+                </div>
+              )}
             </CardContent>
           </Card>
 

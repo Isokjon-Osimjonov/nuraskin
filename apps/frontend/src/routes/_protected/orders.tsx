@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
-import { getMyOrders, uploadReceipt } from '@/api/orders';
+import { getMyOrders, uploadReceipt, getUploadUrl } from '@/api/orders';
 import { formatUzs, formatKrw } from '@/lib/utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
   ArrowLeft, Package, Truck, CheckCircle2, Clock, CreditCard,
-  XCircle, AlertCircle, Send, Loader2, Camera,
+  XCircle, AlertCircle, Send, Loader2, Camera, ExternalLink,
+  MapPin, Phone
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_protected/orders')({
   component: Orders,
@@ -74,7 +76,8 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const isExpired = order.paymentExpiresAt ? new Date(order.paymentExpiresAt) < new Date() : false;
-  const needsReceipt = order.status === 'PENDING_PAYMENT' && !order.paymentReceiptUrl && !order.paymentSubmittedAt && !isExpired;
+  const hasReceipt = !!(order.paymentReceiptUrl || order.paymentSubmittedAt);
+  const needsReceipt = order.status === 'PENDING_PAYMENT' && !hasReceipt && !isExpired;
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -98,12 +101,29 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
     if (!selectedFile) return;
     setUploading(true);
     try {
-      const base64Data = preview?.split(',')[1];
-      if (!base64Data) throw new Error('Rasm formati noto\'g\'ri');
+      // 1. Get signed upload URL
+      const { url, timestamp, signature, apiKey } = await getUploadUrl();
 
-      await uploadReceipt(order.id, base64Data, selectedFile.type);
+      // 2. Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', String(timestamp));
+      formData.append('signature', signature);
+
+      const res = await fetch(url, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Cloudinary upload failed');
+      const data = await res.json();
+      const imageUrl = data.secure_url || data.url;
+
+      // 3. Update order with receipt URL
+      await uploadReceipt(order.id, imageUrl);
+      
+      toast.success("Chek muvaffaqiyatli yuborildi");
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
-    } catch {
+      handleRemoveFile();
+    } catch (err) {
+      console.error(err);
       setError('Chek yuborishda xatolik. Qayta urinib ko\'ring.');
     } finally {
       setUploading(false);
@@ -145,12 +165,39 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-normal text-stone-700 truncate">{item.productName}</p>
               <p className="text-[12px] font-light text-stone-400">
-                {item.quantity} dona × {formatPrice(item.unitPrice, item.currency)}
+                {item.quantity} dona × {formatPrice(item.unitPriceSnapshot || item.unitPrice, order.currency)}
               </p>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Delivery Address */}
+      {order.deliveryFullName && (
+        <div className="mb-4 pt-4 border-t border-stone-100">
+          <h4 className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mb-2">Yetkazib berish manzili:</h4>
+          <div className="bg-white/50 rounded-xl p-3 space-y-0.5 border border-stone-50">
+            <p className="text-[13px] font-medium text-[#4A1525]">{order.deliveryFullName}</p>
+            <p className="text-[12px] text-stone-500 flex items-center gap-1.5">
+              <Phone className="w-3 h-3" strokeWidth={1.5} />
+              {order.deliveryPhone}
+            </p>
+            <div className="text-[12px] text-stone-600 mt-1 flex items-start gap-1.5">
+              <MapPin className="w-3 h-3 mt-1 shrink-0 text-stone-300" strokeWidth={1.5} />
+              <div>
+                <p>
+                  {order.deliveryAddressLine1}
+                  {order.deliveryAddressLine2 && `, ${order.deliveryAddressLine2}`}
+                </p>
+                <p>
+                  {order.deliveryPostalCode && `[${order.deliveryPostalCode}] `}
+                  {order.deliveryCity}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Receipt upload for pending_payment */}
       {needsReceipt && (
@@ -215,10 +262,28 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       )}
 
       {/* Payment submitted — waiting for review */}
-      {(order.paymentReceiptUrl || order.paymentSubmittedAt) && order.status === 'PENDING_PAYMENT' && (
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-blue-500 shrink-0" strokeWidth={1.5} />
-          <p className="text-[12px] text-blue-700">Chek yuborildi. Admin tasdiqlashini kuting.</p>
+      {hasReceipt && order.status === 'PENDING_PAYMENT' && (
+        <div className="mb-4">
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={1.5} />
+              <p className="text-[12px] text-emerald-700">Chek yuborildi. Tasdiqlash kutilmoqda.</p>
+            </div>
+            {order.paymentReceiptUrl && (
+              <button 
+                onClick={() => window.open(order.paymentReceiptUrl!, '_blank')}
+                className="text-[11px] text-emerald-600 underline flex items-center gap-1"
+              >
+                Ko'rish <ExternalLink className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          <button 
+            onClick={() => fileRef.current?.click()}
+            className="text-[11px] text-stone-400 underline mt-2 ml-1"
+          >
+            Chekni almashtirish
+          </button>
         </div>
       )}
 

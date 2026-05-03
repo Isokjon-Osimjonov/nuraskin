@@ -1,98 +1,35 @@
-import { useState } from 'react';
-import { Heart, ShoppingBag, Bell } from 'lucide-react';
 import { Link, useNavigate } from '@tanstack/react-router';
+import { Heart, ShoppingBag, Bell, Loader2 } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { useCart, useAddToCart } from '@/hooks/useCart';
-
-interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  brand: string;
-  productType: string;
-  price: number;
-  currentPriceUZS: number;
-  inStock: boolean;
-  image: string;
-}
-
-const PLACEHOLDER_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    slug: 'seoul-1988-serum',
-    name: 'Seoul 1988 Serum: Retinal Liposome 2% + Black Ginseng',
-    description: "Bu serum terini yoshartirish va mustahkamlash uchun mo'ljallangan.",
-    brand: 'K-Secret',
-    productType: 'Serum',
-    price: 0,
-    currentPriceUZS: 0,
-    inStock: false,
-    image: '/nsb.png',
-  },
-  {
-    id: '2',
-    slug: 'celimax-pore-dark-spot-cream',
-    name: "Teshiklar va qora dog'lar uchun yorqinlashtiruvchi krem",
-    description: "Bu krem teridagi teshiklarni kamaytirish va qora dog'larni yoritishga yordam beradi.",
-    brand: 'Celimax',
-    productType: 'Krem',
-    price: 14000,
-    currentPriceUZS: 14000,
-    inStock: true,
-    image: '/nsb.png',
-  },
-  {
-    id: '3',
-    slug: 'heartleaf-toner-pad',
-    name: 'Heartleaf 77 Clear Toner Pad',
-    description: 'Terini yumshatish va namlantirishga yordam beradi.',
-    brand: 'Anua',
-    productType: 'Tonik',
-    price: 22000,
-    currentPriceUZS: 22000,
-    inStock: true,
-    image: '/nsb.png',
-  },
-  {
-    id: '4',
-    slug: 'ceramide-moisture-gel',
-    name: 'Ceramide Intensive Moisture Gel',
-    description: "Teriga chuqur namlik beruvchi gel.",
-    brand: 'Dr.Jart+',
-    productType: 'Gel',
-    price: 31000,
-    currentPriceUZS: 31000,
-    inStock: true,
-    image: '/nsb.png',
-  },
-];
-
-function formatPrice(price: number): string {
-  if (price === 0) return "0 so'm";
-  return new Intl.NumberFormat('uz-UZ').format(price) + " so'm";
-}
+import { useProducts } from '@/hooks/useProducts';
+import { formatUzs, formatKrw } from '@/lib/utils';
 
 export function RecentProductsSection() {
-  const { isAuthenticated } = useAppStore();
+  const { regionCode, isAuthenticated, favorites, toggleFavorite } = useAppStore();
   const navigate = useNavigate();
+  const { data: productsData, isLoading } = useProducts({ limit: 8 });
   const { data: cartData } = useCart();
   const addToCart = useAddToCart();
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  const toggleFav = (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+  const products = productsData?.data ?? [];
+  const latestProducts = products.slice(0, 4);
+
+  const formatPrice = (val: number | string) => {
+    if (!val || val === '0') return "Narx ko'rsatilmagan";
+    if (regionCode === 'KOR') return formatKrw(val);
+    return formatUzs(val);
   };
+
+  if (isLoading) {
+    return (
+      <section className="bg-white py-14 min-h-[70vh] flex flex-col justify-center">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#4A1525]" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-white py-14 min-h-[70vh] flex flex-col justify-center">
@@ -113,8 +50,8 @@ export function RecentProductsSection() {
 
         {/* Product Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-          {PLACEHOLDER_PRODUCTS.map((product) => {
-            const isFav = favorites.has(product.id);
+          {latestProducts.map((product) => {
+            const isFav = favorites.some((f: any) => f.id === product.id);
             const isInCart = cartData?.items?.some((i: any) => i.productId === product.id);
 
             return (
@@ -130,22 +67,22 @@ export function RecentProductsSection() {
                   className="block relative aspect-[4/3] overflow-hidden"
                 >
                   <img
-                    src={product.image}
+                    src={product.imageUrls[0] || '/nsb.png'}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
 
-                  {product.brand && (
+                  {product.brandName && (
                     <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-[11px] text-[#4A1525] font-light">
-                      {product.brand}
+                      {product.brandName}
                     </div>
                   )}
-                  {product.productType && (
+                  {product.categoryName && (
                     <div className="absolute bottom-3 left-3 bg-[#4A1525]/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] text-white font-light">
-                      {product.productType}
+                      {product.categoryName}
                     </div>
                   )}
-                  {!product.inStock && (
+                  {(!product.inStock || product.availableStock <= 0) && (
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                       <span className="bg-white/90 text-red-600 text-[11px] font-medium px-3 py-1 rounded-full">Mavjud emas</span>
                     </div>
@@ -153,7 +90,11 @@ export function RecentProductsSection() {
                   {/* Wishlist button */}
                   <button
                     aria-label="Sevimli"
-                    onClick={(e) => toggleFav(product.id, e)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleFavorite(product);
+                    }}
                     className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-colors ${
                       isFav ? 'text-[#4A1525]' : 'text-stone-400 hover:text-[#4A1525]'
                     }`}
@@ -169,14 +110,12 @@ export function RecentProductsSection() {
                       {product.name}
                     </h3>
                   </Link>
-                  <p className="text-[10px] font-light text-stone-400 leading-relaxed line-clamp-2 mb-2 flex-1">
-                    {product.description}
-                  </p>
+                  
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-[12px] font-light text-[#4A1525]">
-                      {formatPrice(product.currentPriceUZS)}
+                      {formatPrice(product.calculatedPrice)}
                     </span>
-                    {!product.inStock ? (
+                    {(!product.inStock || product.availableStock <= 0) ? (
                       <button
                         aria-label="Xabardor qiling"
                         className="w-8 h-8 rounded-full bg-stone-200 text-stone-600 hover:bg-[#4A1525] hover:text-white flex items-center justify-center transition-all duration-200"
@@ -191,6 +130,7 @@ export function RecentProductsSection() {
                           addToCart.mutate({
                             productId: product.id,
                             quantity: 1,
+                            regionCode: regionCode as string,
                           });
                         }}
                         disabled={addToCart.isPending}

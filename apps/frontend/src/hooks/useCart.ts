@@ -23,12 +23,11 @@ export function useAddToCart() {
       queryClient.setQueryData(['cart'], data);
       toast.success('Savatchaga qo\'shildi');
     },
-    onError: (err: any, variables) => {
+    onError: (err: any, variables: any) => {
       const isRegionMismatch = 
         err.status === 409 || 
         err.error === 'REGION_MISMATCH' || 
-        err.message?.includes('REGION_MISMATCH') ||
-        err.message?.includes('mintaqa');
+        err.message === 'REGION_MISMATCH';
 
       if (isRegionMismatch && variables.regionCode) {
         setPendingRegion(variables.regionCode as any);

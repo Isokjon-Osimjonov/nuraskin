@@ -101,7 +101,7 @@ function CartPage() {
             <div className="bg-[#f8f7f5] rounded-2xl p-5 md:p-8">
               <div className="flex justify-between items-center border-b border-stone-200 pb-4 mb-6">
                 <span className="text-[13px] font-light text-stone-500">{cart.length} ta mahsulot</span>
-                <button onClick={() => clearCart.mutate(regionCode as string)} className="text-[12px] font-light text-red-500 hover:text-red-600 tracking-wide">
+                <button onClick={() => clearCart.mutate(cartRegion as string)} className="text-[12px] font-light text-red-500 hover:text-red-600 tracking-wide">
                   Barchasini tozalash
                 </button>
               </div>
@@ -183,7 +183,7 @@ function CartPage() {
                 })}
               </div>
               
-              {regionCode === 'UZB' && (
+              {cartRegion === 'UZB' && (
                 <div className="mt-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex gap-3 items-start">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <p className="text-[12px] text-emerald-700 leading-relaxed font-light">
@@ -207,14 +207,14 @@ function CartPage() {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 
-                {regionCode === 'KOR' && (
+                {cartRegion === 'KOR' && (
                   <div className="flex justify-between items-center text-white/70 text-[13px] font-light">
                     <span>Yetkazib berish:</span>
                     <span>{shipping === 0 ? 'Bepul' : formatPrice(shipping)}</span>
                   </div>
                 )}
                 
-                {regionCode === 'UZB' && (
+                {cartRegion === 'UZB' && (
                   <div className="flex justify-between items-center text-white/70 text-[13px] font-light">
                     <span>Kargo (kiritilgan):</span>
                     <span className="text-emerald-400 font-medium">BEPUL ✓</span>
