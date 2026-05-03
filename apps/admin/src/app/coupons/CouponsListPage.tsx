@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatUzs } from '@/lib/utils';
+import { formatUzs, formatKrw } from '@/lib/currency';
 import { couponsApi } from './api/coupons.api';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '../../routes/_app/coupons/index';
@@ -131,6 +131,7 @@ export function CouponsListPage() {
               <DataTableHead className="text-right">Qiymati</DataTableHead>
               <DataTableHead className="text-center">Ishlatildi</DataTableHead>
               <DataTableHead className="text-center">Holat</DataTableHead>
+              <DataTableHead className="text-center">Mintaqa</DataTableHead>
               <DataTableHead className="text-center">Muddati</DataTableHead>
               <DataTableHead className="text-right">Amallar</DataTableHead>
             </DataTableRow>
@@ -161,15 +162,18 @@ export function CouponsListPage() {
                   </DataTableCell>
                   <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">{coupon.type}</DataTableCell>
                   <DataTableCell className="text-right font-medium text-stone-900">
-                    {coupon.type === 'PERCENTAGE' 
+                    {coupon.type === 'PERCENTAGE'
                       ? `${coupon.value}%`
-                      : formatUzs(coupon.value)}
+                      : coupon.regionCode === 'UZB' ? formatUzs(coupon.value) : formatKrw(coupon.value)}
                   </DataTableCell>
                   <DataTableCell className="text-center">
                     <span className="font-medium text-stone-900">{coupon.usageCount}</span>
                     {coupon.maxUsesTotal && <span className="text-stone-400"> / {coupon.maxUsesTotal}</span>}
                   </DataTableCell>
                   <DataTableCell className="text-center">{getStatusBadge(coupon.status)}</DataTableCell>
+                  <DataTableCell className="text-center text-xs font-medium text-stone-600">
+                    {coupon.regionCode === 'ALL' ? 'Barchasi' : coupon.regionCode === 'UZB' ? "O'zbekiston" : 'Koreya'}
+                  </DataTableCell>
                   <DataTableCell className="text-center text-sm font-medium text-stone-700">
                     {coupon.expiresAt ? format(new Date(coupon.expiresAt), 'dd.MM.yyyy') : 'Limitsiz'}
                   </DataTableCell>

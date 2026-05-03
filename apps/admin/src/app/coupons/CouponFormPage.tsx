@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { tiyinToSom, somToTiyin } from '@/lib/currency';
 
 export function CouponFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string };
@@ -50,10 +51,18 @@ export function CouponFormPage() {
 
   React.useEffect(() => {
     if (existingCoupon) {
+      const region = existingCoupon.regionCode || 'ALL';
+      const toUIValue = (dbVal: any) => {
+          if (!dbVal) return '';
+          return region === 'UZB' ? tiyinToSom(dbVal).toString() : dbVal.toString();
+      };
+      
       setForm({
         ...existingCoupon,
-        regionCode: existingCoupon.regionCode || 'ALL',
-        maxDiscountCap: existingCoupon.maxDiscountCap || '',
+        regionCode: region,
+        value: existingCoupon.type === 'PERCENTAGE' ? existingCoupon.value.toString() : toUIValue(existingCoupon.value),
+        maxDiscountCap: existingCoupon.type === 'PERCENTAGE' ? toUIValue(existingCoupon.maxDiscountCap) : '',
+        minOrderAmount: toUIValue(existingCoupon.minOrderAmount),
         startsAt: existingCoupon.startsAt ? new Date(existingCoupon.startsAt).toISOString().split('T')[0] : '',
         expiresAt: existingCoupon.expiresAt ? new Date(existingCoupon.expiresAt).toISOString().split('T')[0] : '',
         maxUsesTotal: existingCoupon.maxUsesTotal || '',
@@ -63,11 +72,17 @@ export function CouponFormPage() {
 
   const mutation = useMutation({
     mutationFn: (data: any) => {
+        const region = data.regionCode;
+        const toDbValue = (uiVal: string) => {
+            if (!uiVal) return null;
+            return region === 'UZB' ? somToTiyin(parseFloat(uiVal)).toString() : uiVal;
+        };
+
         const payload = {
             ...data,
-            value: data.value.toString(),
-            maxDiscountCap: data.maxDiscountCap ? data.maxDiscountCap.toString() : null,
-            minOrderAmount: data.minOrderAmount.toString(),
+            value: data.type === 'PERCENTAGE' ? data.value.toString() : toDbValue(data.value),
+            maxDiscountCap: data.type === 'PERCENTAGE' ? toDbValue(data.maxDiscountCap) : null,
+            minOrderAmount: toDbValue(data.minOrderAmount) || '0',
             regionCode: data.regionCode === 'ALL' ? null : data.regionCode,
             startsAt: data.startsAt ? new Date(data.startsAt).toISOString() : null,
             expiresAt: data.expiresAt ? new Date(data.expiresAt).toISOString() : null,
@@ -148,7 +163,11 @@ export function CouponFormPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{form.type === 'PERCENTAGE' ? 'Foiz' : 'Summa (tiyinda)'}</Label>
+                  <Label>
+                    {form.type === 'PERCENTAGE' 
+                      ? 'Foiz (%)' 
+                      : `Chegirma summasi (${form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})`}
+                  </Label>
                   <Input 
                     type="number"
                     value={form.value}
@@ -158,7 +177,9 @@ export function CouponFormPage() {
               </div>
               {form.type === 'PERCENTAGE' && (
                 <div className="space-y-2">
-                  <Label>Maksimal chegirma limiti (tiyinda)</Label>
+                  <Label>
+                    Maksimal chegirma limiti ({form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})
+                  </Label>
                   <Input 
                     type="number"
                     placeholder="Limitsiz"
@@ -176,7 +197,9 @@ export function CouponFormPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Minimal buyurtma summasi (tiyinda)</Label>
+                  <Label>
+                    Minimal buyurtma summasi ({form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})
+                  </Label>
                   <Input 
                     type="number"
                     value={form.minOrderAmount}
