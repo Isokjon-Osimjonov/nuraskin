@@ -26,8 +26,9 @@ export async function listProducts(req: Request, res: Response) {
   const region = getRegion(req);
   const categoryId = req.query.categoryId as string;
   const search = req.query.search as string;
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
   const customerId = await tryGetCustomerId(req);
-  const result = await service.listProducts(region, categoryId, search, customerId);
+  const result = await service.listProducts(region, categoryId, search, customerId, limit);
   res.json(result);
 }
 
@@ -78,9 +79,20 @@ export async function cancelOrder(req: Request, res: Response) {
 export async function uploadReceipt(req: Request, res: Response) {
   const customerId = (req as any).customer.id;
   const orderId = req.params.id;
-  const { receiptImageBase64, mimeType } = req.body;
-  const result = await service.uploadOrderReceipt(orderId, customerId, receiptImageBase64, mimeType);
+  const { payment_proof_url } = req.body;
+  const result = await service.uploadOrderReceipt(orderId, customerId, payment_proof_url);
   res.json(result);
+}
+
+export async function getReceipt(req: Request, res: Response) {
+  const customerId = (req as any).customer.id;
+  const orderId = req.params.id;
+  const result = await service.getOrderReceipt(orderId, customerId);
+  if (!result) {
+    res.status(404).json({ error: 'Chek topilmadi' });
+    return;
+  }
+  res.json({ receipt_url: result });
 }
 
 export async function getMyOrders(req: Request, res: Response) {
@@ -114,5 +126,15 @@ export async function getMyWaitlist(req: Request, res: Response) {
   const customerId = (req as any).customer.id;
   const region = getRegion(req);
   const result = await service.getMyWaitlist(customerId, region);
+  res.json(result);
+}
+
+export async function searchJuso(req: Request, res: Response) {
+  const q = req.query.q as string;
+  if (!q || q.length < 2) {
+    res.json({ results: [], fallback: true });
+    return;
+  }
+  const result = await service.searchJuso(q);
   res.json(result);
 }

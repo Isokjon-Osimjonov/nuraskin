@@ -238,15 +238,19 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     .where(eq(orders.id, orderId));
 }
 
-export async function updateOrderStatus(orderId: string, input: UpdateOrderStatusInput, adminId?: string) {
-  const order = await repository.findById(orderId);
+export async function updateOrderStatus(orderId: string, input: UpdateOrderStatusInput, adminId?: string, txIn?: any) {
+  const runner = txIn || db;
+  const order = await repository.findById(orderId, runner);
   if (!order) throw new NotFoundError('Order not found');
 
-  return await db.transaction(async (tx) => {
+  return await runner.transaction(async (tx: any) => {
     const toStatus = input.to;
 
-    if (toStatus === 'PAID' && order.status === 'PENDING_PAYMENT') {
-        await reserveStock(orderId, tx);
+    // Reserve stock if moving to PENDING_PAYMENT or PAID from DRAFT
+    if ((toStatus === 'PENDING_PAYMENT' || toStatus === 'PAID') && order.status === 'DRAFT') {
+        const [settingsRow] = await tx.select().from(settings).limit(1);
+        const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
+        await reserveStock(orderId, timeoutMinutes, tx);
     }
 
     if (toStatus === 'CANCELED' && (order.status === 'PENDING_PAYMENT' || order.status === 'PAID' || order.status === 'PACKING')) {
@@ -265,14 +269,14 @@ export async function updateOrderStatus(orderId: string, input: UpdateOrderStatu
       fromStatus: order.status,
       toStatus: toStatus,
       changedBy: adminId,
-      note: input.paymentNote || input.trackingNumber,
+      note: input.paymentNote || input.trackingNumber || input.note,
     });
 
-    return await repository.findById(orderId);
+    return await repository.findById(orderId, tx);
   });
 }
 
-async function reserveStock(orderId: string, tx: any) {
+async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   const order = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).then((rows: any[]) => rows[0]);
 
@@ -286,12 +290,12 @@ async function reserveStock(orderId: string, tx: any) {
       .for('update');
 
     const reservations: NewStockReservation[] = [];
-    
+
     for (const batch of batches) {
       if (remainingToReserve <= 0) break;
-      
+
       const reserveFromThisBatch = Math.min(batch.currentQty, remainingToReserve);
-      
+
       reservations.push({
         orderId: order.id,
         customerId: order.customerId,
@@ -300,9 +304,8 @@ async function reserveStock(orderId: string, tx: any) {
         productId: item.productId,
         quantity: reserveFromThisBatch,
         status: 'ACTIVE',
-        expiresAt: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)), // dummy 7 days
+        expiresAt: new Date(Date.now() + (timeoutMinutes * 60 * 1000)),
       });
-
       await tx
         .update(inventoryBatches)
         .set({ currentQty: batch.currentQty - reserveFromThisBatch })

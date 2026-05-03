@@ -15,7 +15,7 @@ import {
 import { eq, and, isNull, sql, desc, inArray, asc } from 'drizzle-orm';
 import type { OrderStatus, KorShippingTierInput } from '@nuraskin/shared-types';
 
-export async function findActiveProducts(filters: { categoryId?: string; search?: string }) {
+export async function findActiveProducts(filters: { categoryId?: string; search?: string; limit?: number }) {
   const conditions = [isNull(products.deletedAt), eq(products.isActive, true)];
 
   if (filters.categoryId) conditions.push(eq(products.categoryId, filters.categoryId));
@@ -24,7 +24,7 @@ export async function findActiveProducts(filters: { categoryId?: string; search?
     conditions.push(sql`(${products.name} ILIKE ${s} OR ${products.brandName} ILIKE ${s})`);
   }
 
-  const baseProducts = await db
+  let query = db
     .select({
       id: products.id,
       name: products.name,
@@ -41,7 +41,13 @@ export async function findActiveProducts(filters: { categoryId?: string; search?
     .leftJoin(inventoryBatches, eq(products.id, inventoryBatches.productId))
     .where(and(...conditions))
     .groupBy(products.id, categories.name)
-    .orderBy(products.name);
+    .orderBy(desc(products.createdAt));
+
+  if (filters.limit) {
+    query = query.limit(filters.limit) as any;
+  }
+
+  const baseProducts = await query;
 
   // Fetch configs for all these products
   const productIds = baseProducts.map(p => p.id);

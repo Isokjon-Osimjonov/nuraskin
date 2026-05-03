@@ -19,6 +19,7 @@ export async function addToCart(customerId: string, productId: string, quantity:
     let currentRegion = incomingRegionCode;
 
     if (cart) {
+      // Cart has items AND region differs -> block
       if (cart.items.length > 0 && cart.regionCode !== incomingRegionCode) {
         throw new ConflictError(
           "Savatingiz boshqa mintaqa uchun. Mintaqani o'zgartirish uchun savatni bo'shating.",
@@ -26,7 +27,14 @@ export async function addToCart(customerId: string, productId: string, quantity:
           { cart_region: cart.regionCode }
         );
       }
-      currentRegion = cart.regionCode;
+      
+      // Cart is empty AND region differs -> update region
+      if (cart.items.length === 0 && cart.regionCode !== incomingRegionCode) {
+        await repository.updateCartRegion(cart.id, incomingRegionCode, tx);
+        currentRegion = incomingRegionCode;
+      } else {
+        currentRegion = cart.regionCode;
+      }
     } else {
       cart = await repository.createCart(customerId, incomingRegionCode, tx);
     }
@@ -122,16 +130,15 @@ export async function removeItem(customerId: string, itemId: string) {
   });
 }
 
-export async function clearCart(customerId: string, regionCode?: string, tx?: any) {
-  return await db.transaction(async (tx) => {
-    const cart = await repository.findByCustomerId(customerId, tx);
-    if (cart) {
-      await repository.clearItems(cart.id, tx);
-      if (regionCode) {
-        await repository.updateCartRegion(cart.id, regionCode, tx);
-      }
+export async function clearCart(customerId: string, regionCode?: string, txIn?: any) {
+  const runner = txIn || db;
+  const cart = await repository.findByCustomerId(customerId, runner);
+  if (cart) {
+    await repository.clearItems(cart.id, runner);
+    if (regionCode) {
+      await repository.updateCartRegion(cart.id, regionCode, runner);
     }
-    return await repository.findByCustomerId(customerId, tx);
-  });
+  }
+  return cart ? await repository.findByCustomerId(customerId, runner) : null;
 }
 

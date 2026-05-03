@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as ctrl from './storefront.controller';
+import * as addressCtrl from './addresses.controller';
 import { asyncHandler } from '../../common/utils/async-handler';
 import { requireAuth } from '../../common/middleware/auth.middleware';
 import * as service from './storefront.service';
@@ -60,9 +61,18 @@ router.patch('/profile/region', asyncHandler(async (req, res) => {
 router.post('/coupons/validate', asyncHandler(ctrl.validateCoupon));
 router.post('/orders', asyncHandler(ctrl.createOrder));
 router.post('/orders/:id/cancel', asyncHandler(ctrl.cancelOrder));
-router.post('/orders/:id/receipt', asyncHandler(ctrl.uploadReceipt));
+router.patch('/orders/:id/receipt', asyncHandler(ctrl.uploadReceipt));
+router.get('/orders/:id/receipt', asyncHandler(ctrl.getReceipt));
 router.get('/orders/my', asyncHandler(ctrl.getMyOrders));
 router.get('/orders/:id', asyncHandler(ctrl.getOrder));
+
+// Addresses
+router.get('/addresses', asyncHandler(addressCtrl.list));
+router.post('/addresses', asyncHandler(addressCtrl.create));
+router.patch('/addresses/:id', asyncHandler(addressCtrl.update));
+router.delete('/addresses/:id', asyncHandler(addressCtrl.remove));
+router.patch('/addresses/:id/set-default', asyncHandler(addressCtrl.setDefault));
+router.get('/addresses/juso-search', asyncHandler(ctrl.searchJuso));
 
 // Waitlist
 router.get('/waitlist', asyncHandler(ctrl.getMyWaitlist));
