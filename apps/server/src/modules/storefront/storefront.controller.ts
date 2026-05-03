@@ -57,14 +57,15 @@ export async function listShippingTiers(req: Request, res: Response) {
 export async function validateCoupon(req: Request, res: Response) {
     const input = validateCouponInputSchema.parse(req.body);
     const customerId = (req as any).customer.id;
-    const region = (req as any).customer.regionCode || 'UZB';
+    const region = input.regionCode || (req as any).customer.regionCode || 'UZB';
     const result = await service.validateCoupon(input, customerId, region);
     res.json(result);
 }
 
 export async function listCoupons(req: Request, res: Response) {
   const customerId = (req as any).customer.id;
-  const result = await service.listCoupons(customerId);
+  const region = getRegion(req);
+  const result = await service.listCoupons(customerId, region);
   res.json(result);
 }
 

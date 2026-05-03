@@ -131,11 +131,12 @@ export async function validateCoupon(input: ValidateCouponInput, customerId: str
       valid: false,
       error: err.code?.replace('COUPON_', '') || 'NOT_APPLICABLE',
       amountNeeded: err.data?.amountNeeded,
+      description: err.message,
     };
   }
 }
 
-export async function listCoupons(customerId: string) {
+export async function listCoupons(customerId: string, requestRegion: string) {
   const allCoupons = await db.query.coupons.findMany({
     where: and(
       eq(coupons.status, 'ACTIVE'),
@@ -146,6 +147,11 @@ export async function listCoupons(customerId: string) {
       or(
         isNull(coupons.expiresAt),
         gt(coupons.expiresAt, new Date())
+      ),
+      or(
+        isNull(coupons.regionCode),
+        eq(coupons.regionCode, 'ALL'),
+        eq(coupons.regionCode, requestRegion)
       )
     ),
     orderBy: [desc(coupons.createdAt)]

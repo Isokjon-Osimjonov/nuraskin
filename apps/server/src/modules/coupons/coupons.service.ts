@@ -43,8 +43,8 @@ export async function validateAndApply(
     }
 
     // 5. Region
-    if (coupon.regionCode && coupon.regionCode !== regionCode) {
-        throw new CouponNotApplicableError('Bu kupon sizning hududingiz uchun amal qilmaydi');
+    if (coupon.regionCode && coupon.regionCode !== 'ALL' && coupon.regionCode !== regionCode) {
+        throw new CouponNotApplicableError('Bu kupon bu mintaqa uchun emas');
     }
 
     // 6. Targeting
@@ -86,9 +86,12 @@ export async function validateAndApply(
     const applicableSubtotal = applicableItems.reduce((acc, item) => acc + BigInt(item.subtotal), 0n);
     const applicableQty = applicableItems.reduce((acc, item) => acc + item.quantity, 0);
 
-    if (applicableSubtotal < coupon.minOrderAmount) {
-        throw new CouponMinAmountError(coupon.minOrderAmount);
+    if (coupon.regionCode !== 'ALL' && coupon.minOrderAmount > 0n) {
+        if (applicableSubtotal < coupon.minOrderAmount) {
+            throw new CouponMinAmountError(coupon.minOrderAmount);
+        }
     }
+    
     if (applicableQty < coupon.minOrderQty) {
         throw new CouponNotApplicableError(`Minimal mahsulot miqdori: ${coupon.minOrderQty} ta`);
     }
@@ -101,7 +104,15 @@ export async function validateAndApply(
             discount = coupon.maxDiscountCap;
         }
     } else {
-        discount = coupon.value;
+        if (coupon.regionCode === 'ALL' && regionCode === 'UZB') {
+            const rateSnapshot = await db.query.exchangeRateSnapshots.findFirst({
+              orderBy: (rates, { desc }) => [desc(rates.createdAt)]
+            });
+            if (!rateSnapshot) throw new BadRequestError('Valyuta kursi topilmadi');
+            discount = coupon.value * BigInt(rateSnapshot.krwToUzs) * 100n;
+        } else {
+            discount = coupon.value;
+        }
     }
 
     // Discount cannot exceed subtotal

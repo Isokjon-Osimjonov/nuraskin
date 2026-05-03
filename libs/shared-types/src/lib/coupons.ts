@@ -54,6 +54,7 @@ export type UpdateCouponInput = z.infer<typeof updateCouponSchema>;
 
 export const validateCouponInputSchema = z.object({
   code: z.string(),
+  regionCode: z.string().optional(),
   cartItems: z.array(z.object({
     productId: z.string().uuid(),
     quantity: z.number().int().min(1),
