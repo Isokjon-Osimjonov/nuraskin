@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { formatUzs } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { couponsApi } from './api/coupons.api';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -88,7 +89,7 @@ export function CouponDetailPage() {
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(Number(totalDiscount) / 100).toLocaleString()} so'm</div>
+            <div className="text-2xl font-bold">{formatUzs(totalDiscount)}</div>
           </CardContent>
         </Card>
       </div>
@@ -117,7 +118,7 @@ export function CouponDetailPage() {
                         </Button>
                       </TableCell>
                       <TableCell className="text-right font-medium text-green-600">
-                        -{(Number(BigInt(r.discountAmount)) / 100).toLocaleString()} so'm
+                        -{formatUzs(r.discountAmount)}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground text-sm">
                         {format(new Date(r.createdAt), 'dd.MM.yyyy HH:mm')}
@@ -146,7 +147,7 @@ export function CouponDetailPage() {
                     <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">Qiymati:</span>
                         <span className="font-medium">
-                            {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : `${(Number(BigInt(coupon.value)) / 100).toLocaleString()} so'm`}
+                            {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : formatUzs(coupon.value)}
                         </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
@@ -155,7 +156,7 @@ export function CouponDetailPage() {
                     </div>
                     <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">Min. summa:</span>
-                        <span className="font-medium">{(Number(BigInt(coupon.minOrderAmount)) / 100).toLocaleString()} so'm</span>
+                        <span className="font-medium">{formatUzs(coupon.minOrderAmount)}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Kishi boshiga limit:</span>

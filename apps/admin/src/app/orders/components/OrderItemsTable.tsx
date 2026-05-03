@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { type OrderItemResponse } from '@nuraskin/shared-types';
 import { CheckCircle2, Circle } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
 
 interface OrderItemsTableProps {
   items: OrderItemResponse[];
@@ -48,16 +49,10 @@ export function OrderItemsTable({ items, currency }: OrderItemsTableProps) {
                 {item.quantity}
               </TableCell>
               <TableCell className="p-4 text-right whitespace-nowrap">
-                {currency === 'UZS'
-                  ? (Number(BigInt(item.unitPriceSnapshot)) / 100).toLocaleString()
-                  : Number(BigInt(item.unitPriceSnapshot)).toLocaleString()} 
-                {' '}{currency}
+                {formatPrice(item.unitPriceSnapshot, currency === 'UZS' ? 'UZB' : 'KOR')}
               </TableCell>
               <TableCell className="p-4 text-right font-bold whitespace-nowrap">
-                {currency === 'UZS'
-                  ? (Number(BigInt(item.subtotalSnapshot)) / 100).toLocaleString()
-                  : Number(BigInt(item.subtotalSnapshot)).toLocaleString()} 
-                {' '}{currency}
+                {formatPrice(item.subtotalSnapshot, currency === 'UZS' ? 'UZB' : 'KOR')}
               </TableCell>
               <TableCell className="p-4 text-center">
                 {item.isScanned ? (

@@ -41,7 +41,7 @@ import { uz } from 'date-fns/locale';
 import { AddExpenseSheet } from '../../app/accounting/components/AddExpenseSheet';
 import { ExpenseListDialog } from '../../app/accounting/components/ExpenseListDialog';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatKrw } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export const Route = createFileRoute('/_app/accounting')({
@@ -151,10 +151,6 @@ function AccountingPage() {
   const handleEditFromList = (expense: any) => {
     setIsListDialogOpen(false);
     openExpenseSheet(expense.category, expense);
-  };
-
-  const formatKrw = (val: string | number) => {
-    return Number(val || 0).toLocaleString() + ' ₩';
   };
 
   const formatPercent = (val: number) => {

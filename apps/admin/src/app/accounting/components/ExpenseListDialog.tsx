@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { uz } from 'date-fns/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { cn } from '@/lib/utils';
+import { cn, formatKrw } from '@/lib/utils';
 
 interface ExpenseListDialogProps {
   open: boolean;
@@ -76,10 +76,6 @@ export function ExpenseListDialog({
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const formatKrw = (val: number | string) => {
-    return Number(val || 0).toLocaleString() + ' ₩';
   };
 
   return (

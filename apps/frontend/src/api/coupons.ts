@@ -1,12 +1,25 @@
 import { apiFetch } from '@/lib/apiFetch';
-import type { 
-  ValidateCouponInput, 
-  CouponValidationResponse 
-} from '@nuraskin/shared-types';
+import type { CouponValidationResponse } from '@nuraskin/shared-types';
 
-export const validateCoupon = async (input: ValidateCouponInput): Promise<CouponValidationResponse> => {
-  return await apiFetch<CouponValidationResponse>('/storefront/coupons/validate', {
+export interface StorefrontCoupon {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  type: 'FIXED' | 'PERCENTAGE';
+  value: string; // bigint as string
+  minOrderAmount?: string;
+  maxRedemptions?: number;
+  usageCount: number;
+  expiresAt?: string;
+  regionCode?: string;
+}
+
+export const getAvailableCoupons = () =>
+  apiFetch<StorefrontCoupon[]>('/storefront/coupons');
+
+export const validateCoupon = async (input: any) =>
+  apiFetch<CouponValidationResponse>('/storefront/coupons/validate', {
     method: 'POST',
     body: JSON.stringify(input),
   });
-};

@@ -1,15 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts';
 import type { DashboardTrend } from '@nuraskin/shared-types';
+import { formatKrw } from '@/lib/utils';
 
 interface TrendChartsProps {
   data?: DashboardTrend;
@@ -23,9 +24,6 @@ const formatValueAbbreviated = (val: string) => {
   return `₩ ${n}`;
 };
 
-const formatKrw = (val: string) => {
-  return Number(val).toLocaleString() + ' ₩';
-};
 
 const UZBEK_DAYS: Record<string, string> = {
   'Monday': 'Dush',

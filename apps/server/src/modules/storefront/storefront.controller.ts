@@ -62,6 +62,12 @@ export async function validateCoupon(req: Request, res: Response) {
     res.json(result);
 }
 
+export async function listCoupons(req: Request, res: Response) {
+  const customerId = (req as any).customer.id;
+  const result = await service.listCoupons(customerId);
+  res.json(result);
+}
+
 export async function createOrder(req: Request, res: Response) {
   const input = createStorefrontOrderSchema.parse(req.body);
   const customerId = (req as any).customer.id;

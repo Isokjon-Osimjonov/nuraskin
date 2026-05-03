@@ -1,9 +1,15 @@
-import { useMutation } from '@tanstack/react-query';
-import * as couponsApi from '@/api/coupons';
-import type { ValidateCouponInput, CouponValidationResponse } from '@nuraskin/shared-types';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getAvailableCoupons, validateCoupon } from '@/api/coupons';
+
+export function useCoupons() {
+  return useQuery({
+    queryKey: ['storefront-coupons'],
+    queryFn: getAvailableCoupons,
+  });
+}
 
 export function useValidateCoupon() {
-  return useMutation<CouponValidationResponse, Error, ValidateCouponInput>({
-    mutationFn: couponsApi.validateCoupon,
+  return useMutation({
+    mutationFn: validateCoupon,
   });
 }

@@ -1,5 +1,6 @@
 import * as React from 'react';
-  import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { formatUzs } from '@/lib/utils';
 import { telegramApi } from './api/telegram.api';
 import { productsApi } from '../products/api/products.api';
 import { settingsApi } from '../settings/api/settings.api';
@@ -453,7 +454,7 @@ export function PostCreatePage() {
                                             <div className="space-y-0.5">
                                                 <Label>🇺🇿 Dona narxi</Label>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {new Intl.NumberFormat('en-US').format(Number(retailUzs) / 100)} so'm / dona
+                                                    {formatUzs(retailUzs)} / dona
                                                 </p>
                                             </div>
                                             <Switch checked={form.showUzsRetail} onCheckedChange={v => setForm({...form, showUzsRetail: v})} />
@@ -462,7 +463,7 @@ export function PostCreatePage() {
                                             <div className="space-y-0.5">
                                                 <Label>🇺🇿 Optom narxi</Label>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {new Intl.NumberFormat('en-US').format(Number(wholesaleUzs) / 100)} so'm dan — {uzbConfig.minWholesaleQty || 5} tadan
+                                                    {formatUzs(wholesaleUzs)} dan — {uzbConfig.minWholesaleQty || 5} tadan
                                                 </p>
                                             </div>
                                             <Switch checked={form.showUzsWholesale} onCheckedChange={v => setForm({...form, showUzsWholesale: v})} />

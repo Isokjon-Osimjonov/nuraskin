@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { apiFetch } from '@/lib/apiFetch';
-import { formatUzs, formatKrw } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import type { KorShippingTierResponse, StorefrontSettings } from '@nuraskin/shared-types';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
 
@@ -46,10 +46,8 @@ function CartPage() {
 
   const hasStockError = cart.some(item => item.quantity > (item.availableStock ?? 999));
 
-  const formatPrice = (val: number | string) => {
-    if (cartRegion === 'KOR') return formatKrw(val);
-    return formatUzs(val);
-  };
+  const displayPrice = (val: number | string) =>
+    formatPrice(val, (cartRegion as 'UZB' | 'KOR') ?? 'UZB');
 
   if (!isAuthenticated) {
     return (
@@ -137,7 +135,7 @@ function CartPage() {
                         <div className="text-[13px] font-light text-stone-500 mb-3 flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <span className={isWholesale ? 'text-emerald-600 font-medium' : ''}>
-                              {formatPrice(item.price)}
+                              {displayPrice(item.price)}
                             </span>
                             {isWholesale && (
                               <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
@@ -174,7 +172,7 @@ function CartPage() {
                           </div>
 
                           <span className="text-[14px] font-medium text-[#4A1525]">
-                            {formatPrice(Number(item.price) * item.quantity)}
+                            {displayPrice(Number(item.price) * item.quantity)}
                           </span>
                         </div>
                       </div>
@@ -204,13 +202,13 @@ function CartPage() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center text-white/70 text-[13px] font-light">
                   <span>Mahsulotlar ({cart.length}):</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span>{displayPrice(subtotal)}</span>
                 </div>
                 
                 {cartRegion === 'KOR' && (
                   <div className="flex justify-between items-center text-white/70 text-[13px] font-light">
                     <span>Yetkazib berish:</span>
-                    <span>{shipping === 0 ? 'Bepul' : formatPrice(shipping)}</span>
+                    <span>{shipping === 0 ? 'Bepul' : displayPrice(shipping)}</span>
                   </div>
                 )}
                 
@@ -225,7 +223,7 @@ function CartPage() {
               <div className="flex justify-between items-center border-t border-white/20 pt-5 mb-6">
                 <span className="text-[14px] font-light">Jami:</span>
                 <span className="text-2xl font-medium tracking-tight">
-                  {formatPrice(total)}
+                  {displayPrice(total)}
                 </span>
               </div>
 

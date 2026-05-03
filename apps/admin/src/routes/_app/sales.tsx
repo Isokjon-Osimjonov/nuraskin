@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuthStore } from '../../stores/auth.store';
+import { formatKrw } from '@/lib/utils';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -79,7 +80,6 @@ function SalesPage() {
     },
   });
 
-  const formatKrw = (val: string | number) => `₩${Number(val).toLocaleString()}`;
   const getDelta = (currStr: string, prevStr: string, isPercent = false) => {
     const curr = Number(currStr || 0);
     const prev = Number(prevStr || 0);

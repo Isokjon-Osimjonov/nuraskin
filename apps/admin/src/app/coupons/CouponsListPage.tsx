@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { formatUzs } from '@/lib/utils';
 import { couponsApi } from './api/coupons.api';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '../../routes/_app/coupons/index';
@@ -161,8 +162,8 @@ export function CouponsListPage() {
                   <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">{coupon.type}</DataTableCell>
                   <DataTableCell className="text-right font-medium text-stone-900">
                     {coupon.type === 'PERCENTAGE' 
-                      ? `${coupon.value}%` 
-                      : `${(Number(BigInt(coupon.value)) / 100).toLocaleString()} so'm`}
+                      ? `${coupon.value}%`
+                      : formatUzs(coupon.value)}
                   </DataTableCell>
                   <DataTableCell className="text-center">
                     <span className="font-medium text-stone-900">{coupon.usageCount}</span>

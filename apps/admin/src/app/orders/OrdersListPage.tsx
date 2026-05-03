@@ -25,6 +25,7 @@ import {
   DataTableEmpty
 } from '@/components/ui/DataTable';
 import { TablePagination } from '@/components/ui/TablePagination';
+import { formatPrice } from '@/lib/utils';
 
 export function OrdersListPage() {
   const { page, limit } = Route.useSearch();
@@ -134,10 +135,7 @@ export function OrdersListPage() {
                   <span className="font-medium">{order.itemCount ?? order.items?.length ?? 0}</span>
                 </DataTableCell>
                 <DataTableCell className="text-right font-medium text-stone-900">
-                  {order.currency === 'UZS'
-                    ? (Number(BigInt(order.totalAmount)) / 100).toLocaleString()
-                    : Number(BigInt(order.totalAmount)).toLocaleString()}
-                  {' '}{order.currency}
+                  {formatPrice(order.totalAmount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                 </DataTableCell>
                 <DataTableCell className="text-center">
                   {order.paymentReceiptUrl ? (

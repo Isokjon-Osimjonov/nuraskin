@@ -2,15 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShoppingBag, Percent, Package, AlertCircle, TrendingUp, CircleDollarSign } from 'lucide-react';
 import type { DashboardKPIs } from '@nuraskin/shared-types';
+import { formatKrw } from '@/lib/utils';
 
 interface KpiCardsProps {
   data?: DashboardKPIs;
   isLoading: boolean;
 }
 
-const formatKrw = (val: string) => {
-  return Number(val).toLocaleString() + ' ₩';
-};
 
 export function KpiCards({ data, isLoading }: KpiCardsProps) {
   if (isLoading) {

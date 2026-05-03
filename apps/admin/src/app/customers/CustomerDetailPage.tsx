@@ -12,6 +12,7 @@ import { ArrowLeft, Save, ShoppingBag, Clock, Bell, AlertTriangle } from 'lucide
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { UZ, translateServerError } from '@/lib/uz';
+import { formatPrice } from '@/lib/utils';
 
 export function CustomerDetailPage() {
   const { id } = useParams({ from: '/_app/customers/$id' as any });
@@ -100,9 +101,7 @@ export function CustomerDetailPage() {
               <CardContent className="pt-6">
                 <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.customers.totalSpent}</p>
                 <p className="text-2xl font-bold">
-                    {customer.regionCode === 'UZB' 
-                        ? (Number(BigInt(customer.stats.totalSpent)) / 100).toLocaleString() 
-                        : Number(BigInt(customer.stats.totalSpent)).toLocaleString()}
+                    {formatPrice(customer.stats.totalSpent, customer.regionCode as 'UZB' | 'KOR')}
                 </p>
               </CardContent>
             </Card>
@@ -110,9 +109,7 @@ export function CustomerDetailPage() {
               <CardContent className="pt-6">
                 <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.accounting.outstandingDebt}</p>
                 <p className="text-2xl font-bold text-red-600">
-                    {customer.regionCode === 'UZB' 
-                        ? (Number(BigInt(customer.stats.outstandingDebt)) / 100).toLocaleString() 
-                        : Number(BigInt(customer.stats.outstandingDebt)).toLocaleString()}
+                    {formatPrice(customer.stats.outstandingDebt, customer.regionCode as 'UZB' | 'KOR')}
                 </p>
               </CardContent>
             </Card>

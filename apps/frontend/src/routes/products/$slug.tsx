@@ -4,7 +4,7 @@ import { Star, ChevronRight, Plus, Minus, ShoppingBag, ShieldCheck, Truck, Heart
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
-import { formatUzs, formatKrw } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 
@@ -64,10 +64,8 @@ function ProductPage() {
     }
   };
 
-  const displayPrice = (val: string) => {
-    if (regionCode === 'KOR') return formatKrw(val);
-    return formatUzs(val);
-  };
+  const displayPrice = (val: string) =>
+    formatPrice(val, regionCode as 'UZB' | 'KOR');
 
   const productForStore = {
     id: product.id,

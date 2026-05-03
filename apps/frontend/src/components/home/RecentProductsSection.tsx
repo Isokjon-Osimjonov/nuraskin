@@ -3,7 +3,7 @@ import { Heart, ShoppingBag, Bell, Loader2 } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
-import { formatUzs, formatKrw } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 
 export function RecentProductsSection() {
   const { regionCode, isAuthenticated, favorites, toggleFavorite } = useAppStore();
@@ -15,10 +15,9 @@ export function RecentProductsSection() {
   const products = productsData?.data ?? [];
   const latestProducts = products.slice(0, 4);
 
-  const formatPrice = (val: number | string) => {
+  const displayPrice = (val: number | string) => {
     if (!val || val === '0') return "Narx ko'rsatilmagan";
-    if (regionCode === 'KOR') return formatKrw(val);
-    return formatUzs(val);
+    return formatPrice(val, regionCode as 'UZB' | 'KOR');
   };
 
   if (isLoading) {
@@ -113,7 +112,7 @@ export function RecentProductsSection() {
                   
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-[12px] font-light text-[#4A1525]">
-                      {formatPrice(product.calculatedPrice)}
+                      {displayPrice(product.calculatedPrice)}
                     </span>
                     {(!product.inStock || product.availableStock <= 0) ? (
                       <button

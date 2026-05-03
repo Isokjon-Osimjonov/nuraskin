@@ -3,7 +3,7 @@ import { Bell, ChevronRight, Trash2, ShoppingBag } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlist, useToggleWaitlist } from '@/hooks/useWaitlist';
 import { useAddToCart } from '@/hooks/useCart';
-import { formatUzs, formatKrw } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 
 export const Route = createFileRoute('/_protected/waiting-list')({
   component: WaitingListPage,
@@ -32,10 +32,8 @@ function WaitingListPage() {
     );
   }
 
-  const formatPrice = (price: number | string) => {
-    if (regionCode === 'KOR') return formatKrw(price);
-    return formatUzs(Number(price) * 100); // utils.ts formatUzs divides by 100
-  };
+  const displayPrice = (price: number | string) =>
+    formatPrice(price, regionCode as 'UZB' | 'KOR');
 
   return (
     <div className="bg-white min-h-screen py-10">
@@ -107,7 +105,7 @@ function WaitingListPage() {
                         <Link to="/products/$slug" params={{ slug: product.slug }}>
                           <p className="text-sm font-medium text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">{product.name}</p>
                         </Link>
-                        <p className="text-sm font-semibold text-[#4A1525]">{formatPrice(product.currentPriceUZS)}</p>
+                        <p className="text-sm font-semibold text-[#4A1525]">{displayPrice(product.currentPriceUZS)}</p>
                       </div>
                       
                       {/* Status badge */}

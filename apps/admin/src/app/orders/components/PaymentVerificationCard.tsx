@@ -6,15 +6,16 @@ import { Check, X, CreditCard, ExternalLink } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '../api/orders.api';
 import { toast } from 'sonner';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import { formatPrice } from '@/lib/utils';
 
 interface PaymentVerificationCardProps {
   order: any;
@@ -104,10 +105,7 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
               <div>
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Umumiy summa</p>
                 <p className="text-2xl font-black text-yellow-700">
-                  {order.currency === 'UZS'
-                    ? (Number(BigInt(order.totalAmount)) / 100).toLocaleString()
-                    : Number(BigInt(order.totalAmount)).toLocaleString()} 
-                  {' '}{order.currency}
+                  {formatPrice(order.totalAmount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                 </p>
               </div>
               <div>

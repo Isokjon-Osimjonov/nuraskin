@@ -32,6 +32,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { formatPrice } from '@/lib/utils';
 
 export function OrderDetailPage() {
   const { orderId } = useParams({ from: '/_app/orders/$orderId' });
@@ -207,28 +208,19 @@ export function OrderDetailPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal:</span>
                   <span>
-                    {order.currency === 'UZS' 
-                      ? (Number(BigInt(order.subtotal)) / 100).toLocaleString()
-                      : Number(BigInt(order.subtotal)).toLocaleString()} 
-                    {' '}{order.currency}
+                    {formatPrice(order.subtotal, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Cargo fee:</span>
                   <span>
-                    {order.currency === 'UZS'
-                      ? (Number(BigInt(order.cargoFee)) / 100).toLocaleString()
-                      : Number(BigInt(order.cargoFee)).toLocaleString()}
-                    {' '}{order.currency}
+                    {formatPrice(order.cargoFee, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-lg pt-2 border-t text-primary">
                   <span>Jami:</span>
                   <span>
-                    {order.currency === 'UZS'
-                      ? (Number(BigInt(order.totalAmount)) / 100).toLocaleString()
-                      : Number(BigInt(order.totalAmount)).toLocaleString()}
-                    {' '}{order.currency}
+                    {formatPrice(order.totalAmount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>
                 </div>
               </div>

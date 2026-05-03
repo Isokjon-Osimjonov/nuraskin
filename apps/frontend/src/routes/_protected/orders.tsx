@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
 import { getMyOrders, uploadReceipt, getUploadUrl } from '@/api/orders';
-import { formatUzs, formatKrw } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
   ArrowLeft, Package, Truck, CheckCircle2, Clock, CreditCard,
@@ -25,10 +25,8 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   CANCELED: { label: 'Bekor qilindi', color: 'text-stone-500 bg-stone-100', icon: XCircle },
 };
 
-const formatPrice = (price: number | string, currency: string) => {
-  if (currency === 'KRW') return formatKrw(price);
-  return formatUzs(price);
-};
+const displayPrice = (price: number | string, currency: string) =>
+  formatPrice(price, currency === 'KRW' ? 'KOR' : 'UZB');
 
 function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
@@ -165,7 +163,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-normal text-stone-700 truncate">{item.productName}</p>
               <p className="text-[12px] font-light text-stone-400">
-                {item.quantity} dona × {formatPrice(item.unitPriceSnapshot || item.unitPrice, order.currency)}
+                {item.quantity} dona × {displayPrice(item.unitPriceSnapshot || item.unitPrice, order.currency)}
               </p>
             </div>
           </div>
@@ -298,7 +296,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       {/* Footer */}
       <div className="border-t border-stone-200 pt-3 flex items-center justify-between">
         <p className="text-[14px] font-medium text-[#4A1525]">
-          {formatPrice(order.totalAmount, order.currency)}
+          {displayPrice(order.totalAmount, order.currency)}
         </p>
         {order.cargoFee && Number(order.cargoFee) > 0 && (
            <p className="text-[10px] text-stone-400">Yetkazib berish bilan</p>

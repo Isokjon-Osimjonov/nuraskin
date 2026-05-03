@@ -6,8 +6,8 @@ import * as cartsRepository from '../carts/carts.repository';
 import * as inventoryRepository from '../inventory/inventory.repository';
 import * as couponsService from '../coupons/coupons.service';
 import * as couponsRepository from '../coupons/coupons.repository';
-import { db, customers, orders, orderItems, orderStatusHistory, products, settings, korShippingTiers, inventoryBatches, stockReservations, productWaitlist, exchangeRateSnapshots, productRegionalConfigs, customerAddresses } from '@nuraskin/database';
-import { eq, desc, sql, and, asc, gt, isNull } from 'drizzle-orm';
+import { db, customers, orders, orderItems, orderStatusHistory, products, settings, korShippingTiers, inventoryBatches, stockReservations, productWaitlist, exchangeRateSnapshots, productRegionalConfigs, customerAddresses, coupons } from '@nuraskin/database';
+import { eq, desc, sql, and, or, asc, gt, isNull } from 'drizzle-orm';
 import { NotFoundError, BadRequestError, PriceChangedError } from '../../common/errors/AppError';
 import { logger } from '../../common/utils/logger';
 import { v2 as cloudinary } from 'cloudinary';
@@ -133,6 +133,43 @@ export async function validateCoupon(input: ValidateCouponInput, customerId: str
       amountNeeded: err.data?.amountNeeded,
     };
   }
+}
+
+export async function listCoupons(customerId: string) {
+  const allCoupons = await db.query.coupons.findMany({
+    where: and(
+      eq(coupons.status, 'ACTIVE'),
+      or(
+        isNull(coupons.targetCustomerIds),
+        sql`${customerId} = ANY(${coupons.targetCustomerIds})`
+      ),
+      or(
+        isNull(coupons.expiresAt),
+        gt(coupons.expiresAt, new Date())
+      )
+    ),
+    orderBy: [desc(coupons.createdAt)]
+  });
+  
+  // Filter out fully redeemed coupons
+  const available = allCoupons.filter(c => 
+    !c.maxUsesTotal || 
+    (c.usageCount || 0) < c.maxUsesTotal
+  );
+  
+  return available.map(c => ({
+    id: c.id,
+    code: c.code,
+    name: c.name,
+    description: c.description,
+    type: c.type,
+    value: c.value.toString(),
+    minOrderAmount: c.minOrderAmount?.toString(),
+    maxRedemptions: c.maxUsesTotal,
+    usageCount: c.usageCount,
+    expiresAt: c.expiresAt?.toISOString(),
+    regionCode: c.regionCode,
+  }));
 }
 
 export async function createOrder(customerId: string, input: CreateStorefrontOrderInput): Promise<StorefrontOrderResponse> {

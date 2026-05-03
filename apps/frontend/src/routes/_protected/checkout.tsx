@@ -9,7 +9,7 @@ import { useCreateOrder } from '@/hooks/useOrders';
 import { useValidateCoupon } from '@/hooks/useCoupons';
 import { useAddresses, useCreateAddress } from '@/hooks/useAddresses';
 import { createStorefrontOrderSchema, StorefrontOrderResponse } from '@nuraskin/shared-types';
-import { formatUzs, formatKrw } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { JusoSearchModal } from '@/components/addresses/JusoSearchModal';
@@ -56,10 +56,8 @@ function CheckoutPage() {
     return cart.reduce((acc, item) => acc + BigInt(item.price) * BigInt(item.quantity), 0n);
   }, [cart]);
 
-  const formatPrice = (val: number | string | bigint) => {
-    const amount = val.toString();
-    return cartRegion === 'KOR' ? formatKrw(amount) : formatUzs(amount);
-  };
+  const displayPrice = (val: number | string | bigint) =>
+    formatPrice(val, (cartRegion as 'UZB' | 'KOR') ?? 'UZB');
 
   // Handle tiered Korea cargo
   const korCargo = useMemo(() => {
@@ -167,7 +165,7 @@ function CheckoutPage() {
             toast.success("Promo-kod qo'llandi");
         } else {
             setAppliedCoupon(null);
-            const msg = res.error === 'MIN_AMOUNT' ? `Minimal buyurtma: ${Number(BigInt(res.amountNeeded || '0')) / 100} so'm` : 'Promo-kod noto\'g\'ri yoki muddati o\'tgan';
+            const msg = res.error === 'MIN_AMOUNT' ? `Minimal buyurtma: ${formatPrice(res.amountNeeded || '0', (cartRegion as 'UZB' | 'KOR') ?? 'UZB')}` : 'Promo-kod noto\'g\'ri yoki muddati o\'tgan';
             toast.error(msg);
         }
     } catch (err) {
@@ -509,7 +507,7 @@ function CheckoutPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-medium text-[#4A1525] truncate">{item.productName}</p>
-                      <p className="text-[11px] text-stone-400 font-light">{item.quantity} ta × {formatPrice(item.price)}</p>
+                      <p className="text-[11px] text-stone-400 font-light">{item.quantity} ta × {displayPrice(item.price)}</p>
                     </div>
                   </div>
                 ))}
@@ -556,25 +554,25 @@ function CheckoutPage() {
               <div className="space-y-3 pt-4 border-t border-stone-50">
                 <div className="flex justify-between text-[13px] font-light text-stone-500">
                   <span>Mahsulotlar</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span>{displayPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-[13px] font-light text-stone-500">
                   <span>Yetkazib berish</span>
                   {cartRegion === 'UZB' ? (
                     <span className="text-emerald-600">BEPUL</span>
                   ) : (
-                    <span>{korCargo === 0n ? 'BEPUL' : formatPrice(korCargo)}</span>
+                    <span>{korCargo === 0n ? 'BEPUL' : displayPrice(korCargo)}</span>
                   )}
                 </div>
                 {appliedCoupon?.valid && (
                     <div className="flex justify-between text-[13px] font-medium text-emerald-600">
                         <span>Chegirma</span>
-                        <span>-{formatPrice(discountAmount)}</span>
+                        <span>-{displayPrice(discountAmount)}</span>
                     </div>
                 )}
                 <div className="flex justify-between text-lg font-medium text-[#4A1525] pt-2 border-t border-stone-50">
                   <span>Jami</span>
-                  <span>{formatPrice(finalTotal)}</span>
+                  <span>{displayPrice(finalTotal)}</span>
                 </div>
               </div>
 
