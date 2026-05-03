@@ -470,7 +470,7 @@ export async function searchJuso(keyword: string) {
   }
 
   try {
-    const response = await axios.get('https://www.juso.go.kr/addrlink/addrLinkApi.do', {
+    const response = await axios.get('https://business.juso.go.kr/addrlink/addrLinkApi.do', {
       params: {
         confmKey: apiKey,
         currentPage: 1,
