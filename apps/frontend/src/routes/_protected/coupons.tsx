@@ -21,8 +21,10 @@ function CouponsPage() {
 
   if (!isAuthenticated) return null;
   
-  const displayPrice = (val: string | number) =>
-    formatPrice(val, regionCode as 'UZB' | 'KOR');
+  const displayPrice = (val: string | number, rCode?: string | null) => {
+    const region = rCode && rCode !== 'ALL' ? rCode : regionCode;
+    return formatPrice(val, region as 'UZB' | 'KOR');
+  };
   
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -31,7 +33,7 @@ function CouponsPage() {
   
   // Filter by region if coupon has regionCode
   const filteredCoupons = coupons.filter(c => 
-    !c.regionCode || c.regionCode === regionCode
+    !c.regionCode || c.regionCode === 'ALL' || c.regionCode === regionCode
   );
   
   return (
@@ -95,7 +97,7 @@ function CouponsPage() {
                         font-bold text-[#4A1525]">
                         {coupon.type === 'PERCENTAGE'
                           ? `${coupon.value}%`
-                          : displayPrice(coupon.value)
+                          : displayPrice(coupon.value, coupon.regionCode)
                         }
                       </span>
                       <p className="text-[11px] 
@@ -115,7 +117,7 @@ function CouponsPage() {
                         rounded-full text-stone-500 
                         border border-stone-100">
                         Min: {displayPrice(
-                          coupon.minOrderAmount
+                          coupon.minOrderAmount, coupon.regionCode
                         )}
                       </span>
                     )}

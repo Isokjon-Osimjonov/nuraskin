@@ -157,6 +157,7 @@ function CheckoutPage() {
     try {
         const res = await validateCoupon.mutateAsync({
             code: couponCode,
+            regionCode: cartRegion,
             cartItems: cartItemsForValidation as any
         });
         
@@ -165,11 +166,14 @@ function CheckoutPage() {
             toast.success("Promo-kod qo'llandi");
         } else {
             setAppliedCoupon(null);
-            const msg = res.error === 'MIN_AMOUNT' ? `Minimal buyurtma: ${formatPrice(res.amountNeeded || '0', (cartRegion as 'UZB' | 'KOR') ?? 'UZB')}` : 'Promo-kod noto\'g\'ri yoki muddati o\'tgan';
+            let msg = res.description || 'Promo-kod noto\'g\'ri yoki muddati o\'tgan';
+            if (res.error === 'MIN_AMOUNT') {
+                msg = `Minimal buyurtma: ${formatPrice(res.amountNeeded || '0', (cartRegion as 'UZB' | 'KOR') ?? 'UZB')}`;
+            }
             toast.error(msg);
         }
-    } catch (err) {
-        toast.error("Xatolik yuz berdi");
+    } catch (err: any) {
+        toast.error(err?.message || "Xatolik yuz berdi");
     }
   };
 
