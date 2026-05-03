@@ -183,6 +183,13 @@
       "when": 1777631541042,
       "tag": "0025_cheerful_cerise",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1777732372414,
+      "tag": "0026_wandering_medusa",
+      "breakpoints": true
     }
   ]
 }

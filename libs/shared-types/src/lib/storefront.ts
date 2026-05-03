@@ -59,6 +59,16 @@ export const createStorefrontOrderSchema = z.object({
   city: z.string().min(2),
   district: z.string().min(2),
   couponCode: z.string().optional(),
+  addressId: z.string().uuid().optional(),
+  deliveryAddress: z.object({
+    fullName: z.string(),
+    phone: z.string(),
+    line1: z.string(),
+    line2: z.string().optional(),
+    city: z.string(),
+    postalCode: z.string().optional(),
+    regionCode: z.enum(['UZB', 'KOR']),
+  }).optional(),
 });
 
 export type CreateStorefrontOrderInput = z.infer<typeof createStorefrontOrderSchema>;
@@ -86,6 +96,13 @@ export interface StorefrontOrderResponse {
   paymentSubmittedAt: string | null;
   paymentNote: string | null;
   paymentExpiresAt: string | null;
+  deliveryFullName: string | null;
+  deliveryPhone: string | null;
+  deliveryAddressLine1: string | null;
+  deliveryAddressLine2: string | null;
+  deliveryCity: string | null;
+  deliveryPostalCode: string | null;
+  deliveryRegionCode: string | null;
   createdAt: string;
   items: StorefrontOrderItemResponse[];
 }

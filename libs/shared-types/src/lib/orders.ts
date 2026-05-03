@@ -37,6 +37,7 @@ export const updateOrderStatusSchema = z.object({
   to: orderStatusSchema,
   paymentNote: z.string().optional(),
   trackingNumber: z.string().optional(),
+  note: z.string().optional(),
 });
 
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
@@ -89,6 +90,13 @@ export interface OrderResponse {
   packedAt: string | null;
   adminNote: string | null;
   paymentExpiresAt: string | null;
+  deliveryFullName: string | null;
+  deliveryPhone: string | null;
+  deliveryAddressLine1: string | null;
+  deliveryAddressLine2: string | null;
+  deliveryCity: string | null;
+  deliveryPostalCode: string | null;
+  deliveryRegionCode: string | null;
   createdAt: string;
   updatedAt: string;
   itemCount?: number;

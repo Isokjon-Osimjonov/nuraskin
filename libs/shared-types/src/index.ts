@@ -1,6 +1,7 @@
 export * from './lib/shared-types';
 export * from './lib/users';
 export * from './lib/customers';
+export * from './lib/addresses';
 export * from './lib/categories';
 export * from './lib/products';
 export * from './lib/inventory';

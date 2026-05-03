@@ -55,6 +55,14 @@ export const orders = pgTable('orders', {
   packedBy: uuid('packed_by').references(() => users.id, { onDelete: 'set null' }),
   packedAt: timestamp('packed_at', { withTimezone: true }),
   adminNote: text('admin_note'),
+  // Delivery address snapshot
+  deliveryFullName: text('delivery_full_name'),
+  deliveryPhone: text('delivery_phone'),
+  deliveryAddressLine1: text('delivery_address_line1'),
+  deliveryAddressLine2: text('delivery_address_line2'),
+  deliveryCity: text('delivery_city'),
+  deliveryPostalCode: text('delivery_postal_code'),
+  deliveryRegionCode: text('delivery_region_code'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({

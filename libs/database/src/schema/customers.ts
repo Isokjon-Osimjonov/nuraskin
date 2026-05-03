@@ -9,6 +9,8 @@ import {
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import { customerAddresses } from './customer-addresses';
 
 export const customers = pgTable('customers', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -27,6 +29,10 @@ export const customers = pgTable('customers', {
   phoneIdx: index('customers_phone_idx').on(t.phone),
   regionCodeIdx: index('customers_region_code_idx').on(t.regionCode),
   isActiveIdx: index('customers_is_active_idx').on(t.isActive),
+}));
+
+export const customersRelations = relations(customers, ({ many }) => ({
+  addresses: many(customerAddresses),
 }));
 
 export type Customer = typeof customers.$inferSelect;
