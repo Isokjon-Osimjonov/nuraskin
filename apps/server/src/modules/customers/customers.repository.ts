@@ -62,6 +62,7 @@ export async function findAdminList(filters: CustomerFilters) {
   }
 
   const data = await finalQuery
+    .orderBy(desc(sql`stats."createdAt"`))
     .limit(limit)
     .offset(offset);
 
@@ -71,7 +72,19 @@ export async function findAdminList(filters: CustomerFilters) {
     .where(and(...conditions));
 
   return {
-    data: data as any as CustomerListItem[],
+    data: data.map((row: any) => ({
+      ...row,
+      telegramId: row.telegramId || row.telegram_id,
+      regionCode: row.regionCode || row.region_code,
+      fullName: row.fullName || row.full_name,
+      isActive: row.isActive ?? row.is_active,
+      createdAt: row.createdAt || row.created_at,
+      lastOrderAt: row.lastOrderAt || row.last_order_at,
+      orderCount: row.orderCount || row.order_count,
+      totalSpent: row.totalSpent || row.total_spent,
+      outstandingDebt: row.outstandingDebt || row.outstanding_debt,
+      debtLimit: row.debtLimit || row.debt_limit,
+    })) as CustomerListItem[],
     total: totalCount.count,
   };
 }

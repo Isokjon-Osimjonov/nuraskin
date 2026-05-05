@@ -105,8 +105,8 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .where(and(
       eq(orders.status, 'DELIVERED'),
-      sql`${orders.deliveredAt} >= ${startDate}::date`,
-      sql`${orders.deliveredAt} < (${endDate}::date + INTERVAL '1 day')`
+      sql`${orders.deliveredAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+      sql`${orders.deliveredAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
     ))
     .groupBy(orders.id, customers.fullName);
 

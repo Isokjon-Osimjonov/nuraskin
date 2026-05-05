@@ -103,6 +103,14 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
         itemCargo = 0n;
       }
 
+      const [batch] = await tx.select({ costPrice: inventoryBatches.costPrice })
+        .from(inventoryBatches)
+        .where(eq(inventoryBatches.productId, product.id))
+        .orderBy(sql`${inventoryBatches.createdAt} DESC`)
+        .limit(1);
+
+      const costAtSaleKrw = batch ? batch.costPrice : 0n;
+
       await tx.insert(orderItems).values({
         orderId: order.id,
         productId: itemInput.productId,
@@ -110,6 +118,7 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
         unitPriceSnapshot: unitPrice,
         subtotalSnapshot: unitPrice * BigInt(itemInput.quantity),
         cargoFeeSnapshot: itemCargo,
+        costAtSaleKrw: costAtSaleKrw,
         currencySnapshot: order.currency,
       });
     }
@@ -176,6 +185,14 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
     itemCargo = 0n;
   }
 
+  const [batch] = await db.select({ costPrice: inventoryBatches.costPrice })
+    .from(inventoryBatches)
+    .where(eq(inventoryBatches.productId, product.id))
+    .orderBy(sql`${inventoryBatches.createdAt} DESC`)
+    .limit(1);
+
+  const costAtSaleKrw = batch ? batch.costPrice : 0n;
+
   return await db.transaction(async (tx) => {
     await tx.insert(orderItems).values({
       orderId,
@@ -184,6 +201,7 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
       unitPriceSnapshot: unitPrice,
       subtotalSnapshot: unitPrice * BigInt(input.quantity),
       cargoFeeSnapshot: itemCargo,
+      costAtSaleKrw: costAtSaleKrw,
       currencySnapshot: order.currency,
     });
 
