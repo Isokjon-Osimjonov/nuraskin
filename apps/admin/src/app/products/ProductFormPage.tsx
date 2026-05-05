@@ -46,7 +46,7 @@ interface ProductFormPageProps {
     regionalConfigs?: any[];
   };
   prefilledBarcode?: string;
-  categories: CategoryResponse[];
+  categories: CategoryResponse[] | any;
   onSubmit: (data: CreateProductInput) => void;
   isSubmitting: boolean;
 }
@@ -365,7 +365,7 @@ export function ProductFormPage({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((c) => (
+                      {((categories as any)?.data || categories || []).map((c: any) => (
                         <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
