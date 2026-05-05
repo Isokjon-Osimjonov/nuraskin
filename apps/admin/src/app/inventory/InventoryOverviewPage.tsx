@@ -288,13 +288,17 @@ export function InventoryOverviewPage() {
                       </span>
                     </DataTableCell>
                     <DataTableCell className="text-center">
-                      {item.totalStock > 0 ? (
-                        <Badge variant="success" className="rounded-full">
-                          In Stock
+                      {item.totalStock === 0 ? (
+                        <Badge variant="destructive" className="rounded-full">
+                          Tugadi
+                        </Badge>
+                      ) : item.totalStock <= LOW_STOCK_THRESHOLD ? (
+                        <Badge className="rounded-full bg-orange-100 text-orange-700 hover:bg-orange-100 border-none font-medium">
+                          Kam qoldi
                         </Badge>
                       ) : (
-                        <Badge variant="destructive" className="rounded-full">
-                          Out of Stock
+                        <Badge variant="success" className="rounded-full">
+                          Mavjud
                         </Badge>
                       )}
                     </DataTableCell>

@@ -211,37 +211,6 @@ function CategoryPage() {
                         Faqat {product.availableStock} ta
                       </div>
                     )}
-                    <button
-                      aria-label="Sevimli"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleFavorite({
-                          id: product.id,
-                          name: product.name,
-                          price: product.calculatedPrice,
-                          image: product.imageUrls[0] || '',
-                          slug: product.slug,
-                          stock: product.availableStock,
-                          availableStock: product.availableStock,
-                          showStockCount: product.showStockCount,
-                          currency: product.currency,
-                          wholesalePrice: product.wholesalePrice,
-                          minWholesaleQty: product.minWholesaleQty,
-                        });
-                      }}
-                      className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-colors ${
-                        favorites.some((p) => p.id === product.id)
-                          ? 'text-[#4A1525]'
-                          : 'text-stone-400 hover:text-[#4A1525]'
-                      }`}
-                    >
-                      <Heart
-                        className="w-4 h-4"
-                        strokeWidth={1.5}
-                        fill={favorites.some((p) => p.id === product.id) ? 'currentColor' : 'none'}
-                      />
-                    </button>
                   </Link>
 
                   <div className="flex flex-col flex-1 p-3">

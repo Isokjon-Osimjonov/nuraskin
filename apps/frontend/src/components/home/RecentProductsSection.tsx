@@ -86,20 +86,6 @@ export function RecentProductsSection() {
                       <span className="bg-white/90 text-red-600 text-[11px] font-medium px-3 py-1 rounded-full">Mavjud emas</span>
                     </div>
                   )}
-                  {/* Wishlist button */}
-                  <button
-                    aria-label="Sevimli"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleFavorite(product);
-                    }}
-                    className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-colors ${
-                      isFav ? 'text-[#4A1525]' : 'text-stone-400 hover:text-[#4A1525]'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} strokeWidth={1.5} />
-                  </button>
                 </Link>
 
                 {/* Info */}

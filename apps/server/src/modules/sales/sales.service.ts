@@ -4,7 +4,7 @@ import { eq, sql } from 'drizzle-orm';
 export async function getLiveSales(from: string, to: string, regionCode?: string) {
   let regionFilter = sql`1=1`;
   if (regionCode) {
-    regionFilter = eq(orders.regionCode, regionCode);
+    regionFilter = sql`o.region_code = ${regionCode}`;
   }
 
   const rawData = await db.execute(sql`

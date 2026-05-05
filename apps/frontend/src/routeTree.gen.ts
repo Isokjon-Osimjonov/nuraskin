@@ -22,7 +22,6 @@ import { Route as ProtectedWaitingListRouteImport } from './routes/_protected/wa
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
 import { Route as ProtectedOrdersRouteImport } from './routes/_protected/orders'
-import { Route as ProtectedFavoritesRouteImport } from './routes/_protected/favorites'
 import { Route as ProtectedCouponsRouteImport } from './routes/_protected/coupons'
 import { Route as ProtectedCheckoutRouteImport } from './routes/_protected/checkout'
 import { Route as ProtectedAddressesRouteImport } from './routes/_protected/addresses'
@@ -91,11 +90,6 @@ const ProtectedOrdersRoute = ProtectedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedFavoritesRoute = ProtectedFavoritesRouteImport.update({
-  id: '/favorites',
-  path: '/favorites',
-  getParentRoute: () => ProtectedRoute,
-} as any)
 const ProtectedCouponsRoute = ProtectedCouponsRouteImport.update({
   id: '/coupons',
   path: '/coupons',
@@ -122,7 +116,6 @@ export interface FileRoutesByFullPath {
   '/addresses': typeof ProtectedAddressesRoute
   '/checkout': typeof ProtectedCheckoutRoute
   '/coupons': typeof ProtectedCouponsRoute
-  '/favorites': typeof ProtectedFavoritesRoute
   '/orders': typeof ProtectedOrdersRoute
   '/profile': typeof ProtectedProfileRoute
   '/settings': typeof ProtectedSettingsRoute
@@ -140,7 +133,6 @@ export interface FileRoutesByTo {
   '/addresses': typeof ProtectedAddressesRoute
   '/checkout': typeof ProtectedCheckoutRoute
   '/coupons': typeof ProtectedCouponsRoute
-  '/favorites': typeof ProtectedFavoritesRoute
   '/orders': typeof ProtectedOrdersRoute
   '/profile': typeof ProtectedProfileRoute
   '/settings': typeof ProtectedSettingsRoute
@@ -160,7 +152,6 @@ export interface FileRoutesById {
   '/_protected/addresses': typeof ProtectedAddressesRoute
   '/_protected/checkout': typeof ProtectedCheckoutRoute
   '/_protected/coupons': typeof ProtectedCouponsRoute
-  '/_protected/favorites': typeof ProtectedFavoritesRoute
   '/_protected/orders': typeof ProtectedOrdersRoute
   '/_protected/profile': typeof ProtectedProfileRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
@@ -180,7 +171,6 @@ export interface FileRouteTypes {
     | '/addresses'
     | '/checkout'
     | '/coupons'
-    | '/favorites'
     | '/orders'
     | '/profile'
     | '/settings'
@@ -198,7 +188,6 @@ export interface FileRouteTypes {
     | '/addresses'
     | '/checkout'
     | '/coupons'
-    | '/favorites'
     | '/orders'
     | '/profile'
     | '/settings'
@@ -217,7 +206,6 @@ export interface FileRouteTypes {
     | '/_protected/addresses'
     | '/_protected/checkout'
     | '/_protected/coupons'
-    | '/_protected/favorites'
     | '/_protected/orders'
     | '/_protected/profile'
     | '/_protected/settings'
@@ -331,13 +319,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedOrdersRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/favorites': {
-      id: '/_protected/favorites'
-      path: '/favorites'
-      fullPath: '/favorites'
-      preLoaderRoute: typeof ProtectedFavoritesRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
     '/_protected/coupons': {
       id: '/_protected/coupons'
       path: '/coupons'
@@ -366,7 +347,6 @@ interface ProtectedRouteChildren {
   ProtectedAddressesRoute: typeof ProtectedAddressesRoute
   ProtectedCheckoutRoute: typeof ProtectedCheckoutRoute
   ProtectedCouponsRoute: typeof ProtectedCouponsRoute
-  ProtectedFavoritesRoute: typeof ProtectedFavoritesRoute
   ProtectedOrdersRoute: typeof ProtectedOrdersRoute
   ProtectedProfileRoute: typeof ProtectedProfileRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
@@ -377,7 +357,6 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedAddressesRoute: ProtectedAddressesRoute,
   ProtectedCheckoutRoute: ProtectedCheckoutRoute,
   ProtectedCouponsRoute: ProtectedCouponsRoute,
-  ProtectedFavoritesRoute: ProtectedFavoritesRoute,
   ProtectedOrdersRoute: ProtectedOrdersRoute,
   ProtectedProfileRoute: ProtectedProfileRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,

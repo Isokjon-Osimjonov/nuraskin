@@ -1,5 +1,5 @@
-import { db, carts, cartItems, products, productRegionalConfigs, exchangeRateSnapshots } from '@nuraskin/database';
-import { eq, and, desc } from 'drizzle-orm';
+import { db, carts, cartItems, products, productRegionalConfigs, exchangeRateSnapshots, inventoryBatches } from '@nuraskin/database';
+import { eq, and, desc, sql } from 'drizzle-orm';
 
 export async function findByCustomerId(customerId: string, tx: any = db) {
   const [cart] = await tx
@@ -24,6 +24,7 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
       wholesalePrice: productRegionalConfigs.wholesalePrice,
       minWholesaleQty: productRegionalConfigs.minWholesaleQty,
       currency: productRegionalConfigs.currency,
+      totalStock: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)`,
     })
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))
@@ -31,7 +32,19 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
       eq(products.id, productRegionalConfigs.productId),
       eq(productRegionalConfigs.regionCode, cart.regionCode)
     ))
-    .where(eq(cartItems.cartId, cart.id));
+    .leftJoin(inventoryBatches, eq(products.id, inventoryBatches.productId))
+    .where(eq(cartItems.cartId, cart.id))
+    .groupBy(
+      cartItems.id,
+      products.name,
+      products.imageUrls,
+      products.weightGrams,
+      products.barcode,
+      productRegionalConfigs.retailPrice,
+      productRegionalConfigs.wholesalePrice,
+      productRegionalConfigs.minWholesaleQty,
+      productRegionalConfigs.currency
+    );
 
   let total = 0n;
 
@@ -55,6 +68,7 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
       wholesalePrice: item.wholesalePrice?.toString(),
       minWholesaleQty: item.minWholesaleQty,
       currency: item.currency || cart.regionCode,
+      available_stock: item.totalStock,
     };
   });
 

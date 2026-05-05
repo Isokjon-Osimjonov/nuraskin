@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
 import {
-  Mail, LogOut, ShoppingBag, Heart, Settings, ChevronRight,
+  Mail, LogOut, ShoppingBag, Settings, ChevronRight,
   Ticket, MapPin, Bell,
 } from 'lucide-react';
 
@@ -30,7 +30,6 @@ function Profile() {
 
   const menuItems = [
     { icon: ShoppingBag, label: 'Buyurtmalarim', desc: "Barcha buyurtmalarni ko'rish", href: '/orders' },
-    { icon: Heart, label: 'Sevimlilar', desc: 'Saqlangan mahsulotlar', href: '/favorites' },
     { icon: Bell, label: "Kutish ro'yxati", desc: 'Omborda yo\'q mahsulotlar', href: '/waiting-list' },
     { icon: Ticket, label: 'Kuponlarim', desc: 'Chegirma kuponlari', href: '/coupons' },
     { icon: MapPin, label: 'Manzillarim', desc: 'Yetkazib berish manzillari', href: '/addresses' },
@@ -65,7 +64,7 @@ function Profile() {
           {menuItems.map((item, i) => (
             <Link
               key={item.label}
-              to={item.href as "/orders" | "/favorites" | "/waiting-list" | "/coupons" | "/addresses" | "/settings"}
+              to={item.href as "/orders" | "/waiting-list" | "/coupons" | "/addresses" | "/settings"}
               className={`flex items-center gap-4 px-8 py-5 hover:bg-stone-100 transition-colors ${
                 i !== menuItems.length - 1 ? 'border-b border-stone-200' : ''
               }`}

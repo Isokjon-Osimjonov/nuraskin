@@ -123,23 +123,6 @@ function ProductPage() {
                 <p className="text-[14px] text-stone-400 font-light tracking-wide mb-1 uppercase">{product.brandName}</p>
                 <h1 className="text-2xl md:text-3xl font-light text-[#4A1525] leading-tight">{product.name}</h1>
               </div>
-              <button
-                onClick={() => toggleFavorite(productForStore)}
-                className={`p-2 rounded-full border border-stone-100 transition-colors ${
-                  favorites.some(p => p.id === product.id) ? 'bg-[#4A1525] text-white border-[#4A1525]' : 'bg-white text-stone-300 hover:text-[#4A1525] hover:border-[#4A1525]'
-                }`}
-              >
-                <Heart className="w-5 h-5" fill={favorites.some(p => p.id === product.id) ? "white" : "none"} strokeWidth={1.5} />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <span className="text-[12px] text-stone-400 font-light border-l border-stone-200 pl-3">24 sharhlar</span>
             </div>
 
             <div className="flex items-baseline gap-4 mb-8">
@@ -149,23 +132,16 @@ function ProductPage() {
               )}
             </div>
 
-            {/* Stock indicator */}
-            {product.availableStock === 0 ? (
-              <p className="text-[12px] text-red-600 mb-6 font-medium uppercase tracking-wider flex items-center gap-1.5">
-                <XCircle className="w-3.5 h-3.5" />
-                Sotuvda tugagan
-              </p>
-            ) : product.showStockCount && product.availableStock <= 10 ? (
-              <p className="text-[12px] text-orange-600 mb-6 font-medium uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Faqat {product.availableStock} ta qoldi!
-              </p>
-            ) : (
-              <p className="text-[12px] text-emerald-600 mb-6 font-medium uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Mavjud {product.showStockCount ? `(${product.availableStock} ta)` : ''}
-              </p>
-            )}
+            {/* Stock Badge */}
+            <div className="mb-4">
+              {product.availableStock > 10 ? (
+                <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">MAVJUD</span>
+              ) : product.availableStock > 0 ? (
+                <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">Kam qoldi: {product.availableStock} ta</span>
+              ) : (
+                <span className="text-[11px] font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">Tugadi</span>
+              )}
+            </div>
 
             {/* Add to Cart / Waitlist Controls */}
             <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 pb-8 border-b border-stone-100">
@@ -182,8 +158,10 @@ function ProductPage() {
                     <span className="font-medium text-lg w-8 text-center">{quantity}</span>
                     <button
                       onClick={() => {
-                        if (quantity >= product.availableStock) {
-                          toast.error(`Faqat ${product.availableStock} ta mavjud!`);
+                        const cartItem = cartData?.items?.find((i) => i.productId === product.id);
+                        const currentCartQty = cartItem ? cartItem.quantity : 0;
+                        if (currentCartQty + quantity >= product.availableStock) {
+                          toast.warning(`Maksimal: ${product.availableStock} ta`);
                           return;
                         }
                         setQuantity(quantity + 1);
@@ -202,6 +180,13 @@ function ProductPage() {
                     }`}
                     onClick={() => {
                       if (!isAuthenticated) { navigate({ to: '/login' }); return; }
+                      const cartItem = cartData?.items?.find((i) => i.productId === product.id);
+                      const currentCartQty = cartItem ? cartItem.quantity : 0;
+                      if (currentCartQty + quantity > product.availableStock) {
+                        toast.warning(`Savatchada allaqachon ${currentCartQty} ta bor. Maksimal: ${product.availableStock} ta`);
+                        return;
+                      }
+
                       addToCart.mutate({
                         productId: product.id,
                         quantity: quantity,

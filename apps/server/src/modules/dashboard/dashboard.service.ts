@@ -105,36 +105,23 @@ export async function getTrend(region: string) {
   const isAll = region === 'ALL';
   const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
-  // 1. Last 7 days from summary
+  // 1. Last 7 days directly from orders table
   const summaryDays = await db
     .select({
-      date: sql<string>`${dailySalesSummary.date}::text`,
-      kor_revenue_krw: sql<bigint>`sum(case when ${dailySalesSummary.regionCode} = 'KOR' then ${dailySalesSummary.revenueKrw} else 0 end)::bigint`,
-      uzb_revenue_krw: sql<bigint>`sum(case when ${dailySalesSummary.regionCode} = 'UZB' then ${dailySalesSummary.revenueKrw} else 0 end)::bigint`,
-      total_orders: sum(dailySalesSummary.orderCount),
-    })
-    .from(dailySalesSummary)
-    .where(and(
-      sql`${dailySalesSummary.date} > CURRENT_DATE - INTERVAL '7 days'`,
-      isAll ? sql`1=1` : eq(dailySalesSummary.regionCode, region)
-    ))
-    .groupBy(dailySalesSummary.date)
-    .orderBy(dailySalesSummary.date);
-
-  // 2. Today's live data (not in rollup yet)
-  const todayLive = await db
-    .select({
+      date: sql<string>`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::text`,
       kor_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'KOR' then ${orders.totalAmount} else 0 end)::bigint`,
       uzb_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'UZB' then ${orders.totalAmount} else 0 end)::bigint`,
       total_orders: count(orders.id),
     })
     .from(orders)
     .where(and(
-      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
       eq(orders.status, 'DELIVERED'),
+      sql`${orders.deliveredAt} IS NOT NULL`,
+      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
-    .then(res => res[0]);
+    .groupBy(sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`)
+    .orderBy(sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`);
 
   const days = summaryDays.map(d => ({
     date: d.date,
@@ -143,37 +130,39 @@ export async function getTrend(region: string) {
     total_orders: Number(d.total_orders || 0),
   }));
 
-  // Append today if not already present in summary
+  // Ensure today is always present even if 0 sales
   if (!days.some(d => d.date === todayKst)) {
     days.push({
       date: todayKst,
-      kor_revenue_krw: (todayLive?.kor_revenue_krw ?? 0n).toString(),
-      uzb_revenue_krw: (todayLive?.uzb_revenue_krw ?? 0n).toString(),
-      total_orders: Number(todayLive?.total_orders ?? 0),
+      kor_revenue_krw: '0',
+      uzb_revenue_krw: '0',
+      total_orders: 0,
     });
   }
-
 
   // 3. Top 5 SKUs last 7 days
   const topSkus = await db
     .select({
-      product_id: dailySalesSummary.productId,
+      product_id: orderItems.productId,
       product_name: products.name,
-      units_sold: sum(dailySalesSummary.unitsSold),
-      revenue_krw: sum(dailySalesSummary.revenueKrw),
+      units_sold: sum(orderItems.quantity),
+      revenue_krw: sum(orderItems.subtotalSnapshot),
     })
-    .from(dailySalesSummary)
-    .innerJoin(products, eq(dailySalesSummary.productId, products.id))
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .innerJoin(products, eq(orderItems.productId, products.id))
     .where(and(
-      sql`${dailySalesSummary.date} > CURRENT_DATE - INTERVAL '7 days'`,
-      isAll ? sql`1=1` : eq(dailySalesSummary.regionCode, region)
+      eq(orders.status, 'DELIVERED'),
+      sql`${orders.deliveredAt} IS NOT NULL`,
+      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+      isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
-    .groupBy(dailySalesSummary.productId, products.name)
-    .orderBy(desc(sql`sum(${dailySalesSummary.revenueKrw})`))
+    .groupBy(orderItems.productId, products.name)
+    .orderBy(desc(sql`sum(${orderItems.subtotalSnapshot})`))
     .limit(5);
 
   return {
-    days: days.slice(-7),
+    days: days.sort((a, b) => a.date.localeCompare(b.date)).slice(-7),
     top_skus: topSkus.map(s => ({
       ...s,
       units_sold: Number(s.units_sold || 0),

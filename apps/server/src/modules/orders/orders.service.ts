@@ -84,6 +84,10 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
       const product = await productsRepository.findById(itemInput.productId);
       if (!product) throw new NotFoundError(`Product ${itemInput.productId} not found`);
 
+      if (itemInput.quantity > product.totalStock) {
+        throw new BadRequestError(`INSUFFICIENT_STOCK: ${product.name} mahsulotidan faqat ${product.totalStock} ta mavjud`);
+      }
+
       const regionalConfig = product.regionalConfigs.find(c => c.regionCode === input.regionCode);
       if (!regionalConfig) throw new BadRequestError(`Product not available in region ${input.regionCode}`);
 

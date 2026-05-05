@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/apiFetch';
 import { formatPrice } from '@/lib/utils';
 import type { KorShippingTierResponse, StorefrontSettings } from '@nuraskin/shared-types';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/cart')({
   component: CartPage,
@@ -162,10 +163,14 @@ function CartPage() {
                             <span className={`text-[13px] font-medium text-center ${isOverStock ? 'text-red-600' : ''}`}>{item.quantity}</span>
                             <button
                               onClick={() => {
+                                if (item.quantity >= (item.availableStock ?? 0)) {
+                                  toast.warning(`Maksimal miqdor: ${item.availableStock} ta`);
+                                  return;
+                                }
                                 updateQty.mutate({ id: item.id, quantity: item.quantity + 1 });
                               }}
-                              className="text-stone-400 hover:text-[#4A1525] transition-colors"
-                              disabled={updateQty.isPending}
+                              className="text-stone-400 hover:text-[#4A1525] transition-colors disabled:opacity-50"
+                              disabled={updateQty.isPending || item.quantity >= (item.availableStock ?? 0)}
                             >
                               <Plus className="w-3 h-3" />
                             </button>
