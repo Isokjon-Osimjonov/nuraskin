@@ -21,7 +21,7 @@ export async function findAdminList(filters: CustomerFilters) {
       createdAt: sql<string>`customers.created_at::text`.as('createdAt'),
       lastOrderAt: sql<string | null>`MAX(orders.created_at)::text`.as('lastOrderAt'),
       orderCount: sql<number>`COUNT(orders.id)::int`.as('orderCount'),
-      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN ('PAID', 'PACKING', 'SHIPPED', 'DELIVERED') THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
+      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'DELIVERED' THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
       outstandingDebt: sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'PENDING_PAYMENT' THEN orders.total_amount ELSE 0 END), 0)::text`.as('outstandingDebt'),
       debtLimit: sql<string>`COALESCE(customers.debt_limit_override, ${defaultLimit})::text`.as('debtLimit'),
     })
@@ -104,6 +104,17 @@ export async function getActiveOrderCount(customerId: string) {
     .where(and(
       eq(orders.customerId, customerId),
       sql`orders.status NOT IN ('CANCELED', 'DELIVERED')`
+    ));
+  return row.count;
+}
+
+export async function getTotalOrderCount(customerId: string) {
+  const [row] = await db
+    .select({ count: sql`count(*)::int` })
+    .from(orders)
+    .where(and(
+      eq(orders.customerId, customerId),
+      sql`orders.status NOT IN ('CANCELED', 'REFUNDED')`
     ));
   return row.count;
 }

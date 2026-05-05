@@ -72,7 +72,7 @@ export const orders = pgTable('orders', {
   createdAtIdx: index('orders_created_at_idx').on(t.createdAt),
   statusCheck: check(
     'orders_status_check',
-    sql`${t.status} IN ('DRAFT', 'PENDING_PAYMENT', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED')`,
+    sql`${t.status} IN ('DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED')`,
   ),
 }));
 

@@ -79,6 +79,49 @@ export async function deleteOrderExpense(req: Request, res: Response) {
   res.json(result);
 }
 
+export async function submitPayment(req: Request, res: Response) {
+  const adminId = req.user?.sub;
+  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_SUBMITTED', req.body, adminId);
+  res.json(result);
+}
+
+export async function verifyPayment(req: Request, res: Response) {
+  const adminId = req.user?.sub;
+  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_VERIFIED', req.body, adminId);
+  res.json(result);
+}
+
+export async function rejectPayment(req: Request, res: Response) {
+  const adminId = req.user?.sub;
+  const { note } = req.body;
+  if (!note) {
+    res.status(400).json({ error: 'Rejection note is required' });
+    return;
+  }
+  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_REJECTED', { paymentNote: note, note }, adminId);
+  res.json(result);
+}
+
+export async function shipOrder(req: Request, res: Response) {
+  const adminId = req.user?.sub;
+  const { trackingNumber } = req.body;
+  const result = await service.transitionOrderStatus(req.params.id, 'SHIPPED', { trackingNumber }, adminId);
+  res.json(result);
+}
+
+export async function deliverOrder(req: Request, res: Response) {
+  const adminId = req.user?.sub;
+  const result = await service.transitionOrderStatus(req.params.id, 'DELIVERED', {}, adminId);
+  res.json(result);
+}
+
+export async function cancelOrder(req: Request, res: Response) {
+  const adminId = req.user?.sub;
+  const { note } = req.body;
+  const result = await service.transitionOrderStatus(req.params.id, 'CANCELED', { note }, adminId);
+  res.json(result);
+}
+
 export async function getPaymentReceipt(req: Request, res: Response) {
   const order = await service.getOrderDetail(req.params.id);
   if (!order) throw new NotFoundError('Buyurtma topilmadi');

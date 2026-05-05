@@ -96,6 +96,7 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
       cargoCostKrw: orders.cargoCostKrw,
       status: orders.status,
       createdAt: orders.createdAt,
+      deliveredAt: orders.deliveredAt,
       customerName: customers.fullName,
       cogs: sql<bigint>`coalesce(sum(${orderItems.costAtSaleKrw} * ${orderItems.quantity}), 0)::bigint`,
     })
@@ -103,11 +104,12 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
     .leftJoin(customers, eq(orders.customerId, customers.id))
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .where(and(
-      sql`DATE_TRUNC('month', ${orders.createdAt}) = ${startDate}::date`,
-      sql`${orders.status} IN ('PAID', 'SHIPPED', 'DELIVERED')`
+      eq(orders.status, 'DELIVERED'),
+      sql`${orders.deliveredAt} >= ${startDate}::date`,
+      sql`${orders.deliveredAt} < (${endDate}::date + INTERVAL '1 day')`
     ))
     .groupBy(orders.id, customers.fullName);
-  
+
   return rows;
 }
 
@@ -135,8 +137,8 @@ export async function getOutstandingDebt() {
       customerCount: sql<number>`count(distinct ${orders.customerId})::int`,
     })
     .from(orders)
-    .where(eq(orders.status, 'PENDING_PAYMENT'));
-  
+    .where(sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`);
+
   return row || { totalKrw: 0n, customerCount: 0 };
 }
 

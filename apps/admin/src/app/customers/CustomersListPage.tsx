@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, User, Eye, UserMinus, UserCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { UZ, translateServerError } from '@/lib/uz';
+import { formatPrice } from '@/lib/currency';
 import {
   DataTable,
   DataTableHeader,
@@ -185,10 +186,10 @@ export function CustomersListPage() {
                   <DataTableCell className="font-mono text-sm">{customer.phone || '—'}</DataTableCell>
                   <DataTableCell className="text-right font-medium">{(customer as any).orderCount}</DataTableCell>
                   <DataTableCell className="text-right whitespace-nowrap">
-                    {Number(BigInt((customer as any).totalSpent)).toLocaleString()} {(customer as any).currency || "UZS"}
+                    {formatPrice((customer as any).totalSpent, customer.regionCode as 'UZB' | 'KOR')}
                   </DataTableCell>
                   <DataTableCell className="text-right font-medium whitespace-nowrap text-stone-900">
-                    {Number(BigInt((customer as any).outstandingDebt)).toLocaleString()} {(customer as any).currency || "UZS"}
+                    {formatPrice((customer as any).outstandingDebt, customer.regionCode as 'UZB' | 'KOR')}
                   </DataTableCell>
                   <DataTableCell>
                     {getDebtBadge((customer as any).outstandingDebt, (customer as any).debtLimit)}

@@ -3,6 +3,7 @@ import * as orderExpensesRepository from './order-expenses.repository';
 import * as productsRepository from '../products/products.repository';
 import { db, settings, inventoryBatches, customers, orderItems, orders, stockReservations, stockMovements, products, orderStatusHistory, coupons, orderExpenses } from '@nuraskin/database';
 import { eq, sql, and, asc, inArray, gt } from 'drizzle-orm';
+import { logger } from '../../common/utils/logger';
 import { NotificationService } from '../notifications/notification.service';
 import { calculateUzbPrice, calculateKorPrice, calculateKorCargo } from '../../common/utils/pricing';
 import { reservationTimeoutQueue } from '../queues';
@@ -44,7 +45,7 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
           if (product.weightGrams) {
             totalWeightGrams += product.weightGrams * itemInput.quantity;
           } else {
-            console.warn(`Product ${product.id} missing weight_grams. Using 0 for cargo calculation.`);
+            logger.warn({ productId: product.id }, 'Product missing weight_grams. Using 0 for cargo calculation.');
           }
         }
       }
@@ -243,33 +244,123 @@ export async function updateOrderStatus(orderId: string, input: UpdateOrderStatu
   const order = await repository.findById(orderId, runner);
   if (!order) throw new NotFoundError('Order not found');
 
-  return await runner.transaction(async (tx: any) => {
-    const toStatus = input.to;
+  const toStatus = input.to;
 
-    // Reserve stock if moving to PENDING_PAYMENT or PAID from DRAFT
-    if ((toStatus === 'PENDING_PAYMENT' || toStatus === 'PAID') && order.status === 'DRAFT') {
-        const [settingsRow] = await tx.select().from(settings).limit(1);
-        const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
-        await reserveStock(orderId, timeoutMinutes, tx);
+  // DRAFT → PENDING_PAYMENT: reserve stock
+  if (toStatus === 'PENDING_PAYMENT' && order.status === 'DRAFT') {
+    return await runner.transaction(async (tx: any) => {
+      const [settingsRow] = await tx.select().from(settings).limit(1);
+      const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
+      await reserveStock(orderId, timeoutMinutes, tx);
+
+      await tx.update(orders).set({
+        status: toStatus,
+        updatedAt: new Date(),
+      }).where(eq(orders.id, orderId));
+
+      await tx.insert(orderStatusHistory).values({
+        orderId,
+        fromStatus: order.status,
+        toStatus,
+        changedBy: adminId,
+        note: input.note,
+      });
+
+      return await repository.findById(orderId, tx);
+    });
+  }
+
+  // All other transitions go through transitionOrderStatus()
+  return await transitionOrderStatus(orderId, toStatus, {
+    paymentNote: input.paymentNote,
+    trackingNumber: input.trackingNumber,
+    note: input.note,
+  }, adminId);
+}
+
+interface TransitionInput {
+  paymentNote?: string;
+  trackingNumber?: string;
+  note?: string;
+  paymentReceiptUrl?: string;
+}
+
+const VALID_TRANSITIONS: Partial<Record<string, string[]>> = {
+  'PAYMENT_SUBMITTED': ['PENDING_PAYMENT'],
+  'PAYMENT_VERIFIED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAID'],
+  'PAYMENT_REJECTED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAID'],
+  'PACKING': ['PAID', 'PAYMENT_VERIFIED'],
+  'SHIPPED': ['PACKING', 'PAID', 'PAYMENT_VERIFIED'],
+  'DELIVERED': ['SHIPPED'],
+  'CANCELED': ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAID', 'PACKING'],
+};
+
+export async function transitionOrderStatus(
+  orderId: string,
+  to: string,
+  input: TransitionInput,
+  adminId?: string,
+): Promise<any> {
+  const order = await repository.findById(orderId);
+  if (!order) throw new NotFoundError('Order not found');
+
+  const validFromStates = VALID_TRANSITIONS[to];
+  if (!validFromStates) throw new BadRequestError(`Unknown target status: ${to}`);
+  if (!validFromStates.includes(order.status)) {
+    throw new BadRequestError(
+      `Cannot transition from ${order.status} to ${to}. Valid from: ${validFromStates.join(', ')}`
+    );
+  }
+
+  if (to === 'SHIPPED' && !input.trackingNumber && !order.trackingNumber) {
+    throw new BadRequestError('Tracking number is required to ship an order');
+  }
+
+  return await db.transaction(async (tx: any) => {
+    const now = new Date();
+    const updates: Record<string, any> = {
+      status: to,
+      updatedAt: now,
+    };
+
+    if (input.paymentNote) updates.paymentNote = input.paymentNote;
+    if (input.trackingNumber) updates.trackingNumber = input.trackingNumber;
+
+    if (to === 'PAYMENT_SUBMITTED') updates.paymentSubmittedAt = now;
+    if (to === 'PAYMENT_VERIFIED') updates.paymentVerifiedAt = now;
+    if (to === 'PAYMENT_REJECTED') updates.paymentRejectedAt = now;
+    if (to === 'SHIPPED') {
+      updates.shippedAt = now;
+      if (!order.packedAt) updates.packedAt = now;
+    }
+    if (to === 'DELIVERED') updates.deliveredAt = now;
+
+    if ((to === 'PAYMENT_VERIFIED' || to === 'PAID') && (order.status === 'DRAFT' || order.status === 'PENDING_PAYMENT' || order.status === 'PAYMENT_SUBMITTED')) {
+      const [settingsRow] = await tx.select().from(settings).limit(1);
+      const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
+      await reserveStock(orderId, timeoutMinutes, tx);
     }
 
-    if (toStatus === 'CANCELED' && (order.status === 'PENDING_PAYMENT' || order.status === 'PAID' || order.status === 'PACKING')) {
+    if (to === 'CANCELED') {
+      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAID', 'PACKING'].includes(order.status)) {
         await repository.releaseOrderReservations(orderId, tx);
+      }
     }
 
-    await tx.update(orders).set({
-      status: toStatus,
-      paymentNote: input.paymentNote || order.paymentNote,
-      trackingNumber: input.trackingNumber || order.trackingNumber,
-      updatedAt: new Date(),
-    }).where(eq(orders.id, orderId));
+    if (to === 'PAYMENT_REJECTED') {
+      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAID'].includes(order.status)) {
+        await repository.releaseOrderReservations(orderId, tx);
+      }
+    }
+
+    await tx.update(orders).set(updates).where(eq(orders.id, orderId));
 
     await tx.insert(orderStatusHistory).values({
       orderId,
       fromStatus: order.status,
-      toStatus: toStatus,
+      toStatus: to,
       changedBy: adminId,
-      note: input.paymentNote || input.trackingNumber || input.note,
+      note: input.note || input.paymentNote,
     });
 
     return await repository.findById(orderId, tx);
@@ -327,7 +418,7 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
 export async function completePacking(orderId: string, adminId?: string) {
   const order = await repository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
-  if (order.status !== 'PACKING' && order.status !== 'PAID') {
+  if (order.status !== 'PACKING' && order.status !== 'PAID' && order.status !== 'PAYMENT_VERIFIED') {
     throw new BadRequestError('Order is not in correct status for packing');
   }
 
@@ -357,7 +448,7 @@ export async function completePacking(orderId: string, adminId?: string) {
       for (const res of reservations) {
         const costPriceKrw = res.costPrice ? BigInt(res.costPrice) : 0n;
         if (!res.costPrice) {
-          console.warn(`Batch ${res.batchId} has missing cost_price_krw. Using 0.`);
+          logger.warn({ batchId: res.batchId }, 'Batch has missing cost_price_krw. Using 0.');
         }
         totalCostSum += costPriceKrw * BigInt(res.quantity);
         totalUnits += res.quantity;
@@ -375,12 +466,14 @@ export async function completePacking(orderId: string, adminId?: string) {
       }
     }
 
+    const now = new Date();
     await tx.update(orders)
-      .set({ 
-        status: 'SHIPPED', 
-        packedBy: adminId, 
-        packedAt: new Date(), 
-        updatedAt: new Date() 
+      .set({
+        status: 'SHIPPED',
+        packedBy: adminId,
+        packedAt: now,
+        shippedAt: now,
+        updatedAt: now,
       })
       .where(eq(orders.id, orderId));
 
@@ -427,6 +520,6 @@ async function tryAddFreeShippingSubsidy(orderId: string) {
       }
     }
   } catch (error) {
-    console.error('Failed to auto-create free shipping subsidy:', error);
+    logger.error({ err: error }, 'Failed to auto-create free shipping subsidy');
   }
 }

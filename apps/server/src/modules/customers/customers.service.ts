@@ -13,7 +13,7 @@ export async function getCustomerDetailAdmin(id: string) {
   if (!customer) throw new NotFoundError('Mijoz topilmadi');
 
   // 1. Basic Stats
-  const orderCount = await repository.getActiveOrderCount(id);
+  const orderCount = await repository.getTotalOrderCount(id);
   const outstandingDebt = await repository.getOutstandingDebt(id);
 
   // 2. Order History (Last 20)
@@ -61,13 +61,13 @@ export async function getCustomerDetailAdmin(id: string) {
     .where(eq(productWaitlist.customerId, id as string))
     .orderBy(desc(productWaitlist.createdAt));
 
-  // Calculate total spent
+  // Calculate total spent (DELIVERED orders only)
   const totalSpentRow = await db
     .select({ total: sql`sum(total_amount)::bigint` })
     .from(orders)
     .where(and(
       eq(orders.customerId, id as string),
-      sql`status IN ('PAID', 'PACKING', 'SHIPPED', 'DELIVERED')`
+      eq(orders.status, 'DELIVERED')
     ));
 
   return {

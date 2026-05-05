@@ -1,4 +1,4 @@
-import { db, orders, orderItems, products, inventoryBatches, stockReservations, dailySalesSummary, settings } from '@nuraskin/database';
+import { db, orders, orderItems, products, inventoryBatches, dailySalesSummary, settings } from '@nuraskin/database';
 import { eq, sql, and, gte, lte, desc, sum, count, countDistinct } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
 
@@ -17,8 +17,8 @@ export async function getKPIs(region: string) {
     .from(orders)
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .where(and(
-      sql`DATE(${orders.createdAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
-      sql`${orders.status} IN ('PAID', 'SHIPPED', 'DELIVERED')`,
+      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
+      eq(orders.status, 'DELIVERED'),
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
     .then(res => res[0]);
@@ -40,7 +40,7 @@ export async function getKPIs(region: string) {
   const debt = await db
     .select({ total: sum(orders.totalAmount) })
     .from(orders)
-    .where(eq(orders.status, 'PENDING_PAYMENT'))
+    .where(sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`)
     .then(res => res[0]?.total || '0');
 
   // 4. Action Queues
@@ -48,23 +48,27 @@ export async function getKPIs(region: string) {
     .select({ count: count(orders.id) })
     .from(orders)
     .where(and(
-      eq(orders.status, 'PENDING_PAYMENT'),
-      sql`${orders.paymentReceiptUrl} IS NOT NULL`
+      sql`${orders.status} IN ('PAYMENT_SUBMITTED', 'PENDING_PAYMENT')`,
+      sql`${orders.paymentReceiptUrl} IS NOT NULL`,
+      sql`${orders.paymentVerifiedAt} IS NULL`,
+      sql`${orders.paymentRejectedAt} IS NULL`
     ))
     .then(res => res[0]?.count || 0);
 
   const readyToPack = await db
     .select({ count: count(orders.id) })
     .from(orders)
-    .where(eq(orders.status, 'PAID'))
+    .where(sql`${orders.status} IN ('PAID', 'PAYMENT_VERIFIED')`)
     .then(res => res[0]?.count || 0);
 
   const expiringSoon = await db
-    .select({ count: count(stockReservations.id) })
-    .from(stockReservations)
+    .select({ count: count(orders.id) })
+    .from(orders)
     .where(and(
-      eq(stockReservations.status, 'ACTIVE'),
-      sql`${stockReservations.expiresAt} < NOW() + INTERVAL '2 hours'`
+      sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`,
+      sql`${orders.paymentVerifiedAt} IS NULL`,
+      sql`${orders.paymentRejectedAt} IS NULL`,
+      sql`${orders.createdAt} < NOW() - INTERVAL '48 hours'`
     ))
     .then(res => res[0]?.count || 0);
 
@@ -126,8 +130,8 @@ export async function getTrend(region: string) {
     })
     .from(orders)
     .where(and(
-      sql`DATE(${orders.createdAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
-      sql`${orders.status} IN ('PAID', 'SHIPPED', 'DELIVERED')`,
+      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
+      eq(orders.status, 'DELIVERED'),
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
     .then(res => res[0]);

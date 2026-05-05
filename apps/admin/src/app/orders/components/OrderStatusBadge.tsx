@@ -11,6 +11,9 @@ interface OrderStatusBadgeProps {
 const statusConfig: Record<OrderStatus, { label: string; className: string }> = {
   DRAFT: { label: 'Qoralama', className: 'bg-gray-100 text-gray-700 hover:bg-gray-100' },
   PENDING_PAYMENT: { label: "To'lov kutilmoqda", className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200' },
+  PAYMENT_SUBMITTED: { label: "Chek yuborildi", className: 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200' },
+  PAYMENT_VERIFIED: { label: "To'lov tasdiqlandi", className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
+  PAYMENT_REJECTED: { label: "To'lov rad etildi", className: 'bg-red-100 text-red-700 hover:bg-red-100' },
   PAID: { label: "To'langan", className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
   PACKING: { label: 'Tayyorlanmoqda', className: 'bg-orange-100 text-orange-700 hover:bg-orange-100' },
   SHIPPED: { label: 'Yuborildi', className: 'bg-purple-100 text-purple-700 hover:bg-purple-100' },

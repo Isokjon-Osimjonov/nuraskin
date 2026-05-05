@@ -27,7 +27,7 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = React.useState(false);
 
   const confirmMutation = useMutation({
-    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAID' }),
+    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAYMENT_VERIFIED' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -37,7 +37,7 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
   });
 
   const rejectMutation = useMutation({
-    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PENDING_PAYMENT', paymentNote: rejectNote }),
+    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAYMENT_REJECTED', paymentNote: rejectNote }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -48,7 +48,7 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
     onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
   });
 
-  if (order.status !== 'PENDING_PAYMENT') return null;
+  if (!['PENDING_PAYMENT', 'PAYMENT_SUBMITTED'].includes(order.status)) return null;
 
   const isRejected = !!(order.paymentRejectedAt && !order.paymentVerifiedAt);
 

@@ -16,6 +16,12 @@ router.get('/:id', requirePermission('orders:read'), asyncHandler(ctrl.getOrder)
 router.get('/:id/receipt', requirePermission('orders:read'), asyncHandler(ctrl.getPaymentReceipt));
 router.post('/:id/items', requirePermission('orders:write'), asyncHandler(ctrl.addItem));
 router.delete('/:id/items/:itemId', requirePermission('orders:write'), asyncHandler(ctrl.removeItem));
+router.patch('/:id/submit-payment', requirePermission('orders:write'), asyncHandler(ctrl.submitPayment));
+router.patch('/:id/verify-payment', requirePermission('orders:write'), asyncHandler(ctrl.verifyPayment));
+router.patch('/:id/reject-payment', requirePermission('orders:write'), asyncHandler(ctrl.rejectPayment));
+router.patch('/:id/ship', requirePermission('orders:write'), asyncHandler(ctrl.shipOrder));
+router.patch('/:id/deliver', requirePermission('orders:write'), asyncHandler(ctrl.deliverOrder));
+router.patch('/:id/cancel', requirePermission('orders:write'), asyncHandler(ctrl.cancelOrder));
 router.patch('/:id/status', requirePermission('orders:write'), asyncHandler(ctrl.updateStatus));
 router.post('/:id/scan', requirePermission('inventory:write'), asyncHandler(ctrl.scanItem));
 router.post('/:id/complete-packing', requirePermission('inventory:write'), asyncHandler(ctrl.completePacking));

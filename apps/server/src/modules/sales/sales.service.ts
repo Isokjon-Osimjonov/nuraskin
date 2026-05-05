@@ -2,24 +2,15 @@ import { db, orders, orderItems, products, dailySalesSummary } from '@nuraskin/d
 import { eq, and, sql, gte, lte } from 'drizzle-orm';
 import { BadRequestError } from '../../common/errors/AppError';
 
-function getLiveDateFilters(from: string, to: string) {
-  return [
-    sql`DATE(${orders.shippedAt}) >= ${from}::date OR DATE(${orders.deliveredAt}) >= ${from}::date`,
-    sql`DATE(${orders.shippedAt}) <= ${to}::date OR DATE(${orders.deliveredAt}) <= ${to}::date`,
-  ];
-}
-
 export async function getLiveSales(from: string, to: string, regionCode?: string) {
-  const dateFilters = getLiveDateFilters(from, to);
   let regionFilter = sql`1=1`;
   if (regionCode) {
     regionFilter = eq(orders.regionCode, regionCode);
   }
 
-  // Live Query
   const rawData = await db.execute(sql`
-    SELECT 
-      DATE(COALESCE(o.delivered_at, o.shipped_at)) as sale_date,
+    SELECT
+      DATE(o.delivered_at) as sale_date,
       o.region_code,
       o.cargo_fee,
       o.total_weight_grams,
@@ -33,9 +24,10 @@ export async function getLiveSales(from: string, to: string, regionCode?: string
     FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN products p ON oi.product_id = p.id
-    WHERE o.status IN ('SHIPPED', 'DELIVERED')
-      AND (${dateFilters[0]})
-      AND (${dateFilters[1]})
+    WHERE o.status = 'DELIVERED'
+      AND o.delivered_at IS NOT NULL
+      AND DATE(o.delivered_at) >= ${from}::date
+      AND DATE(o.delivered_at) <= ${to}::date
       AND ${regionFilter}
   `);
 

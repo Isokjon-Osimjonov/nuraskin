@@ -313,7 +313,7 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {order.status === 'PAID' && (
+              {(order.status === 'PAID' || order.status === 'PAYMENT_VERIFIED') && (
                 <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => statusMutation.mutate('PACKING')}>
                   <PackageCheck className="mr-2 h-4 w-4" />
                   Tayyorlashni boshlash
@@ -345,7 +345,7 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {['DRAFT', 'PENDING_PAYMENT', 'PAID', 'PACKING'].includes(order.status) && (
+              {['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAID', 'PACKING'].includes(order.status) && (
                 <Button variant="ghost" className="w-full text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => statusMutation.mutate('CANCELED')}>
                   <XCircle className="mr-2 h-4 w-4" />
                   Bekor qilish
