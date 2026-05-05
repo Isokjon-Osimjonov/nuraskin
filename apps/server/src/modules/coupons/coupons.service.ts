@@ -34,7 +34,15 @@ export async function validateAndApply(
 
     // 3. Schedule
     const now = new Date();
-    if (coupon.startsAt && now < coupon.startsAt) throw new CouponNotApplicableError('Bu kupon hali faol emas');
+    if (coupon.startsAt) {
+        const startDate = new Date(coupon.startsAt);
+        startDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (startDate > today) {
+            throw new CouponNotApplicableError('Bu kupon hali faol emas');
+        }
+    }
     if (coupon.expiresAt && now > coupon.expiresAt) throw new CouponExpiredError();
 
     // 4. Usage Count (Total)
@@ -86,10 +94,15 @@ export async function validateAndApply(
     const applicableSubtotal = applicableItems.reduce((acc, item) => acc + BigInt(item.subtotal), 0n);
     const applicableQty = applicableItems.reduce((acc, item) => acc + item.quantity, 0);
 
-    if (coupon.regionCode !== 'ALL' && coupon.minOrderAmount > 0n) {
-        if (applicableSubtotal < coupon.minOrderAmount) {
-            throw new CouponMinAmountError(coupon.minOrderAmount);
-        }
+    let minAmount = 0n;
+    if (coupon.regionCode === 'ALL') {
+        minAmount = regionCode === 'UZB' ? BigInt(coupon.minOrderUzs || 0) : BigInt(coupon.minOrderKrw || 0);
+    } else {
+        minAmount = BigInt(coupon.minOrderAmount || 0);
+    }
+
+    if (minAmount > 0n && applicableSubtotal < minAmount) {
+        throw new CouponMinAmountError(minAmount);
     }
     
     if (applicableQty < coupon.minOrderQty) {
@@ -99,17 +112,27 @@ export async function validateAndApply(
     // Calculation
     let discount = 0n;
     if (coupon.type === 'PERCENTAGE') {
-        discount = (applicableSubtotal * coupon.value) / 100n;
-        if (coupon.maxDiscountCap && discount > coupon.maxDiscountCap) {
-            discount = coupon.maxDiscountCap;
+        let baseValue = 0n;
+        if (coupon.regionCode === 'ALL') {
+             baseValue = regionCode === 'UZB' ? BigInt(coupon.valueUzs || 0) : BigInt(coupon.valueKrw || 0);
+        } else {
+             baseValue = coupon.value;
+        }
+        discount = (applicableSubtotal * baseValue) / 100n;
+        
+        let maxCap = null;
+        if (coupon.regionCode === 'ALL') {
+             maxCap = regionCode === 'UZB' ? (coupon.maxDiscountUzs ? BigInt(coupon.maxDiscountUzs) : null) : (coupon.maxDiscountKrw ? BigInt(coupon.maxDiscountKrw) : null);
+        } else {
+             maxCap = coupon.maxDiscountCap ? BigInt(coupon.maxDiscountCap) : null;
+        }
+
+        if (maxCap && discount > maxCap) {
+            discount = maxCap;
         }
     } else {
-        if (coupon.regionCode === 'ALL' && regionCode === 'UZB') {
-            const rateSnapshot = await db.query.exchangeRateSnapshots.findFirst({
-              orderBy: (rates, { desc }) => [desc(rates.createdAt)]
-            });
-            if (!rateSnapshot) throw new BadRequestError('Valyuta kursi topilmadi');
-            discount = coupon.value * BigInt(rateSnapshot.krwToUzs) * 100n;
+        if (coupon.regionCode === 'ALL') {
+            discount = regionCode === 'UZB' ? BigInt(coupon.valueUzs || 0) : BigInt(coupon.valueKrw || 0);
         } else {
             discount = coupon.value;
         }
@@ -128,11 +151,18 @@ export async function validateAndApply(
 export async function createCoupon(input: CreateCouponInput) {
   return await repository.create({
     ...input,
-    value: BigInt(input.value),
+    value: BigInt(input.value || 0),
+    valueUzs: input.valueUzs ? BigInt(input.valueUzs) : null,
+    valueKrw: input.valueKrw ? BigInt(input.valueKrw) : null,
     maxDiscountCap: input.maxDiscountCap ? BigInt(input.maxDiscountCap) : null,
-    minOrderAmount: BigInt(input.minOrderAmount),
+    maxDiscountUzs: input.maxDiscountUzs ? BigInt(input.maxDiscountUzs) : null,
+    maxDiscountKrw: input.maxDiscountKrw ? BigInt(input.maxDiscountKrw) : null,
+    minOrderAmount: BigInt(input.minOrderAmount || 0),
+    minOrderUzs: input.minOrderUzs ? BigInt(input.minOrderUzs) : null,
+    minOrderKrw: input.minOrderKrw ? BigInt(input.minOrderKrw) : null,
     startsAt: input.startsAt ? new Date(input.startsAt) : null,
     expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+    regionCode: input.regionCode || null,
   } as any);
 }
 
@@ -151,11 +181,18 @@ export async function updateCoupon(id: string, input: UpdateCouponInput) {
   }
 
   const updateData: any = { ...input };
-  if (input.value) updateData.value = BigInt(input.value);
+  if (input.value !== undefined) updateData.value = BigInt(input.value || 0);
+  if (input.valueUzs !== undefined) updateData.valueUzs = input.valueUzs ? BigInt(input.valueUzs) : null;
+  if (input.valueKrw !== undefined) updateData.valueKrw = input.valueKrw ? BigInt(input.valueKrw) : null;
   if (input.maxDiscountCap !== undefined) updateData.maxDiscountCap = input.maxDiscountCap ? BigInt(input.maxDiscountCap) : null;
-  if (input.minOrderAmount) updateData.minOrderAmount = BigInt(input.minOrderAmount);
+  if (input.maxDiscountUzs !== undefined) updateData.maxDiscountUzs = input.maxDiscountUzs ? BigInt(input.maxDiscountUzs) : null;
+  if (input.maxDiscountKrw !== undefined) updateData.maxDiscountKrw = input.maxDiscountKrw ? BigInt(input.maxDiscountKrw) : null;
+  if (input.minOrderAmount !== undefined) updateData.minOrderAmount = BigInt(input.minOrderAmount || 0);
+  if (input.minOrderUzs !== undefined) updateData.minOrderUzs = input.minOrderUzs ? BigInt(input.minOrderUzs) : null;
+  if (input.minOrderKrw !== undefined) updateData.minOrderKrw = input.minOrderKrw ? BigInt(input.minOrderKrw) : null;
   if (input.startsAt !== undefined) updateData.startsAt = input.startsAt ? new Date(input.startsAt) : null;
   if (input.expiresAt !== undefined) updateData.expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+  if (input.regionCode !== undefined) updateData.regionCode = input.regionCode || null;
 
   return await repository.update(id, updateData);
 }

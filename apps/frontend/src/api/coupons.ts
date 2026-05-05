@@ -8,7 +8,11 @@ export interface StorefrontCoupon {
   description?: string;
   type: 'FIXED' | 'PERCENTAGE';
   value: string; // bigint as string
+  valueUzs?: string;
+  valueKrw?: string;
   minOrderAmount?: string;
+  minOrderUzs?: string;
+  minOrderKrw?: string;
   maxRedemptions?: number;
   usageCount: number;
   expiresAt?: string;

@@ -16,11 +16,17 @@ export const couponSchema = z.object({
   description: z.string().nullable().optional(),
   type: couponTypeSchema,
   value: z.string(), // BigInt as string
+  valueUzs: z.string().nullable().optional(),
+  valueKrw: z.string().nullable().optional(),
   maxDiscountCap: z.string().nullable().optional(), // BigInt as string
+  maxDiscountUzs: z.string().nullable().optional(),
+  maxDiscountKrw: z.string().nullable().optional(),
   scope: couponScopeSchema,
   applicableResourceIds: z.array(z.string().uuid()).nullable().optional(),
   applicableBrands: z.array(z.string()).nullable().optional(),
   minOrderAmount: z.string(), // BigInt as string
+  minOrderUzs: z.string().nullable().optional(),
+  minOrderKrw: z.string().nullable().optional(),
   minOrderQty: z.number().int().min(1),
   regionCode: z.string().nullable().optional(),
   firstOrderOnly: z.boolean(),
@@ -58,7 +64,7 @@ export const validateCouponInputSchema = z.object({
   cartItems: z.array(z.object({
     productId: z.string().uuid(),
     quantity: z.number().int().min(1),
-    categoryId: z.string().uuid(),
+    categoryId: z.string().uuid().or(z.literal('')).optional(),
     brandName: z.string().nullable().optional(),
     subtotal: z.string(), // BigInt as string
   })),

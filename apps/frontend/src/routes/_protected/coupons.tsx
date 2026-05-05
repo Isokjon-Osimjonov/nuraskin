@@ -97,7 +97,7 @@ function CouponsPage() {
                         font-bold text-[#4A1525]">
                         {coupon.type === 'PERCENTAGE'
                           ? `${coupon.value}%`
-                          : displayPrice(coupon.value, coupon.regionCode)
+                          : displayPrice(coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).valueUzs : (coupon as any).valueKrw) : coupon.value, coupon.regionCode === 'ALL' ? regionCode : coupon.regionCode)
                         }
                       </span>
                       <p className="text-[11px] 
@@ -110,14 +110,14 @@ function CouponsPage() {
                   {/* Conditions */}
                   <div className="flex flex-wrap 
                     gap-2 mt-3">
-                    {coupon.minOrderAmount && 
-                      Number(coupon.minOrderAmount) > 0 && (
+                    {((coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).minOrderUzs : (coupon as any).minOrderKrw) : coupon.minOrderAmount)) && 
+                      Number(coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).minOrderUzs : (coupon as any).minOrderKrw) : coupon.minOrderAmount) > 0 && (
                       <span className="text-[11px] 
                         bg-white px-2.5 py-1 
                         rounded-full text-stone-500 
                         border border-stone-100">
                         Min: {displayPrice(
-                          coupon.minOrderAmount, coupon.regionCode
+                          coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).minOrderUzs : (coupon as any).minOrderKrw) : coupon.minOrderAmount || 0, coupon.regionCode === 'ALL' ? regionCode : coupon.regionCode
                         )}
                       </span>
                     )}

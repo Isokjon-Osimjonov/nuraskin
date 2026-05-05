@@ -164,7 +164,7 @@ export function CouponsListPage() {
                   <DataTableCell className="text-right font-medium text-stone-900">
                     {coupon.type === 'PERCENTAGE'
                       ? `${coupon.value}%`
-                      : coupon.regionCode === 'UZB' ? formatUzs(coupon.value) : formatKrw(coupon.value)}
+                      : coupon.regionCode === 'UZB' ? formatUzs(coupon.value) : coupon.regionCode === 'KOR' ? formatKrw(coupon.value) : `${formatUzs(coupon.valueUzs || '0')} / ${formatKrw(coupon.valueKrw || '0')}`}
                   </DataTableCell>
                   <DataTableCell className="text-center">
                     <span className="font-medium text-stone-900">{coupon.usageCount}</span>

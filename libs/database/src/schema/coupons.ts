@@ -27,13 +27,21 @@ export const coupons = pgTable('coupons', {
   
   type: varchar('type', { length: 20 }).notNull().default('PERCENTAGE'), // PERCENTAGE, FIXED
   value: bigint('value', { mode: 'bigint' }).notNull(), // % value or fixed amount in tiyin
+  valueUzs: bigint('value_uzs', { mode: 'bigint' }), // tiyin for UZB orders
+  valueKrw: bigint('value_krw', { mode: 'bigint' }), // won for KOR orders
+  
   maxDiscountCap: bigint('max_discount_cap', { mode: 'bigint' }), // for percentage coupons
+  maxDiscountUzs: bigint('max_discount_uzs', { mode: 'bigint' }),
+  maxDiscountKrw: bigint('max_discount_krw', { mode: 'bigint' }),
   
   scope: varchar('scope', { length: 20 }).notNull().default('ENTIRE_ORDER'), // ENTIRE_ORDER, PRODUCTS, CATEGORIES, BRANDS
   applicableResourceIds: uuid('applicable_resource_ids').array(), // list of product/category IDs
   applicableBrands: varchar('applicable_brands', { length: 100 }).array(), // list of brand names
 
   minOrderAmount: bigint('min_order_amount', { mode: 'bigint' }).notNull().default(sql`0`),
+  minOrderUzs: bigint('min_order_uzs', { mode: 'bigint' }).default(sql`0`),
+  minOrderKrw: bigint('min_order_krw', { mode: 'bigint' }).default(sql`0`),
+  
   minOrderQty: integer('min_order_qty').notNull().default(1),
   
   regionCode: varchar('region_code', { length: 3 }), // UZB, KOR or null for all

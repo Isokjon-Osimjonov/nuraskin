@@ -568,7 +568,7 @@ function CheckoutPage() {
                     <span>{korCargo === 0n ? 'BEPUL' : displayPrice(korCargo)}</span>
                   )}
                 </div>
-                {appliedCoupon?.valid && (
+                {appliedCoupon?.valid && Number(discountAmount) > 0 && (
                     <div className="flex justify-between text-[13px] font-medium text-emerald-600">
                         <span>Chegirma</span>
                         <span>-{displayPrice(discountAmount)}</span>

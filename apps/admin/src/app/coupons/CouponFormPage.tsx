@@ -31,11 +31,17 @@ export function CouponFormPage() {
     description: '',
     type: 'PERCENTAGE',
     value: '0',
+    value_uzs: '',
+    value_krw: '',
     maxDiscountCap: '',
+    max_discount_uzs: '',
+    max_discount_krw: '',
     scope: 'ENTIRE_ORDER',
     applicableResourceIds: [],
     applicableBrands: [],
     minOrderAmount: '0',
+    min_order_uzs: '',
+    min_order_krw: '',
     minOrderQty: 1,
     regionCode: 'ALL',
     firstOrderOnly: false,
@@ -52,17 +58,24 @@ export function CouponFormPage() {
   React.useEffect(() => {
     if (existingCoupon) {
       const region = existingCoupon.regionCode || 'ALL';
-      const toUIValue = (dbVal: any) => {
-          if (!dbVal) return '';
-          return region === 'UZB' ? tiyinToSom(dbVal).toString() : dbVal.toString();
+      const toUIValue = (dbVal: any, forceRegion?: 'UZB' | 'KOR') => {
+          if (!dbVal && dbVal !== 0n && dbVal !== 0) return '';
+          const targetRegion = forceRegion || region;
+          return targetRegion === 'UZB' ? tiyinToSom(dbVal).toString() : dbVal.toString();
       };
       
       setForm({
         ...existingCoupon,
         regionCode: region,
-        value: existingCoupon.type === 'PERCENTAGE' ? existingCoupon.value.toString() : toUIValue(existingCoupon.value),
+        value: existingCoupon.type === 'PERCENTAGE' ? existingCoupon.value?.toString() : toUIValue(existingCoupon.value),
+        value_uzs: toUIValue(existingCoupon.valueUzs, 'UZB'),
+        value_krw: toUIValue(existingCoupon.valueKrw, 'KOR'),
         maxDiscountCap: existingCoupon.type === 'PERCENTAGE' ? toUIValue(existingCoupon.maxDiscountCap) : '',
+        max_discount_uzs: toUIValue(existingCoupon.maxDiscountUzs, 'UZB'),
+        max_discount_krw: toUIValue(existingCoupon.maxDiscountKrw, 'KOR'),
         minOrderAmount: toUIValue(existingCoupon.minOrderAmount),
+        min_order_uzs: toUIValue(existingCoupon.minOrderUzs, 'UZB'),
+        min_order_krw: toUIValue(existingCoupon.minOrderKrw, 'KOR'),
         startsAt: existingCoupon.startsAt ? new Date(existingCoupon.startsAt).toISOString().split('T')[0] : '',
         expiresAt: existingCoupon.expiresAt ? new Date(existingCoupon.expiresAt).toISOString().split('T')[0] : '',
         maxUsesTotal: existingCoupon.maxUsesTotal || '',
@@ -73,17 +86,42 @@ export function CouponFormPage() {
   const mutation = useMutation({
     mutationFn: (data: any) => {
         const region = data.regionCode;
-        const toDbValue = (uiVal: string) => {
+
+        // Validation: ensure value is specified and positive
+        if (region === 'ALL') {
+          if (data.type === 'PERCENTAGE') {
+            if (!data.value || Number(data.value) <= 0) {
+              throw new Error("Chegirma foizi kiritilishi shart");
+            }
+          } else {
+            if ((!data.value_uzs || Number(data.value_uzs) <= 0) && (!data.value_krw || Number(data.value_krw) <= 0)) {
+              throw new Error("Kamida bitta mintaqa uchun chegirma summasi kiritilishi shart");
+            }
+          }
+        } else {
+          if (!data.value || Number(data.value) <= 0) {
+            throw new Error("Chegirma qiymati kiritilishi shart");
+          }
+        }
+
+        const toDbValue = (uiVal: string, forceRegion?: 'UZB' | 'KOR') => {
             if (!uiVal) return null;
-            return region === 'UZB' ? somToTiyin(parseFloat(uiVal)).toString() : uiVal;
+            const targetRegion = forceRegion || region;
+            return targetRegion === 'UZB' ? somToTiyin(parseFloat(uiVal)).toString() : uiVal;
         };
 
         const payload = {
             ...data,
-            value: data.type === 'PERCENTAGE' ? data.value.toString() : toDbValue(data.value),
-            maxDiscountCap: data.type === 'PERCENTAGE' ? toDbValue(data.maxDiscountCap) : null,
-            minOrderAmount: toDbValue(data.minOrderAmount) || '0',
-            regionCode: data.regionCode === 'ALL' ? null : data.regionCode,
+            value: data.type === 'PERCENTAGE' ? data.value.toString() : (region === 'ALL' ? '0' : toDbValue(data.value)),
+            valueUzs: region === 'ALL' && data.type !== 'PERCENTAGE' ? toDbValue(data.value_uzs, 'UZB') : null,
+            valueKrw: region === 'ALL' && data.type !== 'PERCENTAGE' ? toDbValue(data.value_krw, 'KOR') : null,
+            maxDiscountCap: region === 'ALL' ? null : (data.type === 'PERCENTAGE' ? toDbValue(data.maxDiscountCap) : null),
+            maxDiscountUzs: region === 'ALL' && data.type === 'PERCENTAGE' ? toDbValue(data.max_discount_uzs, 'UZB') : null,
+            maxDiscountKrw: region === 'ALL' && data.type === 'PERCENTAGE' ? toDbValue(data.max_discount_krw, 'KOR') : null,
+            minOrderAmount: region === 'ALL' ? '0' : (toDbValue(data.minOrderAmount) || '0'),
+            minOrderUzs: region === 'ALL' ? (toDbValue(data.min_order_uzs, 'UZB') || '0') : null,
+            minOrderKrw: region === 'ALL' ? (toDbValue(data.min_order_krw, 'KOR') || '0') : null,
+            regionCode: region === 'ALL' ? null : region,
             startsAt: data.startsAt ? new Date(data.startsAt).toISOString() : null,
             expiresAt: data.expiresAt ? new Date(data.expiresAt).toISOString() : null,
             maxUsesTotal: data.maxUsesTotal ? parseInt(data.maxUsesTotal) : null,
@@ -162,31 +200,84 @@ export function CouponFormPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>
-                    {form.type === 'PERCENTAGE' 
-                      ? 'Foiz (%)' 
-                      : `Chegirma summasi (${form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})`}
-                  </Label>
-                  <Input 
-                    type="number"
-                    value={form.value}
-                    onChange={e => setForm({...form, value: e.target.value})}
-                  />
-                </div>
+                
+                {form.regionCode === 'ALL' && form.type === 'FIXED' ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Chegirma summasi (so'm) — O'zbekiston</Label>
+                      <Input
+                        type="number"
+                        value={form.value_uzs || ''}
+                        onChange={e => setForm({...form, value_uzs: e.target.value})}
+                        placeholder="Masalan: 50000"
+                      />
+                      <p className="text-xs text-stone-400">
+                        Mijoz so'mda ko'radi.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Chegirma summasi (₩) — Koreya</Label>
+                      <Input
+                        type="number"
+                        value={form.value_krw || ''}
+                        onChange={e => setForm({...form, value_krw: e.target.value})}
+                        placeholder="Masalan: 5000"
+                      />
+                      <p className="text-xs text-stone-400">
+                        Mijoz vonda ko'radi.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>
+                      {form.type === 'PERCENTAGE' 
+                        ? 'Foiz (%)' 
+                        : `Chegirma summasi (${form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})`}
+                    </Label>
+                    <Input 
+                      type="number"
+                      value={form.value}
+                      onChange={e => setForm({...form, value: e.target.value})}
+                    />
+                  </div>
+                )}
               </div>
               {form.type === 'PERCENTAGE' && (
-                <div className="space-y-2">
-                  <Label>
-                    Maksimal chegirma limiti ({form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})
-                  </Label>
-                  <Input 
-                    type="number"
-                    placeholder="Limitsiz"
-                    value={form.maxDiscountCap}
-                    onChange={e => setForm({...form, maxDiscountCap: e.target.value})}
-                  />
-                </div>
+                form.regionCode === 'ALL' ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Maks. chegirma limiti (so'm) — UZB</Label>
+                      <Input 
+                        type="number"
+                        placeholder="Limitsiz"
+                        value={form.max_discount_uzs || ''}
+                        onChange={e => setForm({...form, max_discount_uzs: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Maks. chegirma limiti (₩) — KOR</Label>
+                      <Input 
+                        type="number"
+                        placeholder="Limitsiz"
+                        value={form.max_discount_krw || ''}
+                        onChange={e => setForm({...form, max_discount_krw: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>
+                      Maksimal chegirma limiti ({form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})
+                    </Label>
+                    <Input 
+                      type="number"
+                      placeholder="Limitsiz"
+                      value={form.maxDiscountCap}
+                      onChange={e => setForm({...form, maxDiscountCap: e.target.value})}
+                    />
+                  </div>
+                )
               )}
             </CardContent>
           </Card>
@@ -196,16 +287,39 @@ export function CouponFormPage() {
             <CardHeader><CardTitle className="text-lg">Shartlar</CardTitle></CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>
-                    Minimal buyurtma summasi ({form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})
-                  </Label>
-                  <Input 
-                    type="number"
-                    value={form.minOrderAmount}
-                    onChange={e => setForm({...form, minOrderAmount: e.target.value})}
-                  />
-                </div>
+                {form.regionCode === 'ALL' ? (
+                  <div className="space-y-4 col-span-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Minimal buyurtma summasi (so'm) — O'zbekiston</Label>
+                        <Input 
+                          type="number"
+                          value={form.min_order_uzs || ''}
+                          onChange={e => setForm({...form, min_order_uzs: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Minimal buyurtma summasi (₩) — Koreya</Label>
+                        <Input 
+                          type="number"
+                          value={form.min_order_krw || ''}
+                          onChange={e => setForm({...form, min_order_krw: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>
+                      Minimal buyurtma summasi ({form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})
+                    </Label>
+                    <Input 
+                      type="number"
+                      value={form.minOrderAmount}
+                      onChange={e => setForm({...form, minOrderAmount: e.target.value})}
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Minimal mahsulot miqdori</Label>
                   <Input 
