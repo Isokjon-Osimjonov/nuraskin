@@ -1,0 +1,40 @@
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    read_only: false
+    deploy:
+      resources:
+        limits: null
+
+  redis:
+    ports:
+      - "6379:6379"
+    read_only: false
+    deploy:
+      resources:
+        limits: null
+
+  server:
+    ports:
+      - "4000:4000"
+    read_only: false
+    deploy:
+      resources:
+        limits: null
+
+  frontend:
+    ports:
+      - "3000:80"
+    read_only: false
+    deploy:
+      resources:
+        limits: null
+
+  admin:
+    ports:
+      - "3001:80"
+    read_only: false
+    deploy:
+      resources:
+        limits: null

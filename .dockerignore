@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+!.env.*.example
+coverage
+.nx
+**/*.log
+**/.DS_Store
+.github
+docs
+README.md
+infra/
