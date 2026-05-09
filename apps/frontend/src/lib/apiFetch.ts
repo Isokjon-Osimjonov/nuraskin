@@ -2,10 +2,10 @@ import { useAppStore } from '@/stores/app.store';
 
 export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const { regionCode, token } = useAppStore.getState();
-  const baseUrl = 'http://localhost:4000/api';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
   // Construct final URL with region
-  let finalUrl = `${baseUrl}${url}`;
+  let finalUrl = `${baseUrl}/api${url}`;
   if (url.includes('/storefront')) {
     const separator = url.includes('?') ? '&' : '?';
     if (regionCode) {

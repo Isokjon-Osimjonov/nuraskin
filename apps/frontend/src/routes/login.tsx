@@ -58,7 +58,8 @@ function LoginPage() {
   const handleAuth = useCallback(async (user: any) => {
     setError(null);
     try {
-      const res = await fetch('http://localhost:4000/api/auth/telegram', {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+      const res = await fetch(`${baseUrl}/api/auth/telegram`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),
