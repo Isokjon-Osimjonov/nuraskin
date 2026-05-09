@@ -1,16 +1,28 @@
-FROM node:20-alpine AS deps
-RUN npm install -g pnpm
-WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-
 FROM node:20-alpine AS builder
 RUN npm install -g pnpm
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy root workspace files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy all project package.json files to allow pnpm to create the workspace layout
+COPY apps/server/package.json ./apps/server/
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/frontend/package.json ./apps/frontend/
+COPY libs/ui/package.json ./libs/ui/
+COPY libs/database/package.json ./libs/database/
+COPY libs/shared-types/package.json ./libs/shared-types/
+COPY libs/validation/package.json ./libs/validation/
+
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the source code
 COPY . .
+
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+
+# Build the frontend app
 RUN NX_DAEMON=false pnpm exec nx run frontend:build
 
 FROM nginx:1.27-alpine AS production
