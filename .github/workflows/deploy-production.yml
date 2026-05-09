@@ -113,7 +113,7 @@ jobs:
             docker system prune -f
       - name: Health Check
         run: |
-          sleep 30
+          sleep 45
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.nuraskin.uz/api/health)
           if [ "$STATUS" != "200" ]; then
             echo "Health check FAILED - got HTTP $STATUS"

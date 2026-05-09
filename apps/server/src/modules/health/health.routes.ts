@@ -5,3 +5,4 @@ import * as ctrl from './health.controller';
 export const router = Router();
 
 router.get('/', asyncHandler(ctrl.check));
+router.get('/ready', asyncHandler(ctrl.ready));
