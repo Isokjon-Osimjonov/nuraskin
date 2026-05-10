@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -23,6 +24,7 @@ export default defineConfig(() => ({
     allowedHosts: ["salon-cofounder-shawl.ngrok-free.dev"],
   },
   plugins: [
+    ...(process.env.NODE_ENV !== 'production' ? [basicSsl()] : []),
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',

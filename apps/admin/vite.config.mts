@@ -5,6 +5,7 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 import path from 'path';
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -27,6 +28,7 @@ export default defineConfig(() => ({
     allowedHosts: 'all',
   },
   plugins: [
+    ...(process.env.NODE_ENV !== 'production' ? [basicSsl()] : []),
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
