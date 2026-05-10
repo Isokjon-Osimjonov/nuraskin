@@ -513,12 +513,52 @@ export async function removeFromWaitlist(productId: string, customerId: string) 
     await db.delete(productWaitlist).where(and(eq(productWaitlist.productId, productId), eq(productWaitlist.customerId, customerId)));
 }
 
-export async function getMyWaitlist(customerId: string, region: string) {
+export async function getMyWaitlist(customerId: string, region: 'UZB' | 'KOR') {
     const rows = await db.select().from(productWaitlist).where(and(eq(productWaitlist.customerId, customerId), eq(productWaitlist.regionCode, region)));
+    const latestRate = await ordersRepository.getLatestRateSnapshot();
+    
     const results = [];
     for (const row of rows) {
         const p = await storefrontRepository.findProductById(row.productId);
-        if (p) results.push(p);
+        if (!p) continue;
+
+        const config = (p as any).configs.find((c: any) => c.regionCode === region);
+        if (!config) continue;
+
+        const availableStock = await inventoryRepository.getAvailableStock(p.id);
+        
+        let calculatedPrice = '0';
+        let wholesalePrice = '0';
+        if (region === 'UZB' && latestRate) {
+          const { productPrice, cargoFee } = calculateUzbPrice(BigInt(config.retailPrice), p.weightGrams, latestRate);
+          calculatedPrice = (productPrice + cargoFee).toString();
+          
+          const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
+          wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
+        } else {
+          calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();
+          wholesalePrice = calculateKorPrice(BigInt(config.wholesalePrice)).toString();
+        }
+
+        results.push({
+          id: row.id,
+          product: {
+            id: p.id,
+            name: p.name,
+            slug: p.barcode,
+            brandName: p.brandName,
+            categoryName: p.categoryName || '',
+            imageUrls: p.imageUrls,
+            availableStock,
+            calculatedPrice,
+            currency: region === 'UZB' ? 'UZS' : 'KRW',
+            showStockCount: p.showStockCount,
+            wholesalePrice,
+            minWholesaleQty: config.minWholesaleQty,
+            weightGrams: p.weightGrams,
+            inStock: availableStock > 0,
+          }
+        });
     }
     return results;
 }

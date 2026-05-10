@@ -61,7 +61,23 @@ function WaitingListPage() {
           </div>
         )}
 
-        {!isLoading && entries.length === 0 && (
+        {isError && (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <AlertCircle className="w-12 h-12 text-red-200 mb-4" strokeWidth={1} />
+            <h2 className="text-lg font-normal text-stone-600 mb-2">Xatolik yuz berdi</h2>
+            <p className="text-[13px] font-light text-stone-400 mb-6">
+              Ma'lumotlarni yuklashda xatolik yuz berdi. Qayta urinib ko'ring.
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-2.5 bg-[#4A1525] text-white text-[13px] font-light rounded-full hover:bg-[#6B2540] transition-colors"
+            >
+              Qayta yuklash
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !isError && entries.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <Bell className="w-12 h-12 text-stone-200 mb-4" strokeWidth={1} />
             <h2 className="text-lg font-normal text-stone-600 mb-2">Kutish ro'yxati bo'sh</h2>
@@ -84,7 +100,8 @@ function WaitingListPage() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {entries.map((entry) => {
-                const product = entry.product;
+                const product = entry?.product;
+                if (!product) return null;
                 const isAvailable = product.inStock;
 
                 return (
@@ -101,11 +118,11 @@ function WaitingListPage() {
                     {/* Content: flex-1 */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                       <div className="space-y-0.5">
-                        <p className="text-[10px] text-stone-400 uppercase tracking-tight truncate">{product.brand}</p>
+                        <p className="text-[10px] text-stone-400 uppercase tracking-tight truncate">{product.brandName}</p>
                         <Link to="/products/$slug" params={{ slug: product.slug }}>
                           <p className="text-sm font-medium text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">{product.name}</p>
                         </Link>
-                        <p className="text-sm font-semibold text-[#4A1525]">{displayPrice(product.currentPriceUZS)}</p>
+                        <p className="text-sm font-semibold text-[#4A1525]">{displayPrice(product.calculatedPrice)}</p>
                       </div>
                       
                       {/* Status badge */}
