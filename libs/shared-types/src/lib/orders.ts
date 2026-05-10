@@ -100,6 +100,15 @@ export interface OrderResponse {
   deliveryCity: string | null;
   deliveryPostalCode: string | null;
   deliveryRegionCode: string | null;
+  // Manual order fields
+  orderSource: 'STOREFRONT' | 'MANUAL';
+  paymentAmount: string | null;
+  paymentMethod: string | null;
+  paymentReference: string | null;
+  paymentConfirmedAt: string | null;
+  deliveryFeeCharged: string;
+  deliveryFeeActual: string | null;
+  deliveryCoveredBy: string | null;
   createdAt: string;
   updatedAt: string;
   itemCount?: number;
@@ -121,3 +130,31 @@ export const createOrderExpenseSchema = z.object({
 });
 
 export type CreateOrderExpenseInput = z.infer<typeof createOrderExpenseSchema>;
+
+export const createManualOrderSchema = z.object({
+  customerId: z.string().uuid(),
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+    negotiatedPriceKrw: z.number().nonnegative(),
+  })).min(1),
+  deliveryAddress: z.string().min(1),
+  deliveryFeeCoveredBy: z.enum(['CUSTOMER', 'BUSINESS']),
+  deliveryFeeCharged: z.number().nonnegative(),
+  deliveryFeeActual: z.number().nonnegative(),
+  adminNotes: z.string().optional(),
+  region: z.enum(['KOR', 'UZB']),
+  forceCreate: z.boolean().optional().default(false),
+});
+
+export type CreateManualOrderInput = z.infer<typeof createManualOrderSchema>;
+
+export const confirmManualPaymentSchema = z.object({
+  paymentAmount: z.number().nonnegative(),
+  paymentMethod: z.enum(['TELEGRAM_TRANSFER', 'CASH', 'BANK_TRANSFER', 'CARD']),
+  paymentReference: z.string().optional(),
+  paymentNote: z.string().optional(),
+});
+
+export type ConfirmManualPaymentInput = z.infer<typeof confirmManualPaymentSchema>;
+

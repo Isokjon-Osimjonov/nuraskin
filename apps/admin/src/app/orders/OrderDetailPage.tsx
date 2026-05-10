@@ -21,6 +21,7 @@ import {
 import { OrderStatusBadge } from './components/OrderStatusBadge';
 import { OrderItemsTable } from './components/OrderItemsTable';
 import { PaymentVerificationCard } from './components/PaymentVerificationCard';
+import { ManualPaymentCard } from './components/ManualPaymentCard';
 import { PackingScanner } from './components/PackingScanner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -139,6 +140,9 @@ export function OrderDetailPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
               Order {order.orderNumber}
+              {order.orderSource === 'MANUAL' && (
+                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-indigo-200">MANUAL</span>
+              )}
               <OrderStatusBadge status={order.status} />
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -178,6 +182,7 @@ export function OrderDetailPage() {
 
           {/* Payment Section */}
           <PaymentVerificationCard order={order} />
+          <ManualPaymentCard order={order} />
 
           {/* Items Section */}
           <Card>

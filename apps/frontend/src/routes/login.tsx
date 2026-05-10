@@ -138,7 +138,7 @@ function LoginPage() {
     }
 
     return () => {
-      // @ts-ignore
+      // @ts-expect-error window extension
       delete window.onTelegramAuth;
     };
   }, [botUsername, handleAuth]);
@@ -184,7 +184,9 @@ function LoginPage() {
 
       <Dialog 
         open={showRegionConflict}
-        onOpenChange={() => {}} 
+        onOpenChange={() => {
+          // Intentionally empty
+        }} 
       >
         <DialogContent 
           className="sm:max-w-md"

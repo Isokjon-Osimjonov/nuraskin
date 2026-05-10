@@ -12,6 +12,12 @@ router.use(requireAuth);
 
 router.get('/', requirePermission('orders:read'), asyncHandler(ctrl.listOrders));
 router.post('/', requirePermission('orders:write'), asyncHandler(ctrl.createOrder));
+
+// Manual Orders
+router.post('/manual', requirePermission('orders:write'), asyncHandler(ctrl.createManualOrder));
+router.post('/:id/confirm-payment', requirePermission('orders:write'), asyncHandler(ctrl.confirmPayment));
+router.get('/customers/search', requirePermission('orders:write'), asyncHandler(ctrl.searchCustomers));
+
 router.get('/:id', requirePermission('orders:read'), asyncHandler(ctrl.getOrder));
 router.get('/:id/receipt', requirePermission('orders:read'), asyncHandler(ctrl.getPaymentReceipt));
 router.post('/:id/items', requirePermission('orders:write'), asyncHandler(ctrl.addItem));

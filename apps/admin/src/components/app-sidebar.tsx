@@ -55,6 +55,16 @@ const navMain = [
     title: "Buyurtmalar",
     url: "/orders/",
     icon: ShoppingCartIcon,
+    items: [
+      {
+        title: "Barchasi",
+        url: "/orders/",
+      },
+      {
+        title: "Manual buyurtma",
+        url: "/orders/manual",
+      },
+    ],
   },
   {
     title: "Mijozlar",

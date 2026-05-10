@@ -4,7 +4,9 @@ import type {
   CreateOrderInput, 
   AddOrderItemInput, 
   UpdateOrderStatusInput, 
-  ScanItemInput 
+  ScanItemInput,
+  CreateManualOrderInput,
+  ConfirmManualPaymentInput
 } from '@nuraskin/shared-types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -56,4 +58,13 @@ export const ordersApi = {
     
   completePacking: (id: string): Promise<void> =>
     fetchWithAuth(`/orders/${id}/complete-packing`, { method: 'POST' }),
+
+  createManual: (data: CreateManualOrderInput): Promise<OrderResponse> =>
+    fetchWithAuth('/orders/manual', { method: 'POST', body: JSON.stringify(data) }),
+
+  confirmPayment: (id: string, data: ConfirmManualPaymentInput): Promise<OrderResponse> =>
+    fetchWithAuth(`/orders/${id}/confirm-payment`, { method: 'POST', body: JSON.stringify(data) }),
+
+  searchCustomers: (q: string): Promise<any[]> =>
+    fetchWithAuth(`/orders/customers/search?q=${encodeURIComponent(q)}`),
 };

@@ -1,8 +1,9 @@
 import * as repository from './orders.repository';
 import * as orderExpensesRepository from './order-expenses.repository';
 import * as productsRepository from '../products/products.repository';
-import { db, settings, inventoryBatches, customers, orderItems, orders, stockReservations, stockMovements, products, orderStatusHistory, coupons, orderExpenses } from '@nuraskin/database';
-import { eq, sql, and, asc, inArray, gt } from 'drizzle-orm';
+import * as usersRepository from '../users/users.repository';
+import { db, settings, inventoryBatches, customers, orderItems, orders, stockReservations, stockMovements, products, orderStatusHistory, coupons, orderExpenses, users } from '@nuraskin/database';
+import { eq, sql, and, asc, inArray, gt, or, like, desc, count } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
 import { formatPrice } from '@nuraskin/shared-types';
 import { NotificationService } from '../notifications/notification.service';
@@ -21,6 +22,8 @@ import type {
   CreateOrderInput,
   AddOrderItemInput,
   UpdateOrderStatusInput,
+  CreateManualOrderInput,
+  ConfirmManualPaymentInput,
 } from '@nuraskin/shared-types';
 import type {
   NewOrder,
@@ -28,6 +31,212 @@ import type {
   NewStockReservation,
   NewStockMovement,
 } from '@nuraskin/database';
+
+export async function createManualOrder(input: CreateManualOrderInput, adminId: string) {
+  const customer = await db.query.customers.findFirst({ where: eq(customers.id, input.customerId) });
+  if (!customer) throw new NotFoundError('Mijoz topilmadi');
+
+  const admin = await usersRepository.findById(adminId);
+  const adminName = admin?.fullName || 'Admin';
+
+  const orderId = await db.transaction(async (tx: any) => {
+    const orderNumber = await generateManualOrderNumber();
+    
+    // Check stock for all items
+    for (const item of input.items) {
+      const available = await repository.getAvailableStock(item.productId, tx);
+      if (item.quantity > available && !input.forceCreate) {
+        const product = await productsRepository.findById(item.productId);
+        throw new BadRequestError(`INSUFFICIENT_STOCK: ${product?.name}`, 'INSUFFICIENT_STOCK', {
+          productId: item.productId,
+          productName: product?.name,
+          available,
+          requested: item.quantity
+        });
+      }
+    }
+
+    const orderData: NewOrder = {
+      orderNumber,
+      customerId: input.customerId,
+      regionCode: input.region,
+      status: 'PENDING_PAYMENT',
+      orderSource: 'MANUAL',
+      currency: input.region === 'UZB' ? 'UZS' : 'KRW',
+      deliveryAddressLine1: input.deliveryAddress,
+      deliveryFeeCharged: BigInt(input.deliveryFeeCharged),
+      deliveryFeeActual: BigInt(input.deliveryFeeActual),
+      deliveryCoveredBy: input.deliveryFeeCoveredBy,
+      adminNote: input.adminNotes || null,
+      createdBy: adminId,
+    };
+
+    const [order] = await tx.insert(orders).values(orderData).returning();
+    if (!order) throw new Error('Failed to create manual order');
+
+    await tx.insert(orderStatusHistory).values({
+      orderId: order.id,
+      toStatus: order.status,
+      changedBy: adminId,
+      note: 'Manual order created',
+    });
+
+    const itemsForNotification: any[] = [];
+
+    for (const itemInput of input.items) {
+      const product = await productsRepository.findById(itemInput.productId);
+      if (!product) throw new NotFoundError(`Product ${itemInput.productId} not found`);
+
+      const unitPrice = BigInt(itemInput.negotiatedPriceKrw);
+      const subtotal = unitPrice * BigInt(itemInput.quantity);
+
+      await tx.insert(orderItems).values({
+        orderId: order.id,
+        productId: itemInput.productId,
+        quantity: itemInput.quantity,
+        unitPriceSnapshot: unitPrice,
+        negotiatedPriceKrw: unitPrice,
+        subtotalSnapshot: subtotal,
+        currencySnapshot: order.currency,
+      });
+
+      itemsForNotification.push({
+        name: product.name,
+        qty: itemInput.quantity,
+        subtotal: subtotal
+      });
+    }
+
+    await recalculateOrderTotals(order.id, tx);
+    
+    // Trigger stock reservation
+    const [settingsRow] = await tx.select().from(settings).limit(1);
+    await reserveStock(order.id, settingsRow?.paymentTimeoutMinutes || 30, tx);
+
+    const [finalOrder] = await tx.select().from(orders).where(eq(orders.id, order.id)).limit(1);
+
+    // Notifications
+    process.nextTick(async () => {
+      try {
+        if (customer.telegramId) {
+          const text = `📦 <b>Sizga buyurtma yaratildi!</b>\n\n` +
+            `#${orderNumber}\n` +
+            `Admin tomonidan: ${adminName}\n` +
+            `💰 Jami: ${formatPrice(finalOrder.totalAmount, input.region)}\n\n` +
+            `To'lovni amalga oshiring va kvitansiyani yuboring.\n` +
+            `🔗 https://nuraskin.uz/orders/${order.id}`;
+          await NotificationService.sendToCustomer(customer.telegramId, text);
+        }
+
+        const adminText = `🛒 <b>Yangi MANUAL buyurtma</b>\n\n` +
+          `📦 #${orderNumber}\n` +
+          `👤 ${customer.fullName}\n` +
+          `💰 ${formatPrice(finalOrder.totalAmount, input.region)}\n` +
+          `🌍 ${input.region}\n` +
+          `👨‍💼 Yaratdi: ${adminName}\n` +
+          `🔗 https://management.nuraskin.uz/orders/${order.id}`;
+        await NotificationService.sendToAdmin(adminText);
+      } catch (e) {
+        logger.error({ e }, 'Failed to send manual order notifications');
+      }
+    });
+
+    return order.id;
+  });
+
+  return await repository.findById(orderId);
+}
+
+export async function confirmManualPayment(orderId: string, input: ConfirmManualPaymentInput, adminId: string) {
+  const order = await repository.findById(orderId);
+  if (!order) throw new NotFoundError('Order not found');
+  if (!['PENDING_PAYMENT', 'PAYMENT_SUBMITTED'].includes(order.status)) {
+    throw new BadRequestError(`Cannot confirm payment for order in ${order.status} status`);
+  }
+
+  const result = await db.transaction(async (tx) => {
+    const now = new Date();
+    await tx.update(orders).set({
+      status: 'PAYMENT_VERIFIED',
+      paymentAmount: BigInt(input.paymentAmount),
+      paymentMethod: input.paymentMethod,
+      paymentReference: input.paymentReference || null,
+      paymentNote: input.paymentNote || null,
+      paymentConfirmedBy: adminId,
+      paymentConfirmedAt: now,
+      paymentVerifiedAt: now,
+      paymentVerifiedBy: adminId,
+      updatedAt: now,
+    }).where(eq(orders.id, orderId));
+
+    await tx.insert(orderStatusHistory).values({
+      orderId,
+      fromStatus: order.status,
+      toStatus: 'PAYMENT_VERIFIED',
+      changedBy: adminId,
+      note: `Manual payment confirmed: ${input.paymentMethod}`,
+    });
+
+    return await repository.findById(orderId, tx);
+  });
+
+  // Notification
+  process.nextTick(async () => {
+    try {
+      const customer = await db.query.customers.findFirst({ where: eq(customers.id, order.customerId) });
+      if (customer?.telegramId) {
+        const region = (order.regionCode as 'UZB' | 'KOR') || 'UZB';
+        const text = `✅ <b>To'lovingiz tasdiqlandi!</b>\n\n` +
+          `📦 #${order.orderNumber}\n` +
+          `💰 ${formatPrice(input.paymentAmount, region)}\n` +
+          `💳 ${input.paymentMethod}\n\n` +
+          `🎁 Buyurtmangiz tayyorlanmoqda.\n` +
+          `🔗 https://nuraskin.uz/orders/${order.id}`;
+        await NotificationService.sendToCustomer(customer.telegramId, text);
+      }
+    } catch (e) {
+      logger.error({ e }, 'Failed to send manual payment confirmation notification');
+    }
+  });
+
+  return result;
+}
+
+export async function searchCustomersForManualOrder(q: string) {
+  const term = `%${q}%`;
+  const results = await db
+    .select({
+      id: customers.id,
+      fullName: customers.fullName,
+      telegramUsername: customers.telegramId, // Assuming we might store username or ID
+      phone: customers.phone,
+      region: customers.regionCode,
+      createdAt: customers.createdAt,
+      totalOrders: sql<number>`(SELECT count(*)::int FROM orders WHERE orders.customer_id = customers.id)`,
+    })
+    .from(customers)
+    .where(or(
+      like(customers.fullName, term),
+      like(sql`${customers.telegramId}::text`, term),
+      like(customers.phone, term)
+    ))
+    .limit(10);
+
+  return results;
+}
+
+async function generateManualOrderNumber() {
+  const date = new Date();
+  const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+  const prefix = `NS-MANUAL-${dateStr}-`;
+  
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(db.select().from(orders).where(sql`order_number LIKE ${prefix + '%'}`).as('sub'));
+    
+  const seq = (row?.count || 0) + 1;
+  return `${prefix}${seq.toString().padStart(4, '0')}`;
+}
 
 export async function createOrder(input: CreateOrderInput & { couponId?: string | null, couponCode?: string | null, discountAmount?: bigint }, txIn?: any) {
   const runner = txIn || db;

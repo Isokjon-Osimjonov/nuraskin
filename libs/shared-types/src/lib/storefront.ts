@@ -136,9 +136,9 @@ export const productWaitlistSchema = z.object({
     name: z.string(),
     imageUrls: z.array(z.string()),
     slug: z.string(),
-    brand: z.string().optional(),
+    brandName: z.string().optional(),
     inStock: z.boolean(),
-    currentPriceUZS: z.number(),
+    calculatedPrice: z.string(),
     totalStock: z.number(),
   }),
 });

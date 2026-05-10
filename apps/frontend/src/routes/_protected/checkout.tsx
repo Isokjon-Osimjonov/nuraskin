@@ -72,7 +72,7 @@ function CheckoutPage() {
 
   const totalSavings = useMemo(() => {
     return cart.reduce((acc, item) => {
-      if (item.quantity >= item.minWholesaleQty) {
+      if (item.quantity >= (item.minWholesaleQty || 0)) {
         return acc + ((Number(item.retailPrice) - Number(item.wholesalePrice)) * item.quantity);
       }
       return acc;
@@ -522,7 +522,7 @@ function CheckoutPage() {
                       <p className="text-[12px] font-medium text-[#4A1525] truncate">{item.productName}</p>
                       <p className="text-[11px] text-stone-400 font-light flex items-center gap-1">
                         {item.quantity} ta × {displayPrice(item.price)}
-                        {item.quantity >= item.minWholesaleQty && (
+                        {item.quantity >= (item.minWholesaleQty || 0) && (
                           <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
                         )}
                       </p>

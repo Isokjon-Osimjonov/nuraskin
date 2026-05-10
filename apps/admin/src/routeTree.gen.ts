@@ -31,6 +31,7 @@ import { Route as AppSettingsProfileRouteImport } from './routes/_app/settings/p
 import { Route as AppProductsNewRouteImport } from './routes/_app/products/new'
 import { Route as AppProductsProductIdRouteImport } from './routes/_app/products/$productId'
 import { Route as AppOrdersNewRouteImport } from './routes/_app/orders/new'
+import { Route as AppOrdersManualRouteImport } from './routes/_app/orders/manual'
 import { Route as AppOrdersOrderIdRouteImport } from './routes/_app/orders/$orderId'
 import { Route as AppInventoryScanRouteImport } from './routes/_app/inventory/scan'
 import { Route as AppInventoryProductIdRouteImport } from './routes/_app/inventory/$productId'
@@ -151,6 +152,11 @@ const AppOrdersNewRoute = AppOrdersNewRouteImport.update({
   path: '/orders/new',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrdersManualRoute = AppOrdersManualRouteImport.update({
+  id: '/orders/manual',
+  path: '/orders/manual',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOrdersOrderIdRoute = AppOrdersOrderIdRouteImport.update({
   id: '/orders/$orderId',
   path: '/orders/$orderId',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/inventory/$productId': typeof AppInventoryProductIdRoute
   '/inventory/scan': typeof AppInventoryScanRoute
   '/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/orders/manual': typeof AppOrdersManualRoute
   '/orders/new': typeof AppOrdersNewRoute
   '/products/$productId': typeof AppProductsProductIdRoute
   '/products/new': typeof AppProductsNewRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/inventory/$productId': typeof AppInventoryProductIdRoute
   '/inventory/scan': typeof AppInventoryScanRoute
   '/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/orders/manual': typeof AppOrdersManualRoute
   '/orders/new': typeof AppOrdersNewRoute
   '/products/$productId': typeof AppProductsProductIdRoute
   '/products/new': typeof AppProductsNewRoute
@@ -275,6 +283,7 @@ export interface FileRoutesById {
   '/_app/inventory/$productId': typeof AppInventoryProductIdRoute
   '/_app/inventory/scan': typeof AppInventoryScanRoute
   '/_app/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/_app/orders/manual': typeof AppOrdersManualRoute
   '/_app/orders/new': typeof AppOrdersNewRoute
   '/_app/products/$productId': typeof AppProductsProductIdRoute
   '/_app/products/new': typeof AppProductsNewRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/inventory/$productId'
     | '/inventory/scan'
     | '/orders/$orderId'
+    | '/orders/manual'
     | '/orders/new'
     | '/products/$productId'
     | '/products/new'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/inventory/$productId'
     | '/inventory/scan'
     | '/orders/$orderId'
+    | '/orders/manual'
     | '/orders/new'
     | '/products/$productId'
     | '/products/new'
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/_app/inventory/$productId'
     | '/_app/inventory/scan'
     | '/_app/orders/$orderId'
+    | '/_app/orders/manual'
     | '/_app/orders/new'
     | '/_app/products/$productId'
     | '/_app/products/new'
@@ -557,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrdersNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/orders/manual': {
+      id: '/_app/orders/manual'
+      path: '/orders/manual'
+      fullPath: '/orders/manual'
+      preLoaderRoute: typeof AppOrdersManualRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/orders/$orderId': {
       id: '/_app/orders/$orderId'
       path: '/orders/$orderId'
@@ -633,6 +652,7 @@ interface AppRouteChildren {
   AppInventoryProductIdRoute: typeof AppInventoryProductIdRoute
   AppInventoryScanRoute: typeof AppInventoryScanRoute
   AppOrdersOrderIdRoute: typeof AppOrdersOrderIdRoute
+  AppOrdersManualRoute: typeof AppOrdersManualRoute
   AppOrdersNewRoute: typeof AppOrdersNewRoute
   AppProductsProductIdRoute: typeof AppProductsProductIdRoute
   AppProductsNewRoute: typeof AppProductsNewRoute
@@ -664,6 +684,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventoryProductIdRoute: AppInventoryProductIdRoute,
   AppInventoryScanRoute: AppInventoryScanRoute,
   AppOrdersOrderIdRoute: AppOrdersOrderIdRoute,
+  AppOrdersManualRoute: AppOrdersManualRoute,
   AppOrdersNewRoute: AppOrdersNewRoute,
   AppProductsProductIdRoute: AppProductsProductIdRoute,
   AppProductsNewRoute: AppProductsNewRoute,

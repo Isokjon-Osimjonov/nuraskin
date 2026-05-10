@@ -23,7 +23,7 @@ export async function findById(id: string) {
 export async function list(filters: { status?: string; search?: string; page: number; limit: number }) {
   const offset = (filters.page - 1) * filters.limit;
   
-  let conditions = [isNull(coupons.deletedAt)];
+  const conditions = [isNull(coupons.deletedAt)];
   if (filters.status && filters.status !== 'ALL') {
     conditions.push(eq(coupons.status, filters.status));
   }

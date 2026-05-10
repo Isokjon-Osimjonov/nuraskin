@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Bell, ChevronRight, Trash2, ShoppingBag } from 'lucide-react';
+import { Bell, ChevronRight, Trash2, ShoppingBag, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlist, useToggleWaitlist } from '@/hooks/useWaitlist';
 import { useAddToCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/utils';
+import type { ProductWaitlistResponse } from '@nuraskin/shared-types';
 
 export const Route = createFileRoute('/_protected/waiting-list')({
   component: WaitingListPage,
@@ -12,7 +13,8 @@ export const Route = createFileRoute('/_protected/waiting-list')({
 function WaitingListPage() {
   const { isAuthenticated, regionCode } = useAppStore();
   const navigate = useNavigate();
-  const { data: entries = [], isLoading } = useMyWaitlist();
+  const { data, isLoading, isError, refetch } = useMyWaitlist();
+  const entries = (data || []) as ProductWaitlistResponse[];
   const { remove } = useToggleWaitlist();
   const addToCart = useAddToCart();
 

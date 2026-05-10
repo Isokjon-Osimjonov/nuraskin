@@ -6,6 +6,7 @@ export const cartItemSchema = z.object({
   productName: z.string(),
   imageUrls: z.array(z.string()),
   price: z.string(), // retail or wholesale depending on qty
+  retailPrice: z.string().optional(),
   wholesalePrice: z.string().optional(),
   minWholesaleQty: z.number().optional(),
   quantity: z.number().int().positive(),

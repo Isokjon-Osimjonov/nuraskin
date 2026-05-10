@@ -311,3 +311,7 @@ export async function markItemScanned(itemId: string, userId: string) {
     })
     .where(eq(orderItems.id, itemId));
 }
+
+import * as inventoryRepo from '../inventory/inventory.repository';
+export const getAvailableStock = inventoryRepo.getAvailableStock;
+

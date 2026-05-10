@@ -9,7 +9,8 @@ import {
   Plus, 
   ReceiptText, 
   Calendar as CalendarIcon,
-  ChevronRight 
+  ChevronRight,
+  CreditCard 
 } from 'lucide-react';
 import { OrderStatusBadge } from './components/OrderStatusBadge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -69,10 +70,16 @@ export function OrdersListPage() {
             Mijozlar buyurtmalari va to'lovlar holati.
           </p>
         </div>
-        <Button onClick={() => navigate({ to: '/orders/new' as any })}>
-          <Plus className="mr-2 h-4 w-4" />
-          Yangi buyurtma
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate({ to: '/orders/manual' as any })}>
+            <CreditCard className="mr-2 h-4 w-4" />
+            Manual buyurtma
+          </Button>
+          <Button onClick={() => navigate({ to: '/orders/new' as any })}>
+            <Plus className="mr-2 h-4 w-4" />
+            Yangi buyurtma
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
@@ -123,7 +130,14 @@ export function OrdersListPage() {
                 className="cursor-pointer group"
                 onClick={() => navigate({ to: '/orders/$orderId', params: { orderId: order.id } })}
               >
-                <DataTableCell className="font-mono text-stone-900 font-medium">{order.orderNumber}</DataTableCell>
+                <DataTableCell className="font-mono text-stone-900 font-medium">
+                  <div className="flex items-center gap-2">
+                    {order.orderNumber}
+                    {order.orderSource === 'MANUAL' && (
+                      <span className="bg-indigo-100 text-indigo-700 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter border border-indigo-200">MANUAL</span>
+                    )}
+                  </div>
+                </DataTableCell>
                 <DataTableCell>
                   <div className="font-medium text-stone-900">{order.customerName}</div>
                   <div className="text-xs text-muted-foreground uppercase">{order.regionCode}</div>

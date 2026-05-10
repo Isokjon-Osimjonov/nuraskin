@@ -110,6 +110,7 @@ export async function findProductById(id: string) {
       imageUrls: products.imageUrls,
       weightGrams: products.weightGrams,
       descriptionUz: products.descriptionUz,
+      showStockCount: products.showStockCount,
       categoryName: categories.name,
     })
     .from(products)

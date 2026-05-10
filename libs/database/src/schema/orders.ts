@@ -63,6 +63,17 @@ export const orders = pgTable('orders', {
   deliveryCity: text('delivery_city'),
   deliveryPostalCode: text('delivery_postal_code'),
   deliveryRegionCode: text('delivery_region_code'),
+  // Manual order fields
+  orderSource: varchar('order_source', { length: 20 }).notNull().default('STOREFRONT'),
+  paymentAmount: bigint('payment_amount', { mode: 'bigint' }),
+  paymentMethod: varchar('payment_method', { length: 50 }),
+  paymentReference: text('payment_reference'),
+  paymentConfirmedBy: uuid('payment_confirmed_by').references(() => users.id, { onDelete: 'set null' }),
+  paymentConfirmedAt: timestamp('payment_confirmed_at', { withTimezone: true }),
+  deliveryFeeCharged: bigint('delivery_fee_charged', { mode: 'bigint' }).notNull().default(bigintZero),
+  deliveryFeeActual: bigint('delivery_fee_actual', { mode: 'bigint' }),
+  deliveryCoveredBy: varchar('delivery_covered_by', { length: 20 }),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
@@ -74,6 +85,9 @@ export const orders = pgTable('orders', {
     'orders_status_check',
     sql`${t.status} IN ('DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAYMENT_REJECTED', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED')`,
   ),
+  sourceCheck: check('orders_source_check', sql`${t.orderSource} IN ('STOREFRONT', 'MANUAL')`),
+  payMethodCheck: check('orders_payment_method_check', sql`${t.paymentMethod} IN ('TELEGRAM_TRANSFER', 'CASH', 'BANK_TRANSFER', 'CARD')`),
+  deliveryCoveredCheck: check('orders_delivery_covered_check', sql`${t.deliveryCoveredBy} IN ('CUSTOMER', 'BUSINESS')`),
 }));
 
 export const orderItems = pgTable('order_items', {
@@ -88,6 +102,7 @@ export const orderItems = pgTable('order_items', {
   quantity: integer('quantity').notNull(),
   costAtSaleKrw: bigint('cost_at_sale_krw', { mode: 'bigint' }),
   unitPriceSnapshot: bigint('unit_price_snapshot', { mode: 'bigint' }).notNull(),
+  negotiatedPriceKrw: bigint('negotiated_price_krw', { mode: 'bigint' }),
   subtotalSnapshot: bigint('subtotal_snapshot', { mode: 'bigint' }).notNull(),
   cargoFeeSnapshot: bigint('cargo_fee_snapshot', { mode: 'bigint' }).notNull().default(bigintZero),
   currencySnapshot: varchar('currency_snapshot', { length: 3 }).notNull(),

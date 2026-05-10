@@ -2,8 +2,8 @@ import type { Request, Response } from 'express';
 import * as service from './orders.service';
 import * as orderExpensesService from './order-expenses.service';
 import * as receiptsService from './receipts.service';
-import { addOrderItemSchema, updateOrderStatusSchema, scanItemSchema, createOrderExpenseSchema } from '@nuraskin/shared-types';
-import { NotFoundError } from '../../common/errors/AppError';
+import { addOrderItemSchema, updateOrderStatusSchema, scanItemSchema, createOrderExpenseSchema, createManualOrderSchema, confirmManualPaymentSchema } from '@nuraskin/shared-types';
+import { NotFoundError, UnauthorizedError } from '../../common/errors/AppError';
 
 export async function listOrders(req: Request, res: Response) {
   const filters = {
@@ -26,6 +26,28 @@ export async function createOrder(req: Request, res: Response) {
   // Usually admins create DRAFT orders
   const result = await service.createOrder(req.body);
   res.status(201).json(result);
+}
+
+export async function createManualOrder(req: Request, res: Response) {
+  const input = createManualOrderSchema.parse(req.body);
+  const adminId = req.user?.sub;
+  if (!adminId) throw new UnauthorizedError();
+  const result = await service.createManualOrder(input, adminId);
+  res.status(201).json(result);
+}
+
+export async function confirmPayment(req: Request, res: Response) {
+  const input = confirmManualPaymentSchema.parse(req.body);
+  const adminId = req.user?.sub;
+  if (!adminId) throw new UnauthorizedError();
+  const result = await service.confirmManualPayment(req.params.id, input, adminId);
+  res.json(result);
+}
+
+export async function searchCustomers(req: Request, res: Response) {
+  const q = req.query.q as string;
+  const result = await service.searchCustomersForManualOrder(q || '');
+  res.json(result);
 }
 
 export async function addItem(req: Request, res: Response) {
@@ -67,13 +89,15 @@ export async function getOrderExpenses(req: Request, res: Response) {
 
 export async function createOrderExpense(req: Request, res: Response) {
   const input = createOrderExpenseSchema.parse(req.body);
-  const adminId = req.user?.sub!;
+  const adminId = req.user?.sub;
+  if (!adminId) throw new UnauthorizedError();
   const result = await orderExpensesService.createOrderExpense(req.params.id, input, adminId);
   res.status(201).json(result);
 }
 
 export async function deleteOrderExpense(req: Request, res: Response) {
-  const adminId = req.user?.sub!;
+  const adminId = req.user?.sub;
+  if (!adminId) throw new UnauthorizedError();
   const isAdminSuper = req.user?.role === 'SUPER_ADMIN';
   const result = await orderExpensesService.deleteOrderExpense(req.params.id, req.params.expenseId, adminId, isAdminSuper);
   res.json(result);

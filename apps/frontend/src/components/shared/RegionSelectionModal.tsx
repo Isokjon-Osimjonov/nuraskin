@@ -21,7 +21,9 @@ export function RegionSelectionModal() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={() => {
+      // Intentionally empty: modal cannot be closed manually
+    }}>
       <DialogContent 
         className="sm:max-w-md p-8 border-none bg-background shadow-2xl flex flex-col items-center text-center"
         // Prevent closing via overlay or Esc

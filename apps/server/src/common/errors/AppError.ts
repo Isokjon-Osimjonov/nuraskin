@@ -5,7 +5,7 @@ export class AppError extends Error {
 
   constructor(
     message: string,
-    statusCode: number = 500,
+    statusCode = 500,
     code?: string,
     data?: any
   ) {
