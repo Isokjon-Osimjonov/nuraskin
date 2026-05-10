@@ -1,7 +1,7 @@
 import * as repository from './telegram-posts.repository';
 import * as storefrontRepository from '../storefront/storefront.repository';
 import * as ordersRepository from '../orders/orders.repository';
-import { bot } from '../notifications/bot';
+import { customerBot as bot } from '../../common/services/telegram.service';
 import { buildCaption } from './caption-builder.util';
 import { NotFoundError, BadRequestError, ConflictError } from '../../common/errors/AppError';
 import { env } from '../../common/config/env';

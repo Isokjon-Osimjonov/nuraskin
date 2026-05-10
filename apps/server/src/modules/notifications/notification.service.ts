@@ -1,6 +1,6 @@
 import { env } from '../../common/config/env';
 import { logger } from '../../common/utils/logger';
-import { bot } from './bot';
+import { sendToAdmin, sendToCustomer } from '../../common/services/telegram.service';
 
 interface OrderSummary {
   orderNumber: string;
@@ -17,32 +17,13 @@ interface CustomerSummary {
 const formatPrice = (val: string | bigint | number) =>
   (Number(BigInt(val)) / 100).toLocaleString('uz-UZ');
 
-async function sendMessage(chatId: string, text: string) {
-  if (!env.TELEGRAM_BOT_TOKEN) {
-    logger.warn('TELEGRAM_BOT_TOKEN not set — notifications disabled');
-    return;
-  }
-
-  try {
-    await bot.api.sendMessage(chatId, text, {
-      parse_mode: 'HTML',
-    });
-  } catch (error) {
-    logger.error({ error, chatId }, 'Error sending Telegram message');
-  }
-}
-
 export const NotificationService = {
   async sendToCustomer(telegramId: string | bigint, message: string) {
-    await sendMessage(telegramId.toString(), message);
+    await sendToCustomer(telegramId, message);
   },
 
   async sendToAdmin(message: string) {
-    if (!env.TELEGRAM_ADMIN_CHAT_ID) {
-      logger.warn('TELEGRAM_ADMIN_CHAT_ID not set — admin notifications disabled');
-      return;
-    }
-    await sendMessage(env.TELEGRAM_ADMIN_CHAT_ID, message);
+    await sendToAdmin(message);
   },
 
   async sendOrderPlaced(order: OrderSummary, customer: CustomerSummary) {

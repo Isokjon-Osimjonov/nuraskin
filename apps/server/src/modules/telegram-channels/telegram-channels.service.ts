@@ -1,5 +1,5 @@
 import * as repository from './telegram-channels.repository';
-import { bot } from '../notifications/bot';
+import { customerBot as bot } from '../../common/services/telegram.service';
 import { NotFoundError, BadRequestError } from '../../common/errors/AppError';
 import type { CreateTelegramChannelInput } from '@nuraskin/shared-types';
 

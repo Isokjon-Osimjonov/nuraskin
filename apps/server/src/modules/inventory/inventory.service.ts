@@ -1,8 +1,8 @@
 import * as repository from './inventory.repository';
-import { db, products, inventoryBatches, settings, customers, productWaitlist } from '@nuraskin/database';
+import { db, products, inventoryBatches, settings, customers, productWaitlist, productRegionalConfigs } from '@nuraskin/database';
 import { eq, sql, and, isNull } from 'drizzle-orm';
 import { NotFoundError, BadRequestError } from '../../common/errors/AppError';
-import { NotificationService } from '../notifications/notification.service';
+import { sendToAdmin, sendToCustomer } from '../../common/services/telegram.service';
 import type { AddBatchInput, UpdateBatchInput, AdjustQuantityInput } from '@nuraskin/shared-types';
 import type { NewInventoryBatch, NewBatchAdjustment } from '@nuraskin/database';
 
@@ -144,7 +144,7 @@ export async function addBatch(input: AddBatchInput) {
 
   const result = await repository.createBatch(batchData, movementData);
 
-  // Check for low stock
+  // Check for low stock and send admin notifications
   const [product] = await db.select().from(products).where(eq(products.id, input.productId)).limit(1);
   const [stockRow] = await db
     .select({ total: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)` })
@@ -152,9 +152,16 @@ export async function addBatch(input: AddBatchInput) {
     .where(eq(inventoryBatches.productId, input.productId));
   const [settingsRow] = await db.select().from(settings).limit(1);
 
-  if (product && stockRow && settingsRow) {
-    if (stockRow.total < (settingsRow.lowStockThreshold || 10)) {
-      await NotificationService.sendAdminLowStock(product.name, stockRow.total);
+  if (product && stockRow) {
+    const totalStock = stockRow.total;
+    const threshold = settingsRow?.lowStockThreshold || 5;
+
+    await sendToAdmin(`📦 Yangi partiya qo'shildi: ${product.name} x${input.initialQty}`);
+
+    if (totalStock === 0) {
+      await sendToAdmin(`🚨 Tugadi: ${product.name}`);
+    } else if (totalStock <= threshold) {
+      await sendToAdmin(`⚠️ Kam qoldi: ${product.name} - ${totalStock} ta`);
     }
   }
 
@@ -171,15 +178,35 @@ export async function addBatch(input: AddBatchInput) {
           isNull(productWaitlist.notifiedAt)
         ));
 
-      for (const entry of waitlist) {
-        const [customer] = await db.select().from(customers).where(eq(customers.id, entry.customerId)).limit(1);
-        if (customer && customer.telegramId) {
-          await NotificationService.sendRestockNotification(product, customer as any);
-          await db.update(productWaitlist)
-            .set({ notifiedAt: new Date() })
-            .where(eq(productWaitlist.id, entry.id));
-        }
-      }
+      if (waitlist.length === 0) return;
+
+      const configs = await db
+        .select()
+        .from(productRegionalConfigs)
+        .where(eq(productRegionalConfigs.productId, input.productId));
+
+      await Promise.allSettled(
+        waitlist.map(async (entry) => {
+          try {
+            const [customer] = await db.select().from(customers).where(eq(customers.id, entry.customerId)).limit(1);
+            if (customer && customer.telegramId) {
+              const config = configs.find(c => c.regionCode === entry.regionCode) || configs[0];
+              const price = config?.retailPrice?.toString() || '0';
+              const productUrl = `https://nuraskin.uz/products/${product.barcode}`;
+              
+              const message = `🛒 Mahsulot omborda!\n\n${product.name}\n💰 Narx: ${price} ₩\n\nHoziroq buyurtma bering:\n${productUrl}`;
+              
+              await sendToCustomer(customer.telegramId, message);
+            }
+          } catch (err) {
+            console.error(`Failed to send restock notification to customer ${entry.customerId}:`, err);
+          } finally {
+            await db.update(productWaitlist)
+              .set({ notifiedAt: new Date() })
+              .where(eq(productWaitlist.id, entry.id));
+          }
+        })
+      );
     } catch (err) {
       console.error('Waitlist notification error:', err);
     }
