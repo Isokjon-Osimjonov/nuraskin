@@ -461,6 +461,8 @@ export async function addToWaitlist(productId: string, customerId: string, regio
         productId,
         customerId,
         regionCode: region,
+    }).onConflictDoNothing({
+        target: [productWaitlist.productId, productWaitlist.customerId]
     });
 }
 
