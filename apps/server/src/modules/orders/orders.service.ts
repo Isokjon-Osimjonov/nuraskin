@@ -357,7 +357,7 @@ export async function transitionOrderStatus(
     }
     if (to === 'DELIVERED') updates.deliveredAt = now;
 
-    if ((to === 'PAYMENT_VERIFIED' || to === 'PAID') && (order.status === 'DRAFT' || order.status === 'PENDING_PAYMENT' || order.status === 'PAYMENT_SUBMITTED')) {
+    if ((to === 'PAYMENT_VERIFIED' || to === 'PAID') && order.status === 'DRAFT') {
       const [settingsRow] = await tx.select().from(settings).limit(1);
       const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
       await reserveStock(orderId, timeoutMinutes, tx);

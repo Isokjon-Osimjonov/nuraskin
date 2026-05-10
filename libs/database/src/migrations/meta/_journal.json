@@ -204,6 +204,13 @@
       "when": 1746518400000,
       "tag": "0028_order_status_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1778412885147,
+      "tag": "0029_cloudy_veda",
+      "breakpoints": true
     }
   ]
 }
