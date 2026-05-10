@@ -1,5 +1,6 @@
 import { db, carts, cartItems, products, productRegionalConfigs, exchangeRateSnapshots, inventoryBatches } from '@nuraskin/database';
 import { eq, and, desc, sql } from 'drizzle-orm';
+import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
 
 export async function findByCustomerId(customerId: string, tx: any = db) {
   const [cart] = await tx
@@ -48,10 +49,26 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
 
   let total = 0n;
 
+  const rateSnapshot = await getLatestRateSnapshot(tx);
+
   const formattedItems = items.map((item: any) => {
     const subtotal = BigInt(item.priceSnapshot) * BigInt(item.quantity);
     total += subtotal;
     
+    let calculatedRetail = '0';
+    let calculatedWholesale = '0';
+
+    if (cart.regionCode === 'UZB' && rateSnapshot) {
+      const rPrices = calculateUzbPrice(BigInt(item.retailPrice || 0), item.weightGrams, rateSnapshot);
+      calculatedRetail = (rPrices.productPrice + rPrices.cargoFee).toString();
+      
+      const wPrices = calculateUzbPrice(BigInt(item.wholesalePrice || 0), item.weightGrams, rateSnapshot);
+      calculatedWholesale = (wPrices.productPrice + wPrices.cargoFee).toString();
+    } else {
+      calculatedRetail = calculateKorPrice(BigInt(item.retailPrice || 0)).toString();
+      calculatedWholesale = calculateKorPrice(BigInt(item.wholesalePrice || 0)).toString();
+    }
+
     return {
       id: item.id,
       productId: item.productId,
@@ -64,11 +81,11 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
       subtotal: subtotal.toString(),
       weightGrams: item.weightGrams,
       slug: item.slug,
-      retailPrice: item.retailPrice?.toString(),
-      wholesalePrice: item.wholesalePrice?.toString(),
+      retailPrice: calculatedRetail,
+      wholesalePrice: calculatedWholesale,
       minWholesaleQty: item.minWholesaleQty,
       currency: item.currency || cart.regionCode,
-      available_stock: item.totalStock,
+      availableStock: item.totalStock,
     };
   });
 

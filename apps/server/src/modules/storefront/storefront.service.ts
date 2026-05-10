@@ -10,6 +10,7 @@ import { db, customers, orders, orderItems, orderStatusHistory, products, settin
 import { eq, desc, sql, and, or, asc, gt, isNull } from 'drizzle-orm';
 import { NotFoundError, BadRequestError, PriceChangedError } from '../../common/errors/AppError';
 import { logger } from '../../common/utils/logger';
+import { NotificationService } from '../notifications/notification.service';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '../../common/config/env';
 import { calculateUzbPrice, calculateKorPrice, calculateKorCargo } from '../../common/utils/pricing';
@@ -47,11 +48,16 @@ export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, s
     const availableStock = await inventoryRepository.getAvailableStock(p.id);
     
     let calculatedPrice = '0';
+    let wholesalePrice = '0';
     if (region === 'UZB' && latestRate) {
       const { productPrice, cargoFee } = calculateUzbPrice(BigInt(config.retailPrice), p.weightGrams, latestRate);
       calculatedPrice = (productPrice + cargoFee).toString();
+      
+      const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
+      wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
     } else {
       calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();
+      wholesalePrice = calculateKorPrice(BigInt(config.wholesalePrice)).toString();
     }
 
     results.push({
@@ -65,7 +71,7 @@ export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, s
       calculatedPrice,
       currency: region === 'UZB' ? 'UZS' : 'KRW',
       showStockCount: p.showStockCount,
-      wholesalePrice: config.wholesalePrice.toString(),
+      wholesalePrice,
       minWholesaleQty: config.minWholesaleQty,
       weightGrams: p.weightGrams,
       inStock: availableStock > 0,
@@ -87,11 +93,16 @@ export async function getProductBySlug(slug: string, region: 'UZB' | 'KOR'): Pro
   const availableStock = await inventoryRepository.getAvailableStock(p.id);
 
   let calculatedPrice = '0';
+  let wholesalePrice = '0';
   if (region === 'UZB' && latestRate) {
     const { productPrice, cargoFee } = calculateUzbPrice(BigInt(config.retailPrice), p.weightGrams, latestRate);
     calculatedPrice = (productPrice + cargoFee).toString();
+    
+    const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
+    wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
   } else {
     calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();
+    wholesalePrice = calculateKorPrice(BigInt(config.wholesalePrice)).toString();
   }
 
   return {
@@ -106,7 +117,7 @@ export async function getProductBySlug(slug: string, region: 'UZB' | 'KOR'): Pro
     calculatedPrice,
     currency: region === 'UZB' ? 'UZS' : 'KRW',
     showStockCount: p.showStockCount,
-    wholesalePrice: config.wholesalePrice.toString(),
+    wholesalePrice,
     minWholesaleQty: config.minWholesaleQty,
     benefits: p.benefits || [],
     ingredients: p.ingredients || [],
@@ -205,6 +216,9 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
       if (!regionalConfig) continue;
 
       let freshPrice: bigint;
+      const isWholesale = cartItem.quantity >= regionalConfig.minWholesaleQty;
+      const basePrice = isWholesale ? BigInt(regionalConfig.wholesalePrice) : BigInt(regionalConfig.retailPrice);
+
       if (cart.regionCode === 'UZB') {
         const rateSnapshot = await cartsRepository.getLatestRateSnapshot(tx);
         if (!rateSnapshot) {
@@ -214,13 +228,13 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
           where: eq(products.id, cartItem.productId)
         });
         const { productPrice, cargoFee } = calculateUzbPrice(
-          BigInt(regionalConfig.retailPrice),
+          basePrice,
           product?.weightGrams || 0,
           rateSnapshot
         );
         freshPrice = productPrice + cargoFee;
       } else {
-        freshPrice = calculateKorPrice(BigInt(regionalConfig.retailPrice));
+        freshPrice = calculateKorPrice(basePrice);
       }
 
       const snapshotPrice = BigInt(cartItem.priceSnapshot);
@@ -390,6 +404,35 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
 
     const [finalOrder] = await tx.select().from(orders).where(eq(orders.id, order.id)).limit(1);
 
+    const itemsForNotification = cart.items.map((item: any) => ({
+      name: item.productName,
+      qty: item.quantity,
+      subtotal: BigInt(item.priceSnapshot) * BigInt(item.quantity)
+    }));
+
+    process.nextTick(async () => {
+      try {
+        await NotificationService.sendOrderPlaced(
+          finalOrder.id,
+          finalOrder.orderNumber,
+          finalOrder.totalAmount,
+          itemsForNotification,
+          finalOrder.cargoFee,
+          customer.telegramId as any,
+          finalOrder.regionCode as any
+        );
+        await NotificationService.sendAdminNewOrder(
+          finalOrder.id,
+          finalOrder.orderNumber,
+          finalOrder.totalAmount,
+          finalOrder.regionCode,
+          customer.fullName
+        );
+      } catch (e) {
+        logger.error({ e }, 'Failed to send order placed notification');
+      }
+    });
+
     return {
         id: finalOrder.id,
         orderNumber: finalOrder.orderNumber,
@@ -483,7 +526,23 @@ export async function getMyWaitlist(customerId: string, region: string) {
 export async function cancelOrder(orderId: string, customerId: string) {
     const order = await ordersRepository.findById(orderId);
     if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
-    return await ordersService.updateOrderStatus(orderId, { to: 'CANCELED' });
+    if (order.status !== 'PENDING_PAYMENT' && order.status !== 'PAYMENT_SUBMITTED') {
+        throw new BadRequestError('Bu buyurtmani bekor qilib bo\'lmaydi');
+    }
+    
+    const result = await ordersService.updateOrderStatus(orderId, { to: 'CANCELED' });
+
+    process.nextTick(async () => {
+      try {
+        const customer = await db.query.customers.findFirst({ where: eq(customers.id, customerId) });
+        const { sendToAdmin } = await import('../../common/services/telegram.service');
+        await sendToAdmin(`❌ Buyurtma bekor qilindi: ${order.orderNumber} — ${customer?.fullName}`);
+      } catch (e) {
+        logger.error({ e }, 'Failed to send order cancellation admin notification');
+      }
+    });
+
+    return result;
 }
 
 export async function uploadOrderReceipt(orderId: string, customerId: string, paymentProofUrl: string) {

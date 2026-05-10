@@ -125,11 +125,26 @@ function ProductPage() {
               </div>
             </div>
 
-            <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-3xl font-medium text-[#4A1525]">{displayPrice(product.calculatedPrice)}</span>
-              {regionCode === 'UZB' && (
-                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium uppercase tracking-tight">Kargo ichida</span>
-              )}
+            <div className="flex flex-col gap-2 mb-8">
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl font-medium text-[#4A1525]">
+                  {quantity >= product.minWholesaleQty ? displayPrice(product.wholesalePrice) : displayPrice(product.calculatedPrice)}
+                </span>
+                {quantity >= product.minWholesaleQty && (
+                  <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                    Ulgurji narx!
+                  </span>
+                )}
+                {regionCode === 'UZB' && (
+                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium uppercase tracking-tight">Kargo ichida</span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1 text-sm text-stone-500">
+                <p>1 ta: {displayPrice(product.calculatedPrice)}</p>
+                {Number(product.wholesalePrice) > 0 && product.minWholesaleQty > 1 && (
+                  <p>{product.minWholesaleQty}+ ta: {displayPrice(product.wholesalePrice)} (ulgurji)</p>
+                )}
+              </div>
             </div>
 
             {/* Stock Badge */}

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
-import { getMyOrders, uploadReceipt, getUploadUrl } from '@/api/orders';
+import { getMyOrders, uploadReceipt, getUploadUrl, cancelOrder } from '@/api/orders';
 import { formatPrice } from '@/lib/utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
@@ -77,6 +77,25 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
   const hasReceipt = !!(order.paymentReceiptUrl || order.paymentSubmittedAt);
   const needsReceipt = order.status === 'PENDING_PAYMENT' && !hasReceipt && !isExpired;
 
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelOrder(order.id),
+    onSuccess: () => {
+      toast.success('Buyurtma bekor qilindi');
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+    },
+    onError: () => {
+      toast.error('Buyurtmani bekor qilib bo\'lmaydi');
+    }
+  });
+
+  const canCancel = order.status === 'PENDING_PAYMENT' || order.status === 'PAYMENT_SUBMITTED';
+
+  function handleCancelOrder() {
+    if (confirm('Buyurtmani bekor qilmoqchimisiz? Bu amalni qaytarib bo\'lmaydi.')) {
+      cancelMutation.mutate();
+    }
+  }
+
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -99,10 +118,8 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
     if (!selectedFile) return;
     setUploading(true);
     try {
-      // 1. Get signed upload URL
       const { url, timestamp, signature, apiKey } = await getUploadUrl();
 
-      // 2. Upload to Cloudinary
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('api_key', apiKey);
@@ -114,7 +131,6 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       const data = await res.json();
       const imageUrl = data.secure_url || data.url;
 
-      // 3. Update order with receipt URL
       await uploadReceipt(order.id, imageUrl);
       
       toast.success("Chek muvaffaqiyatli yuborildi");
@@ -130,7 +146,6 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
 
   return (
     <div className="bg-[#f8f7f5] rounded-2xl p-6 shadow-sm border border-stone-100">
-      {/* Order header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-[14px] font-medium text-stone-800">{order.orderNumber}</p>
@@ -294,7 +309,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       )}
 
       {/* Footer */}
-      <div className="border-t border-stone-200 pt-3 flex items-center justify-between">
+      <div className="border-t border-stone-200 pt-3 flex items-center justify-between mb-4">
         <p className="text-[14px] font-medium text-[#4A1525]">
           {displayPrice(order.totalAmount, order.currency)}
         </p>
@@ -302,6 +317,19 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
            <p className="text-[10px] text-stone-400">Yetkazib berish bilan</p>
         )}
       </div>
+
+      {canCancel && (
+        <div className="pt-2 border-t border-stone-100">
+          <button
+            onClick={handleCancelOrder}
+            disabled={cancelMutation.isPending}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-red-200 text-red-500 text-[12px] font-normal py-2.5 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-40"
+          >
+            {cancelMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />}
+            Buyurtmani bekor qilish
+          </button>
+        </div>
+      )}
     </div>
   );
 }

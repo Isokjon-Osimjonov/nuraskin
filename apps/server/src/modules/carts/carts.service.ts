@@ -1,9 +1,9 @@
 import * as repository from './carts.repository';
 import * as storefrontRepository from '../storefront/storefront.repository';
-import { db, inventoryBatches } from '@nuraskin/database';
+import { db, inventoryBatches, productRegionalConfigs } from '@nuraskin/database';
 import { BadRequestError, NotFoundError, ConflictError } from '../../common/errors/AppError';
 import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 async function getAvailableStock(productId: string, tx: any = db) {
   const [stockRow] = await tx
@@ -57,10 +57,16 @@ export async function addToCart(customerId: string, productId: string, quantity:
       throw new BadRequestError(`INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`);
     }
 
-    const regionalPrice = await repository.getRegionalPrice(productId, currentRegion, tx);
-    if (!regionalPrice) {
+    const config = await db.query.productRegionalConfigs.findFirst({
+      where: and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, currentRegion))
+    });
+
+    if (!config) {
       throw new BadRequestError('Bu mahsulot bu mintaqada mavjud emas');
     }
+
+    const isWholesale = newQty >= config.minWholesaleQty;
+    const basePrice = isWholesale ? BigInt(config.wholesalePrice) : BigInt(config.retailPrice);
 
     let priceSnapshot: bigint;
 
@@ -70,13 +76,13 @@ export async function addToCart(customerId: string, productId: string, quantity:
         throw new BadRequestError('Valyuta kursi topilmadi');
       }
       const { productPrice, cargoFee } = calculateUzbPrice(
-        BigInt(regionalPrice),
+        basePrice,
         product?.weightGrams || 0,
         rateSnapshot
       );
       priceSnapshot = productPrice + cargoFee;
     } else {
-      priceSnapshot = calculateKorPrice(BigInt(regionalPrice));
+      priceSnapshot = calculateKorPrice(basePrice);
     }
 
     if (item) {
@@ -109,10 +115,16 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
         throw new BadRequestError(`INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`);
       }
 
-      const regionalPrice = await repository.getRegionalPrice(productId, cart.regionCode, tx);
-      if (!regionalPrice) {
+      const config = await db.query.productRegionalConfigs.findFirst({
+        where: and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, cart.regionCode))
+      });
+
+      if (!config) {
         throw new BadRequestError('Bu mahsulot bu mintaqada mavjud emas');
       }
+
+      const isWholesale = quantity >= config.minWholesaleQty;
+      const basePrice = isWholesale ? BigInt(config.wholesalePrice) : BigInt(config.retailPrice);
 
       let priceSnapshot: bigint;
 
@@ -123,13 +135,13 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
         }
         const product = await storefrontRepository.findProductById(productId);
         const { productPrice, cargoFee } = calculateUzbPrice(
-          BigInt(regionalPrice),
+          basePrice,
           product?.weightGrams || 0,
           rateSnapshot
         );
         priceSnapshot = productPrice + cargoFee;
       } else {
-        priceSnapshot = calculateKorPrice(BigInt(regionalPrice));
+        priceSnapshot = calculateKorPrice(basePrice);
       }
 
       await repository.updateItemQuantity(item.id, quantity, priceSnapshot, tx);

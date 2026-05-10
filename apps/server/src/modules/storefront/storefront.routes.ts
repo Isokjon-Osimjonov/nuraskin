@@ -61,7 +61,7 @@ router.patch('/profile/region', asyncHandler(async (req, res) => {
 router.get('/coupons', asyncHandler(ctrl.listCoupons));
 router.post('/coupons/validate', asyncHandler(ctrl.validateCoupon));
 router.post('/orders', asyncHandler(ctrl.createOrder));
-router.post('/orders/:id/cancel', asyncHandler(ctrl.cancelOrder));
+router.delete('/orders/:id', asyncHandler(ctrl.cancelOrder));
 router.patch('/orders/:id/receipt', asyncHandler(ctrl.uploadReceipt));
 router.get('/orders/:id/receipt', asyncHandler(ctrl.getReceipt));
 router.get('/orders/my', asyncHandler(ctrl.getMyOrders));

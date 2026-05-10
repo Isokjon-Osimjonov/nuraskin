@@ -121,6 +121,26 @@ export async function scanProduct(input: string) {
   return result;
 }
 
+export async function checkAndNotifyStock(productId: string, txIn?: any) {
+  const runner = txIn || db;
+  const [product] = await runner.select().from(products).where(eq(products.id, productId)).limit(1);
+  if (!product) return;
+
+  const [stockRow] = await runner
+    .select({ total: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)` })
+    .from(inventoryBatches)
+    .where(eq(inventoryBatches.productId, productId));
+  
+  const totalStock = stockRow ? stockRow.total : 0;
+  const LOW_STOCK_THRESHOLD = 5;
+
+  if (totalStock === 0) {
+    await sendToAdmin(`🚨 TUGADI: ${product.name}\nZaxirada mahsulot qolmadi!`);
+  } else if (totalStock <= LOW_STOCK_THRESHOLD) {
+    await sendToAdmin(`⚠️ KAM QOLDI: ${product.name}\nFaqat ${totalStock} ta qoldi`);
+  }
+}
+
 export async function addBatch(input: AddBatchInput) {
   const isKrw = input.costCurrency === 'KRW';
   
@@ -146,24 +166,10 @@ export async function addBatch(input: AddBatchInput) {
 
   // Check for low stock and send admin notifications
   const [product] = await db.select().from(products).where(eq(products.id, input.productId)).limit(1);
-  const [stockRow] = await db
-    .select({ total: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)` })
-    .from(inventoryBatches)
-    .where(eq(inventoryBatches.productId, input.productId));
-  const [settingsRow] = await db.select().from(settings).limit(1);
-
-  if (product && stockRow) {
-    const totalStock = stockRow.total;
-    const threshold = settingsRow?.lowStockThreshold || 5;
-
+  if (product) {
     await sendToAdmin(`📦 Yangi partiya qo'shildi: ${product.name} x${input.initialQty}`);
-
-    if (totalStock === 0) {
-      await sendToAdmin(`🚨 Tugadi: ${product.name}`);
-    } else if (totalStock <= threshold) {
-      await sendToAdmin(`⚠️ Kam qoldi: ${product.name} - ${totalStock} ta`);
-    }
   }
+  await checkAndNotifyStock(input.productId, db);
 
   // Trigger Waitlist Notifications
   process.nextTick(async () => {

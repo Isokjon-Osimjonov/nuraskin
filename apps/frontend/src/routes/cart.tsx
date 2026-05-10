@@ -139,7 +139,14 @@ function CartPage() {
                               {displayPrice(item.price)}
                             </span>
                             {isWholesale && (
-                              <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
+                              <>
+                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
+                                {Number(item.retailPrice) > Number(item.wholesalePrice) && (
+                                  <span className="text-[11px] text-emerald-600 ml-1">
+                                    Tejash: {displayPrice((Number(item.retailPrice) - Number(item.wholesalePrice)) * item.quantity)}
+                                  </span>
+                                )}
+                              </>
                             )}
                           </div>
                           {isOverStock && (

@@ -70,6 +70,15 @@ function CheckoutPage() {
   const discountAmount = appliedCoupon?.valid ? BigInt(appliedCoupon.discountAmount) : 0n;
   const finalTotal = totalBeforeDiscount - discountAmount;
 
+  const totalSavings = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      if (item.quantity >= item.minWholesaleQty) {
+        return acc + ((Number(item.retailPrice) - Number(item.wholesalePrice)) * item.quantity);
+      }
+      return acc;
+    }, 0);
+  }, [cart]);
+
   const form = useForm<any>({
     resolver: zodResolver(createStorefrontOrderSchema as any),
     defaultValues: {
@@ -511,7 +520,12 @@ function CheckoutPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-medium text-[#4A1525] truncate">{item.productName}</p>
-                      <p className="text-[11px] text-stone-400 font-light">{item.quantity} ta × {displayPrice(item.price)}</p>
+                      <p className="text-[11px] text-stone-400 font-light flex items-center gap-1">
+                        {item.quantity} ta × {displayPrice(item.price)}
+                        {item.quantity >= item.minWholesaleQty && (
+                          <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -572,6 +586,12 @@ function CheckoutPage() {
                     <div className="flex justify-between text-[13px] font-medium text-emerald-600">
                         <span>Chegirma</span>
                         <span>-{displayPrice(discountAmount)}</span>
+                    </div>
+                )}
+                {totalSavings > 0 && (
+                    <div className="flex justify-between text-[13px] font-medium text-emerald-600">
+                        <span>Ulgurji narxdan tejash</span>
+                        <span>-{displayPrice(totalSavings)}</span>
                     </div>
                 )}
                 <div className="flex justify-between text-lg font-medium text-[#4A1525] pt-2 border-t border-stone-50">

@@ -43,3 +43,9 @@ export async function uploadReceipt(orderId: string, paymentProofUrl: string) {
   });
 }
 
+export async function cancelOrder(orderId: string) {
+  return await apiFetch<any>(`/storefront/orders/${orderId}`, {
+    method: 'DELETE',
+  });
+}
+

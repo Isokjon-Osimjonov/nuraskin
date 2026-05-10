@@ -4,7 +4,9 @@ import * as productsRepository from '../products/products.repository';
 import { db, settings, inventoryBatches, customers, orderItems, orders, stockReservations, stockMovements, products, orderStatusHistory, coupons, orderExpenses } from '@nuraskin/database';
 import { eq, sql, and, asc, inArray, gt } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
+import { formatPrice } from '@nuraskin/shared-types';
 import { NotificationService } from '../notifications/notification.service';
+import { checkAndNotifyStock } from '../inventory/inventory.service';
 import { calculateUzbPrice, calculateKorPrice, calculateKorCargo } from '../../common/utils/pricing';
 import { reservationTimeoutQueue } from '../queues';
 import {
@@ -261,6 +263,57 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     .where(eq(orders.id, orderId));
 }
 
+async function notifyStatusChange(orderId: string, to: string) {
+  process.nextTick(async () => {
+    try {
+      const order = await db.query.orders.findFirst({
+        where: eq(orders.id, orderId),
+        with: {
+          customer: true
+        }
+      });
+      if (!order) return;
+
+      const customer = order.customer;
+      const customerTelegramId = customer?.telegramId;
+      const orderNumber = order.orderNumber;
+      const totalAmount = order.totalAmount;
+      const customerName = customer?.fullName || 'Mijoz';
+      const region = (order.regionCode as 'UZB' | 'KOR') || 'UZB';
+
+      // Customer notifications
+      if (customerTelegramId) {
+        if (to === 'PENDING_PAYMENT') {
+          // sendOrderPlaced handles items detail, called from storefront.service.ts for new orders
+          // But for admin transitions we still send simple version
+          await NotificationService.sendToCustomer(customerTelegramId, `✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n📦 #${orderNumber}\n💰 Jami: ${formatPrice(totalAmount, region)}\n\nTo'lovni amalga oshiring va kvitansiya yuboring.\n🔗 Buyurtmani ko'rish: https://nuraskin.uz/orders/${orderId}`);
+        } else if (to === 'PAYMENT_SUBMITTED') {
+          await NotificationService.sendPaymentSubmitted(orderId, orderNumber, customerTelegramId as any);
+        } else if (to === 'PAYMENT_VERIFIED' || to === 'PAID') {
+          await NotificationService.sendPaymentVerified(orderId, orderNumber, customerTelegramId as any);
+        } else if (to === 'PACKING') {
+          await NotificationService.sendPacking(orderId, orderNumber, customerTelegramId as any);
+        } else if (to === 'SHIPPED') {
+          await NotificationService.sendShipped(orderId, orderNumber, customerTelegramId as any);
+        } else if (to === 'DELIVERED') {
+          await NotificationService.sendDelivered(orderId, orderNumber, customerTelegramId as any);
+        } else if (to === 'CANCELED') {
+          await NotificationService.sendCancelled(orderId, orderNumber, customerTelegramId as any);
+        }
+      }
+
+      // Admin notifications
+      if (to === 'PAYMENT_SUBMITTED') {
+        await NotificationService.sendAdminPaymentSubmitted(orderId, orderNumber, totalAmount, customerName, region);
+      } else if (to === 'CANCELED') {
+        await NotificationService.sendAdminCancelled(orderId, orderNumber, customerName);
+      }
+    } catch (e) {
+      logger.error({ e, orderId, to }, 'Failed to send status transition notification');
+    }
+  });
+}
+
 export async function updateOrderStatus(orderId: string, input: UpdateOrderStatusInput, adminId?: string, txIn?: any) {
   const runner = txIn || db;
   const order = await repository.findById(orderId, runner);
@@ -270,7 +323,7 @@ export async function updateOrderStatus(orderId: string, input: UpdateOrderStatu
 
   // DRAFT → PENDING_PAYMENT: reserve stock
   if (toStatus === 'PENDING_PAYMENT' && order.status === 'DRAFT') {
-    return await runner.transaction(async (tx: any) => {
+    const result = await runner.transaction(async (tx: any) => {
       const [settingsRow] = await tx.select().from(settings).limit(1);
       const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
       await reserveStock(orderId, timeoutMinutes, tx);
@@ -290,14 +343,20 @@ export async function updateOrderStatus(orderId: string, input: UpdateOrderStatu
 
       return await repository.findById(orderId, tx);
     });
+
+    await notifyStatusChange(orderId, toStatus);
+    return result;
   }
 
   // All other transitions go through transitionOrderStatus()
-  return await transitionOrderStatus(orderId, toStatus, {
+  const result = await transitionOrderStatus(orderId, toStatus, {
     paymentNote: input.paymentNote,
     trackingNumber: input.trackingNumber,
     note: input.note,
   }, adminId);
+
+  await notifyStatusChange(orderId, toStatus);
+  return result;
 }
 
 interface TransitionInput {
