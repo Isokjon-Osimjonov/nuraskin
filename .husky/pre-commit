@@ -1,1 +1,6 @@
-
+pnpm install --frozen-lockfile 2>/dev/null || {
+  echo "ERROR: pnpm-lock.yaml is out of sync with package.json"
+  echo "Run: pnpm install"
+  echo "Then commit pnpm-lock.yaml along with your package.json changes"
+  exit 1
+}

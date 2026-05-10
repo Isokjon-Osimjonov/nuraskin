@@ -56,6 +56,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify lockfile sync
+        run: |
+          if ! pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "❌ pnpm-lock.yaml is out of sync!"
+            echo "Run 'pnpm install' locally and commit the lockfile."
+            exit 1
+          fi
       - name: Generate image tag
         id: meta
         run: echo "version=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT

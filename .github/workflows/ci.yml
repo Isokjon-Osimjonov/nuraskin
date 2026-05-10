@@ -28,6 +28,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify lockfile sync
+        run: |
+          if ! pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "❌ pnpm-lock.yaml is out of sync!"
+            echo "Run 'pnpm install' locally and commit the lockfile."
+            exit 1
+          fi
       - uses: actions/cache@v4
         with:
           path: node_modules
@@ -47,6 +54,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify lockfile sync
+        run: |
+          if ! pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "❌ pnpm-lock.yaml is out of sync!"
+            echo "Run 'pnpm install' locally and commit the lockfile."
+            exit 1
+          fi
       - run: NX_DAEMON=false pnpm exec nx run-many --target=typecheck --all --parallel=3
 
   lint:
@@ -63,6 +77,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify lockfile sync
+        run: |
+          if ! pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "❌ pnpm-lock.yaml is out of sync!"
+            echo "Run 'pnpm install' locally and commit the lockfile."
+            exit 1
+          fi
       - run: NX_DAEMON=false pnpm exec nx run-many --target=lint --all --parallel=3
         continue-on-error: true
 
@@ -80,4 +101,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify lockfile sync
+        run: |
+          if ! pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "❌ pnpm-lock.yaml is out of sync!"
+            echo "Run 'pnpm install' locally and commit the lockfile."
+            exit 1
+          fi
       - run: NX_DAEMON=false pnpm exec nx run-many --target=build --all --parallel=false
