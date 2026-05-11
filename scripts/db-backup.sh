@@ -28,6 +28,26 @@ File: $(basename "$BACKUP_FILE")
 Size: $SIZE
 Time: $(date)"
   
+  # Send backup file to Telegram (only if under 50MB)
+  # Note: -c%s works on GNU/Linux. For macOS use -f%z. Target is Ubuntu VPS.
+  BACKUP_SIZE_BYTES=$(stat -c%s "$BACKUP_FILE")
+  MAX_SIZE=50000000  # 50MB Telegram limit
+
+  if [ "$BACKUP_SIZE_BYTES" -lt "$MAX_SIZE" ]; then
+    curl -s \
+      -F "chat_id=$TELEGRAM_ADMIN_CHAT_ID" \
+      -F "document=@${BACKUP_FILE}" \
+      -F "caption=💾 NuraSkin DB Backup
+📅 $(date '+%Y-%m-%d %H:%M')
+📦 Size: $SIZE
+🗄️ Database: $POSTGRES_DB" \
+      "https://api.telegram.org/bot${ADMIN_BOT_TOKEN}/sendDocument" \
+      -o /dev/null
+    echo "Backup file sent to Telegram"
+  else
+    echo "Backup too large for Telegram (${BACKUP_SIZE_BYTES} bytes), skipping file send"
+  fi
+
   # Delete backups older than 7 days
   find "$BACKUP_DIR" -name "nuraskin_backup_*.sql.gz" -type f -mtime +7 -delete
 else
