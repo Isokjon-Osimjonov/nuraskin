@@ -39,6 +39,7 @@ const resolveCustomer = asyncHandler(async (req, res, next) => {
 router.get('/products', asyncHandler(ctrl.listProducts));
 router.get('/products/:slug', asyncHandler(ctrl.getProduct));
 router.get('/settings', asyncHandler(ctrl.getSettings));
+router.get('/payment-info', asyncHandler(ctrl.getPaymentInfo));
 router.get('/rates/latest', asyncHandler(ctrl.getLatestRates));
 router.get('/shipping-tiers', asyncHandler(ctrl.listShippingTiers));
 

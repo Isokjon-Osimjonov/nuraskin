@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
 import { getMyOrders, uploadReceipt, getUploadUrl, cancelOrder } from '@/api/orders';
+import { getPaymentInfo } from '@/api/settings';
 import { formatPrice } from '@/lib/utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
@@ -76,6 +77,12 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
   const isExpired = order.paymentExpiresAt ? new Date(order.paymentExpiresAt) < new Date() : false;
   const hasReceipt = !!(order.paymentReceiptUrl || order.paymentSubmittedAt);
   const needsReceipt = order.status === 'PENDING_PAYMENT' && !hasReceipt && !isExpired;
+
+  const { data: paymentInfo } = useQuery({
+    queryKey: ['payment-info', order.regionCode],
+    queryFn: () => getPaymentInfo(order.regionCode || 'UZB'),
+    enabled: needsReceipt,
+  });
 
   const cancelMutation = useMutation({
     mutationFn: () => cancelOrder(order.id),
@@ -215,6 +222,33 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       {/* Receipt upload for pending_payment */}
       {needsReceipt && (
         <div className="mb-4">
+          
+          {/* Payment Info */}
+          {paymentInfo && (paymentInfo.bank?.enabled || paymentInfo.e9pay?.enabled) && (
+            <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 mb-4 space-y-3">
+              <h4 className="text-[12px] font-medium text-[#4A1525] mb-2">To'lov ma'lumotlari:</h4>
+              
+              {paymentInfo.bank?.enabled && (
+                <div className="space-y-1">
+                  <p className="text-[11px] font-medium text-stone-700 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Bank kartasi</p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Bank:</span> {paymentInfo.bank.bankName}</p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta egasi:</span> {paymentInfo.bank.holderName}</p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta raqami:</span> <span className="font-mono select-all font-medium">{paymentInfo.bank.accountNumber}</span></p>
+                </div>
+              )}
+              
+              {paymentInfo.bank?.enabled && paymentInfo.e9pay?.enabled && <div className="border-t border-stone-100 my-2"></div>}
+              
+              {paymentInfo.e9pay?.enabled && (
+                <div className="space-y-1">
+                  <p className="text-[11px] font-medium text-stone-700 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> E9 Pay</p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Ism:</span> {paymentInfo.e9pay.name}</p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Hisob:</span> <span className="font-mono select-all font-medium">{paymentInfo.e9pay.account}</span></p>
+                </div>
+              )}
+            </div>
+          )}
+
           {preview ? (
             <div className="bg-white border border-stone-200 rounded-xl p-3">
               <div className="flex items-center gap-3">

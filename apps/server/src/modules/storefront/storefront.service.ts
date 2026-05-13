@@ -35,9 +35,22 @@ if (env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SE
   });
 }
 
+let cachedRate: any = null;
+let cachedRateTime: number = 0;
+
+async function getCachedLatestRate() {
+  const now = Date.now();
+  if (cachedRate && (now - cachedRateTime < 5 * 60 * 1000)) {
+    return cachedRate;
+  }
+  cachedRate = await ordersRepository.getLatestRateSnapshot();
+  cachedRateTime = now;
+  return cachedRate;
+}
+
 export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, search?: string, customerId?: string, limit?: number): Promise<StorefrontProductListItem[]> {
   const rawProducts = await storefrontRepository.findActiveProducts({ categoryId, search, limit });
-  const latestRate = await ordersRepository.getLatestRateSnapshot();
+  const latestRate = await getCachedLatestRate();
 
   const results: StorefrontProductListItem[] = [];
 
@@ -89,7 +102,7 @@ export async function getProductBySlug(slug: string, region: 'UZB' | 'KOR'): Pro
   const config = (p as any).configs.find((c: any) => c.regionCode === region);
   if (!config) throw new NotFoundError('Mahsulot bu mintaqada sotilmaydi');
 
-  const latestRate = await ordersRepository.getLatestRateSnapshot();
+  const latestRate = await getCachedLatestRate();
   const availableStock = await inventoryRepository.getAvailableStock(p.id);
 
   let calculatedPrice = '0';
@@ -462,6 +475,41 @@ export async function getPublicSettings() {
     return await storefrontRepository.getStorefrontSettings();
 }
 
+export async function getPaymentInfo(region: 'UZB' | 'KOR') {
+  const [settingsRow] = await db.select().from(settings).limit(1);
+  if (!settingsRow) return {};
+
+  if (region === 'KOR') {
+    return {
+      bank: {
+        enabled: settingsRow.korBankEnabled,
+        bankName: settingsRow.korBankName,
+        holderName: settingsRow.korBankHolder,
+        accountNumber: settingsRow.korBankNumber,
+      },
+      e9pay: {
+        enabled: settingsRow.korE9payEnabled,
+        name: settingsRow.korE9payName,
+        account: settingsRow.korE9payAccount,
+      }
+    };
+  } else {
+    return {
+      bank: {
+        enabled: settingsRow.uzbBankEnabled,
+        bankName: settingsRow.uzbBankName,
+        holderName: settingsRow.uzbBankHolder,
+        accountNumber: settingsRow.uzbBankNumber,
+      },
+      e9pay: {
+        enabled: settingsRow.uzbE9payEnabled,
+        name: settingsRow.uzbE9payName,
+        account: settingsRow.uzbE9payAccount,
+      }
+    };
+  }
+}
+
 export async function getLatestRates() {
     return await ordersRepository.getLatestRateSnapshot();
 }
@@ -515,7 +563,7 @@ export async function removeFromWaitlist(productId: string, customerId: string) 
 
 export async function getMyWaitlist(customerId: string, region: 'UZB' | 'KOR') {
     const rows = await db.select().from(productWaitlist).where(and(eq(productWaitlist.customerId, customerId), eq(productWaitlist.regionCode, region)));
-    const latestRate = await ordersRepository.getLatestRateSnapshot();
+    const latestRate = await getCachedLatestRate();
     
     const results = [];
     for (const row of rows) {

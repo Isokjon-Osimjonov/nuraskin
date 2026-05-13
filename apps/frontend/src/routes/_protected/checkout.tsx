@@ -11,8 +11,9 @@ import { useAddresses, useCreateAddress } from '@/hooks/useAddresses';
 import { createStorefrontOrderSchema, StorefrontOrderResponse } from '@nuraskin/shared-types';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { JusoSearchModal } from '@/components/addresses/JusoSearchModal';
+import { getPaymentInfo } from '@/api/settings';
 
 export const Route = createFileRoute('/_protected/checkout')({
   component: CheckoutPage,
@@ -36,12 +37,18 @@ function CheckoutPage() {
   const validateCoupon = useValidateCoupon();
   const createAddressMutation = useCreateAddress();
 
+  const cart = cartData?.items ?? [];
+  const cartRegion = (cartData?.regionCode || regionCode) as 'UZB' | 'KOR';
+
+  const { data: paymentInfo } = useQuery({
+    queryKey: ['payment-info', cartRegion],
+    queryFn: () => getPaymentInfo(cartRegion),
+  });
+
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponCode, setCouponCode] = useState('');
   const [jusoModalOpen, setJusoModalOpen] = useState(false);
 
-  const cart = cartData?.items ?? [];
-  const cartRegion = (cartData?.regionCode || regionCode) as 'UZB' | 'KOR';
   const isEmpty = cart.length === 0;
 
   const regionalAddresses = useMemo(() => 
@@ -486,21 +493,53 @@ function CheckoutPage() {
                 )}
               </section>
 
-              {/* Payment Method - Coming Soon */}
-              <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-stone-100 opacity-60">
+              {/* Payment Method */}
+              <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-stone-100">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400">
                         <CreditCard className="w-5 h-5" />
                     </div>
-                    <h2 className="text-lg font-medium text-stone-400">To'lov turi</h2>
+                    <h2 className="text-lg font-medium text-stone-600">To'lov usullari</h2>
                 </div>
-                <div className="bg-stone-50 rounded-2xl p-4 border border-stone-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 border-[#4A1525] flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#4A1525]" />
+                <div className="space-y-4">
+                  {!paymentInfo?.bank?.enabled && !paymentInfo?.e9pay?.enabled && (
+                    <div className="bg-stone-50 rounded-2xl p-4 border border-stone-100">
+                      <p className="text-[13px] text-stone-500">
+                        Hozirda faol to'lov usullari mavjud emas. Buyurtmani tasdiqlaganingizdan so'ng menejerimiz siz bilan bog'lanadi.
+                      </p>
                     </div>
-                    <span className="text-[14px] font-medium text-stone-600">Buyurtmadan so'ng (Karta orqali / Naqd)</span>
-                  </div>
+                  )}
+
+                  {paymentInfo?.bank?.enabled && (
+                    <div className="bg-stone-50 rounded-2xl p-4 border border-stone-100">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-4 h-4 rounded-full border-2 border-[#4A1525] flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-[#4A1525]" />
+                        </div>
+                        <span className="text-[14px] font-medium text-stone-700">💳 Bank kartasi orqali to'lash</span>
+                      </div>
+                      <div className="pl-7 space-y-1 text-[13px] text-stone-600">
+                        <p><span className="text-stone-400 w-24 inline-block">Bank:</span> <span className="font-medium">{paymentInfo.bank.bankName}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Karta egasi:</span> <span className="font-medium">{paymentInfo.bank.holderName}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Karta raqami:</span> <span className="font-mono font-medium select-all">{paymentInfo.bank.accountNumber}</span></p>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentInfo?.e9pay?.enabled && (
+                    <div className="bg-stone-50 rounded-2xl p-4 border border-stone-100">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-4 h-4 rounded-full border-2 border-[#4A1525] flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-[#4A1525]" />
+                        </div>
+                        <span className="text-[14px] font-medium text-stone-700">📱 E9 Pay orqali to'lash</span>
+                      </div>
+                      <div className="pl-7 space-y-1 text-[13px] text-stone-600">
+                        <p><span className="text-stone-400 w-24 inline-block">Ism:</span> <span className="font-medium">{paymentInfo.e9pay.name}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Hisob:</span> <span className="font-mono font-medium select-all">{paymentInfo.e9pay.account}</span></p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 

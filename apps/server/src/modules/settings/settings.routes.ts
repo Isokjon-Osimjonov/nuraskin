@@ -10,6 +10,9 @@ router.use(requireAuth);
 router.get('/', asyncHandler(ctrl.get));
 router.patch('/', asyncHandler(ctrl.update));
 
+router.get('/payment-info', asyncHandler(ctrl.getPaymentInfo));
+router.patch('/payment-info', asyncHandler(ctrl.updatePaymentInfo));
+
 // Korea Shipping Tiers
 router.get('/shipping-tiers', asyncHandler(ctrl.listTiers));
 router.post('/shipping-tiers', asyncHandler(ctrl.createTier));

@@ -44,6 +44,12 @@ export async function getSettings(req: Request, res: Response) {
   res.json(result);
 }
 
+export async function getPaymentInfo(req: Request, res: Response) {
+  const region = getRegion(req);
+  const result = await service.getPaymentInfo(region);
+  res.json(result);
+}
+
 export async function getLatestRates(req: Request, res: Response) {
   const result = await service.getLatestRates();
   res.json(result);

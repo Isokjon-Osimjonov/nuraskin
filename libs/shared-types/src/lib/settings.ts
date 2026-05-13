@@ -15,9 +15,45 @@ export const updateSettingsSchema = z.object({
   paymentTimeoutMinutes: z.coerce.number().int().min(5).max(1440).optional(),
   freeShippingThresholdKrw: z.coerce.number().int().min(0).optional(),
   standardShippingFeeKrw: z.coerce.number().int().min(0).optional(),
+
+  korBankEnabled: z.boolean().optional(),
+  korBankName: z.string().nullable().optional(),
+  korBankHolder: z.string().nullable().optional(),
+  korBankNumber: z.string().nullable().optional(),
+  korE9payEnabled: z.boolean().optional(),
+  korE9payName: z.string().nullable().optional(),
+  korE9payAccount: z.string().nullable().optional(),
+
+  uzbBankEnabled: z.boolean().optional(),
+  uzbBankName: z.string().nullable().optional(),
+  uzbBankHolder: z.string().nullable().optional(),
+  uzbBankNumber: z.string().nullable().optional(),
+  uzbE9payEnabled: z.boolean().optional(),
+  uzbE9payName: z.string().nullable().optional(),
+  uzbE9payAccount: z.string().nullable().optional(),
 });
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
+
+export const updatePaymentInfoSchema = z.object({
+  korBankEnabled: z.boolean().optional(),
+  korBankName: z.string().nullable().optional(),
+  korBankHolder: z.string().nullable().optional(),
+  korBankNumber: z.string().nullable().optional(),
+  korE9payEnabled: z.boolean().optional(),
+  korE9payName: z.string().nullable().optional(),
+  korE9payAccount: z.string().nullable().optional(),
+
+  uzbBankEnabled: z.boolean().optional(),
+  uzbBankName: z.string().nullable().optional(),
+  uzbBankHolder: z.string().nullable().optional(),
+  uzbBankNumber: z.string().nullable().optional(),
+  uzbE9payEnabled: z.boolean().optional(),
+  uzbE9payName: z.string().nullable().optional(),
+  uzbE9payAccount: z.string().nullable().optional(),
+});
+
+export type UpdatePaymentInfoInput = z.infer<typeof updatePaymentInfoSchema>;
 
 export interface SettingsResponse {
   id: string;
@@ -36,4 +72,20 @@ export interface SettingsResponse {
   freeShippingThresholdKrw: string;
   standardShippingFeeKrw: string;
   updatedAt: string;
+
+  korBankEnabled: boolean;
+  korBankName: string | null;
+  korBankHolder: string | null;
+  korBankNumber: string | null;
+  korE9payEnabled: boolean;
+  korE9payName: string | null;
+  korE9payAccount: string | null;
+
+  uzbBankEnabled: boolean;
+  uzbBankName: string | null;
+  uzbBankHolder: string | null;
+  uzbBankNumber: string | null;
+  uzbE9payEnabled: boolean;
+  uzbE9payName: string | null;
+  uzbE9payAccount: string | null;
 }

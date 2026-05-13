@@ -41,6 +41,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
 
   const orderId = await db.transaction(async (tx: any) => {
     const orderNumber = await generateManualOrderNumber();
+    const rateSnapshot = await repository.getLatestRateSnapshot();
     
     // Check stock for all items
     for (const item of input.items) {
@@ -69,6 +70,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
       deliveryCoveredBy: input.deliveryFeeCoveredBy,
       adminNote: input.adminNotes || null,
       createdBy: adminId,
+      rateSnapshotId: rateSnapshot?.id || null,
     };
 
     const [order] = await tx.insert(orders).values(orderData).returning();
@@ -280,6 +282,7 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
       couponCode: input.couponCode || null,
       discountAmount: input.discountAmount || 0n,
       cargoCostKrw,
+      rateSnapshotId: rateSnapshot?.id || null,
     };
 
     const [order] = await tx.insert(orders).values(orderData).returning();

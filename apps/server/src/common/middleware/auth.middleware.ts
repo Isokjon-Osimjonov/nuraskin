@@ -9,12 +9,19 @@ const SUPER_ADMIN_ROLE = 'SUPER_ADMIN';
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    let token: string | undefined;
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
+    
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.query.token) {
+      token = req.query.token as string;
+    }
+
+    if (!token) {
       return next(new UnauthorizedError('Avtorizatsiya talab qilinadi'));
     }
 
-    const token = authHeader.split(' ')[1];
     const payload = jwt.verify(token, env.JWT_SECRET) as AuthUser;
 
     // For admin users, check mustChangePassword

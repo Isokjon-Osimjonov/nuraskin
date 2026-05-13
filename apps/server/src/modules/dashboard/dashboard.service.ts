@@ -1,4 +1,4 @@
-import { db, orders, orderItems, products, inventoryBatches, dailySalesSummary, settings } from '@nuraskin/database';
+import { db, orders, orderItems, products, inventoryBatches, settings, exchangeRateSnapshots } from '@nuraskin/database';
 import { eq, sql, and, gte, lte, desc, sum, count, countDistinct } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
 
@@ -6,16 +6,23 @@ export async function getKPIs(region: string) {
   const isAll = region === 'ALL';
   const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
 
+  const krwTotalAmountSql = sql`CASE 
+    WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
+    WHEN ${orders.regionCode} = 'UZB' THEN ROUND(${orders.totalAmount}::numeric / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+    ELSE ${orders.totalAmount}
+  END`;
+
   // 1. Today's Revenue & Orders
   const todayStats = await db
     .select({
-      revenue: sum(orders.totalAmount),
+      revenue: sql<bigint>`coalesce(sum(${krwTotalAmountSql}), 0)::bigint`,
       orderCount: count(orders.id),
       cogs: sql<bigint>`coalesce(sum(${orderItems.costAtSaleKrw} * ${orderItems.quantity}), 0)::bigint`,
       cargo: sum(orders.cargoCostKrw),
     })
     .from(orders)
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
       sql`DATE(${orders.deliveredAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
       eq(orders.status, 'DELIVERED'),
@@ -38,8 +45,9 @@ export async function getKPIs(region: string) {
 
   // 3. Outstanding Debt
   const debt = await db
-    .select({ total: sum(orders.totalAmount) })
+    .select({ total: sql<bigint>`coalesce(sum(${krwTotalAmountSql}), 0)::bigint` })
     .from(orders)
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`)
     .then(res => res[0]?.total || '0');
 
@@ -105,15 +113,18 @@ export async function getTrend(region: string) {
   const isAll = region === 'ALL';
   const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
+  const uzbRevenueKrwSql = sql<bigint>`coalesce(sum(case when ${orders.regionCode} = 'UZB' then ROUND(${orders.totalAmount}::numeric / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric) else 0 end), 0)::bigint`;
+
   // 1. Last 7 days directly from orders table
   const summaryDays = await db
     .select({
       date: sql<string>`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::text`,
       kor_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'KOR' then ${orders.totalAmount} else 0 end)::bigint`,
-      uzb_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'UZB' then ${orders.totalAmount} else 0 end)::bigint`,
+      uzb_revenue_krw: uzbRevenueKrwSql,
       total_orders: count(orders.id),
     })
     .from(orders)
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
       eq(orders.status, 'DELIVERED'),
       sql`${orders.deliveredAt} IS NOT NULL`,

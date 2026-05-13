@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as service from './orders.service';
 import * as orderExpensesService from './order-expenses.service';
-import * as receiptsService from './receipts.service';
+import { generateInvoiceHtml } from './invoice.service';
 import { addOrderItemSchema, updateOrderStatusSchema, scanItemSchema, createOrderExpenseSchema, createManualOrderSchema, confirmManualPaymentSchema } from '@nuraskin/shared-types';
 import { NotFoundError, UnauthorizedError } from '../../common/errors/AppError';
 
@@ -158,8 +158,54 @@ export async function getPaymentReceipt(req: Request, res: Response) {
   res.json({ receipt_url: order.paymentReceiptUrl });
 }
 
-export async function downloadReceipt(req: Request, res: Response) {
-  const html = await receiptsService.generateOrderReceiptHtml(req.params.id);
+export async function downloadInvoice(req: Request, res: Response) {
+  const order = await service.getOrderDetail(req.params.id);
+  if (!order) throw new NotFoundError('Buyurtma topilmadi');
+
+  // Calculate savings and price types
+  let totalSavings = 0;
+  const items = order.items.map((i: any) => {
+    let priceType: 'ulgurji' | 'birlik' | 'kelishilgan' | undefined;
+    
+    // For manual orders we use negotiatedPriceKrw
+    if (order.orderSource === 'MANUAL') {
+      priceType = 'kelishilgan';
+    } else {
+      // Logic for price type could be complex, for now we skip or use simple heuristic
+      // if we have regional config data. We'll skip for now and just show the price.
+    }
+
+    return {
+      name: i.productName,
+      brandName: i.brandName,
+      barcode: i.barcode,
+      quantity: i.quantity,
+      unitPrice: i.unitPriceSnapshot,
+      subtotal: i.subtotalSnapshot,
+      priceType
+    };
+  });
+
+  const html = generateInvoiceHtml({
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    createdAt: new Date(order.createdAt),
+    deliveryAddress: `${order.deliveryAddressLine1 || ''}${order.deliveryAddressLine2 ? ', ' + order.deliveryAddressLine2 : ''}, ${order.deliveryCity || ''}`,
+    subtotal: order.subtotal,
+    cargoFee: order.cargoFee,
+    deliveryFeeCharged: order.deliveryFeeCharged || 0,
+    totalAmount: order.totalAmount,
+    regionCode: (order.regionCode as 'UZB' | 'KOR') || 'UZB',
+    customerName: order.customerName,
+    customerPhone: order.customerPhone || '',
+    items,
+    savings: totalSavings > 0 ? totalSavings : undefined,
+  });
+
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline';"
+  );
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
 }

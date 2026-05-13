@@ -1,5 +1,5 @@
-import { db, exchangeRateSnapshots, type NewExchangeRateSnapshot } from '@nuraskin/database';
-import { desc } from 'drizzle-orm';
+import { db, exchangeRateSnapshots, users, type NewExchangeRateSnapshot } from '@nuraskin/database';
+import { desc, eq } from 'drizzle-orm';
 
 export async function getLatest() {
   const [row] = await db
@@ -12,12 +12,19 @@ export async function getLatest() {
 
 export async function findAll() {
   const rows = await db
-    .select()
+    .select({
+      snapshot: exchangeRateSnapshots,
+      userFullName: users.fullName,
+    })
     .from(exchangeRateSnapshots)
-    .orderBy(desc(exchangeRateSnapshots.createdAt));
+    .leftJoin(users, eq(exchangeRateSnapshots.createdBy, users.id))
+    .orderBy(desc(exchangeRateSnapshots.createdAt))
+    .limit(10);
+    
   return rows.map((row) => ({
-    ...row,
-    krwToUzs: Number(row.krwToUzs),
+    ...row.snapshot,
+    krwToUzs: Number(row.snapshot.krwToUzs),
+    createdByName: row.userFullName,
   }));
 }
 

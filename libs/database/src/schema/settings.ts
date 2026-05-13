@@ -28,6 +28,27 @@ export const settings = pgTable('settings', {
   telegramUrl: varchar('telegram_url', { length: 200 }),
   instagramUrl: varchar('instagram_url', { length: 200 }),
   websiteUrl: varchar('website_url', { length: 200 }),
+
+  // Korean payment methods
+  korBankEnabled: boolean('kor_bank_enabled').notNull().default(false),
+  korBankName: text('kor_bank_name'),
+  korBankHolder: text('kor_bank_holder'),
+  korBankNumber: text('kor_bank_number'),
+  
+  korE9payEnabled: boolean('kor_e9pay_enabled').notNull().default(false),
+  korE9payName: text('kor_e9pay_name'),
+  korE9payAccount: text('kor_e9pay_account'),
+  
+  // Uzbek payment methods
+  uzbBankEnabled: boolean('uzb_bank_enabled').notNull().default(false),
+  uzbBankName: text('uzb_bank_name'),
+  uzbBankHolder: text('uzb_bank_holder'),
+  uzbBankNumber: text('uzb_bank_number'),
+  
+  uzbE9payEnabled: boolean('uzb_e9pay_enabled').notNull().default(false),
+  uzbE9payName: text('uzb_e9pay_name'),
+  uzbE9payAccount: text('uzb_e9pay_account'),
+
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

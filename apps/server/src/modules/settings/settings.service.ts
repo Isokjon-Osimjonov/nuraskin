@@ -17,6 +17,25 @@ export async function updateSettings(input: UpdateSettingsInput) {
   if (input.telegramUrl !== undefined) data.telegramUrl = input.telegramUrl;
   if (input.instagramUrl !== undefined) data.instagramUrl = input.instagramUrl;
   if (input.websiteUrl !== undefined) data.websiteUrl = input.websiteUrl;
+  if (input.freeShippingThresholdKrw !== undefined) data.freeShippingThresholdKrw = BigInt(Math.round(input.freeShippingThresholdKrw));
+  if (input.standardShippingFeeKrw !== undefined) data.standardShippingFeeKrw = BigInt(Math.round(input.standardShippingFeeKrw));
+  if (input.paymentTimeoutMinutes !== undefined) data.paymentTimeoutMinutes = input.paymentTimeoutMinutes;
+
+  if (input.korBankEnabled !== undefined) data.korBankEnabled = input.korBankEnabled;
+  if (input.korBankName !== undefined) data.korBankName = input.korBankName;
+  if (input.korBankHolder !== undefined) data.korBankHolder = input.korBankHolder;
+  if (input.korBankNumber !== undefined) data.korBankNumber = input.korBankNumber;
+  if (input.korE9payEnabled !== undefined) data.korE9payEnabled = input.korE9payEnabled;
+  if (input.korE9payName !== undefined) data.korE9payName = input.korE9payName;
+  if (input.korE9payAccount !== undefined) data.korE9payAccount = input.korE9payAccount;
+
+  if (input.uzbBankEnabled !== undefined) data.uzbBankEnabled = input.uzbBankEnabled;
+  if (input.uzbBankName !== undefined) data.uzbBankName = input.uzbBankName;
+  if (input.uzbBankHolder !== undefined) data.uzbBankHolder = input.uzbBankHolder;
+  if (input.uzbBankNumber !== undefined) data.uzbBankNumber = input.uzbBankNumber;
+  if (input.uzbE9payEnabled !== undefined) data.uzbE9payEnabled = input.uzbE9payEnabled;
+  if (input.uzbE9payName !== undefined) data.uzbE9payName = input.uzbE9payName;
+  if (input.uzbE9payAccount !== undefined) data.uzbE9payAccount = input.uzbE9payAccount;
   
   // These are inputs from admin in whole units (som / KRW).
   // For UZS we convert to minor units (tiyin).

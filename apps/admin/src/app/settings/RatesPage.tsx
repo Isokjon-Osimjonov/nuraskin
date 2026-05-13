@@ -152,19 +152,21 @@ export function RatesPage() {
                 <TableHead>KRW → UZS</TableHead>
                 <TableHead>Kargo (KRW/kg)</TableHead>
                 <TableHead>Izoh</TableHead>
+                <TableHead>Yaratdi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isHistoryLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">Yuklanmoqda...</TableCell>
+                  <TableCell colSpan={5} className="text-center">Yuklanmoqda...</TableCell>
                 </TableRow>
-              ) : history?.map((rate) => (
+              ) : history?.map((rate: any) => (
                 <TableRow key={rate.id}>
                   <TableCell>{format(new Date(rate.createdAt), 'dd.MM.yyyy HH:mm')}</TableCell>
                   <TableCell>{rate.krwToUzs.toLocaleString()}</TableCell>
                   <TableCell>{rate.cargoRateKrwPerKg.toLocaleString()} ₩</TableCell>
                   <TableCell className="text-muted-foreground">{rate.note || '—'}</TableCell>
+                  <TableCell>{rate.createdByName || '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

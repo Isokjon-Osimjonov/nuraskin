@@ -5,10 +5,9 @@ import { requireAuth, requirePermission } from '../../common/middleware/auth.mid
 
 const router = Router();
 
-// Public route (secured by UUID) because window.open doesn't send Auth headers
-router.get('/:id/download-receipt', asyncHandler(ctrl.downloadReceipt));
-
 router.use(requireAuth);
+
+router.get('/:id/download-invoice', requirePermission('orders:read'), asyncHandler(ctrl.downloadInvoice));
 
 router.get('/', requirePermission('orders:read'), asyncHandler(ctrl.listOrders));
 router.post('/', requirePermission('orders:write'), asyncHandler(ctrl.createOrder));

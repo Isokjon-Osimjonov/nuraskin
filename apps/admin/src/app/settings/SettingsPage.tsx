@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { UZ, translateServerError } from '@/lib/uz';
 
@@ -32,6 +34,20 @@ export function SettingsPage() {
       paymentTimeoutMinutes: 30,
       freeShippingThresholdKrw: 200000,
       standardShippingFeeKrw: 3000,
+      korBankEnabled: false,
+      korBankName: '',
+      korBankHolder: '',
+      korBankNumber: '',
+      korE9payEnabled: false,
+      korE9payName: '',
+      korE9payAccount: '',
+      uzbBankEnabled: false,
+      uzbBankName: '',
+      uzbBankHolder: '',
+      uzbBankNumber: '',
+      uzbE9payEnabled: false,
+      uzbE9payName: '',
+      uzbE9payAccount: '',
     },
   });
 
@@ -48,6 +64,20 @@ export function SettingsPage() {
         paymentTimeoutMinutes: settings.paymentTimeoutMinutes,
         freeShippingThresholdKrw: Number(BigInt(settings.freeShippingThresholdKrw || '200000')),
         standardShippingFeeKrw: Number(BigInt(settings.standardShippingFeeKrw || '3000')),
+        korBankEnabled: settings.korBankEnabled ?? false,
+        korBankName: settings.korBankName || '',
+        korBankHolder: settings.korBankHolder || '',
+        korBankNumber: settings.korBankNumber || '',
+        korE9payEnabled: settings.korE9payEnabled ?? false,
+        korE9payName: settings.korE9payName || '',
+        korE9payAccount: settings.korE9payAccount || '',
+        uzbBankEnabled: settings.uzbBankEnabled ?? false,
+        uzbBankName: settings.uzbBankName || '',
+        uzbBankHolder: settings.uzbBankHolder || '',
+        uzbBankNumber: settings.uzbBankNumber || '',
+        uzbE9payEnabled: settings.uzbE9payEnabled ?? false,
+        uzbE9payName: settings.uzbE9payName || '',
+        uzbE9payAccount: settings.uzbE9payAccount || '',
       });
     }
   }, [settings, form]);
@@ -183,53 +213,260 @@ export function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>To'lov karta (Admin Payment Card)</CardTitle>
-              <CardDescription>Mijozlarga to'lov qilish uchun ko'rsatiladigan karta</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="adminCardNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Karta raqami</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Masalan: 8600 1234 5678 9012" {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="adminCardHolder"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Karta egasi</FormLabel>
-                    <FormControl>
-                      <Input placeholder={UZ.common.placeholderName} {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="adminCardBank"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bank</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Masalan: Kapital Bank" {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="KOR" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-medium">To'lov usullari (mintaqalar bo'yicha)</h3>
+                <p className="text-sm text-muted-foreground">Xaridorlarga ko'rsatiladigan to'lov usullarini sozlang</p>
+              </div>
+              <TabsList>
+                <TabsTrigger value="KOR">🇰🇷 Koreya</TabsTrigger>
+                <TabsTrigger value="UZB">🇺🇿 O'zbekiston</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="KOR" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-1">
+                      <CardTitle>Bank kartasi</CardTitle>
+                      <CardDescription>Koreya bank kartasi orqali to'lov</CardDescription>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="korBankEnabled"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-4">
+                    {form.watch('korBankEnabled') && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="korBankName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bank nomi</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: Kookmin Bank" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="korBankHolder"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Karta egasi</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: Kim Chulsoo" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="korBankNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Karta raqami</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: 123-456-789012" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-1">
+                      <CardTitle>E9 Pay</CardTitle>
+                      <CardDescription>E9 Pay orqali pul o'tkazish</CardDescription>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="korE9payEnabled"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-4">
+                    {form.watch('korE9payEnabled') && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="korE9payName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ism va familiya</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: Kim Chulsoo" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="korE9payAccount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hisob raqami</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: 010-1234-5678" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="UZB" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-1">
+                      <CardTitle>Bank kartasi</CardTitle>
+                      <CardDescription>O'zbekiston bank kartasi orqali to'lov</CardDescription>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="uzbBankEnabled"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-4">
+                    {form.watch('uzbBankEnabled') && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="uzbBankName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bank nomi</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: Kapitalbank" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="uzbBankHolder"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Karta egasi</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: Isokjon Osimjonov" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="uzbBankNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Karta raqami</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masalan: 8600 1234 5678 9012" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-1">
+                      <CardTitle>E9 Pay</CardTitle>
+                      <CardDescription>E9 Pay orqali pul o'tkazish</CardDescription>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="uzbE9payEnabled"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-4">
+                    {form.watch('uzbE9payEnabled') && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="uzbE9payName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ism va familiya</FormLabel>
+                              <FormControl>
+                                <Input placeholder="" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="uzbE9payAccount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hisob raqami</FormLabel>
+                              <FormControl>
+                                <Input placeholder="" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <Card>
             <CardHeader>

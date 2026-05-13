@@ -40,7 +40,6 @@ export function OrderDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
-  const [isDownloading, setIsDownloading] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = React.useState<string | null>(null);
   const token = useAuthStore(s => s.token);
@@ -107,10 +106,10 @@ export function OrderDetailPage() {
     onError: (err: any) => toast.error(err.message || 'Xatolik yuz berdi'),
   });
 
-  const handleDownloadReceipt = async () => {
+  const handleDownloadInvoice = () => {
     if (!order) return;
     const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
-    window.open(`${API_BASE}/api/orders/${order.id}/download-receipt`, '_blank');
+    window.open(`${API_BASE}/api/orders/${order.id}/download-invoice?token=${token}`, '_blank');
   };
 
   if (isLoading) {
@@ -154,11 +153,10 @@ export function OrderDetailPage() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={handleDownloadReceipt}
-            disabled={isDownloading}
+            onClick={handleDownloadInvoice}
           >
             <Printer className="mr-2 h-4 w-4" />
-            {isDownloading ? 'Yuklanmoqda...' : 'Chek yuklab olish'}
+            Faktura yuklab olish
           </Button>
         </div>
       </div>
