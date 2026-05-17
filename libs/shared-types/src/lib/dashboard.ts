@@ -5,6 +5,8 @@ export type DashboardRegion = z.infer<typeof DashboardRegionSchema>;
 
 export const DashboardKPIsSchema = z.object({
   revenue_today_krw: z.string(),
+  gross_revenue_today_krw: z.string().optional(),
+  discounts_today_krw: z.string().optional(),
   orders_today: z.number(),
   margin_today_percent: z.number(),
   inventory_value_krw: z.string(),

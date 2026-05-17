@@ -16,7 +16,7 @@ import { products } from './products';
 import { categories } from './categories';
 
 export const couponStatusEnum = ['DRAFT', 'ACTIVE', 'PAUSED', 'EXPIRED', 'ARCHIVED'] as const;
-export const couponTypeEnum = ['PERCENTAGE', 'FIXED'] as const;
+export const couponTypeEnum = ['PERCENTAGE', 'FIXED', 'FREE_SHIPPING'] as const;
 export const couponScopeEnum = ['ENTIRE_ORDER', 'PRODUCTS', 'CATEGORIES', 'BRANDS'] as const;
 
 export const coupons = pgTable('coupons', {
@@ -25,7 +25,7 @@ export const coupons = pgTable('coupons', {
   name: varchar('name', { length: 100 }).notNull(),
   description: text('description'),
   
-  type: varchar('type', { length: 20 }).notNull().default('PERCENTAGE'), // PERCENTAGE, FIXED
+  type: varchar('type', { length: 20 }).notNull().default('PERCENTAGE'), // PERCENTAGE, FIXED, FREE_SHIPPING
   value: bigint('value', { mode: 'bigint' }).notNull(), // % value or fixed amount in tiyin
   valueUzs: bigint('value_uzs', { mode: 'bigint' }), // tiyin for UZB orders
   valueKrw: bigint('value_krw', { mode: 'bigint' }), // won for KOR orders
@@ -48,6 +48,7 @@ export const coupons = pgTable('coupons', {
   
   firstOrderOnly: boolean('first_order_only').notNull().default(false),
   onePerCustomer: boolean('one_per_customer').notNull().default(false),
+  excludeWholesale: boolean('exclude_wholesale').notNull().default(false),
   
   targetCustomerIds: uuid('target_customer_ids').array(), // null = all
   
@@ -70,7 +71,7 @@ export const coupons = pgTable('coupons', {
   codeIdx: index('coupons_code_idx').on(t.code),
   statusIdx: index('coupons_status_idx').on(t.status),
   statusCheck: check('coupons_status_check', sql`${t.status} IN ('DRAFT', 'ACTIVE', 'PAUSED', 'EXPIRED', 'ARCHIVED')`),
-  typeCheck: check('coupons_type_check', sql`${t.type} IN ('PERCENTAGE', 'FIXED')`),
+  typeCheck: check('coupons_type_check', sql`${t.type} IN ('PERCENTAGE', 'FIXED', 'FREE_SHIPPING')`),
   scopeCheck: check('coupons_scope_check', sql`${t.scope} IN ('ENTIRE_ORDER', 'PRODUCTS', 'CATEGORIES', 'BRANDS')`),
 }));
 

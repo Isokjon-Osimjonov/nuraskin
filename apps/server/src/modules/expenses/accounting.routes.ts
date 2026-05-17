@@ -9,3 +9,4 @@ router.use(requireAuth);
 
 router.get('/summary', asyncHandler(ctrl.getAccountingSummary));
 router.get('/export', asyncHandler(ctrl.exportAccounting));
+router.get('/coupon-summary', asyncHandler(ctrl.getCouponSummary));

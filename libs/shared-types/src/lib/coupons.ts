@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const couponStatusSchema = z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'EXPIRED', 'ARCHIVED']);
 export type CouponStatus = z.infer<typeof couponStatusSchema>;
 
-export const couponTypeSchema = z.enum(['PERCENTAGE', 'FIXED']);
+export const couponTypeSchema = z.enum(['PERCENTAGE', 'FIXED', 'FREE_SHIPPING']);
 export type CouponType = z.infer<typeof couponTypeSchema>;
 
 export const couponScopeSchema = z.enum(['ENTIRE_ORDER', 'PRODUCTS', 'CATEGORIES', 'BRANDS']);
@@ -31,6 +31,7 @@ export const couponSchema = z.object({
   regionCode: z.string().nullable().optional(),
   firstOrderOnly: z.boolean(),
   onePerCustomer: z.boolean(),
+  excludeWholesale: z.boolean().default(false),
   targetCustomerIds: z.array(z.string().uuid()).nullable().optional(),
   startsAt: z.string().nullable().optional(),
   expiresAt: z.string().nullable().optional(),
@@ -67,6 +68,7 @@ export const validateCouponInputSchema = z.object({
     categoryId: z.string().uuid().or(z.literal('')).optional(),
     brandName: z.string().nullable().optional(),
     subtotal: z.string(), // BigInt as string
+    isWholesale: z.boolean().optional(),
   })),
 });
 
@@ -79,4 +81,5 @@ export interface CouponValidationResponse {
   description?: string;
   error?: 'NOT_FOUND' | 'EXPIRED' | 'DEPLETED' | 'MIN_AMOUNT' | 'NOT_APPLICABLE' | 'LIMIT_REACHED' | 'INACTIVE';
   amountNeeded?: string; // BigInt as string for MIN_AMOUNT error
+  isFreeShipping?: boolean;
 }

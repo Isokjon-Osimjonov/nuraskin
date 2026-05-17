@@ -25,6 +25,7 @@ export const createOrderSchema = z.object({
     productId: z.string().uuid(),
     quantity: z.number().int().positive(),
   })).min(1),
+  isFreeShipping: z.boolean().optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;

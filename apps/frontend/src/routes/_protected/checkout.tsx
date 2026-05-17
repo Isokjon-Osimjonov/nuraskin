@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +28,7 @@ const UZB_REGIONS = [
 ];
 
 function CheckoutPage() {
-  const { regionCode } = useAppStore();
+  const { regionCode, selectedCouponCode, setSelectedCouponCode } = useAppStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: cartData, isLoading: isCartLoading } = useCart();
@@ -46,7 +46,7 @@ function CheckoutPage() {
   });
 
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
-  const [couponCode, setCouponCode] = useState('');
+  const [couponCode, setCouponCode] = useState(selectedCouponCode || '');
   const [jusoModalOpen, setJusoModalOpen] = useState(false);
 
   const isEmpty = cart.length === 0;
@@ -69,13 +69,19 @@ function CheckoutPage() {
   // Handle tiered Korea cargo
   const korCargo = useMemo(() => {
     if (cartRegion !== 'KOR') return 0n;
-    if (subtotal >= 100000n) return 0n; // Dummy tier
-    return 4000n;
+    if (subtotal >= 200000n) return 0n;
+    if (subtotal >= 100000n) return 2000n;
+    if (subtotal >= 50000n) return 3000n;
+    if (subtotal >= 30000n) return 4000n;
+    return 5000n;
   }, [subtotal, cartRegion]);
 
-  const totalBeforeDiscount = subtotal + korCargo;
   const discountAmount = appliedCoupon?.valid ? BigInt(appliedCoupon.discountAmount) : 0n;
-  const finalTotal = totalBeforeDiscount - discountAmount;
+  const isFreeShipping = appliedCoupon?.valid && appliedCoupon?.discountAmount === "0" && appliedCoupon?.discountType === "FREE_SHIPPING"; // Assuming backend sends type
+
+  const finalCargo = appliedCoupon?.isFreeShipping ? 0n : korCargo;
+  const displayDiscount = appliedCoupon?.isFreeShipping ? korCargo : discountAmount;
+  const finalTotal = subtotal + finalCargo - displayDiscount;
 
   const totalSavings = useMemo(() => {
     return cart.reduce((acc, item) => {
@@ -102,6 +108,43 @@ function CheckoutPage() {
   });
 
   const { register, setValue, watch, formState: { errors } } = form;
+
+  const handleApplyCoupon = useCallback(() => {
+    if (!couponCode) return;
+    validateCoupon.mutate({
+      code: couponCode,
+      regionCode: cartRegion,
+      cartItems: cart.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        subtotal: (BigInt(item.price) * BigInt(item.quantity)).toString(),
+        isWholesale: item.quantity >= (item.minWholesaleQty || 0),
+      }))
+    }, {
+      onSuccess: (res: any) => {
+        if (res.valid) {
+          setAppliedCoupon(res);
+          setSelectedCouponCode(couponCode);
+          toast.success("Kupon qo'llanildi");
+        } else {
+          setAppliedCoupon(null);
+          setSelectedCouponCode(null);
+          toast.error(res.description || "Kupon yaroqsiz");
+        }
+      },
+      onError: (err: any) => {
+        setAppliedCoupon(null);
+        setSelectedCouponCode(null);
+        toast.error(err.message || "Xatolik yuz berdi");
+      }
+    });
+  }, [couponCode, cartRegion, cart, validateCoupon, setSelectedCouponCode]);
+
+  useEffect(() => {
+    if (selectedCouponCode && !appliedCoupon && cart.length > 0 && !validateCoupon.isPending) {
+      handleApplyCoupon();
+    }
+  }, [selectedCouponCode, appliedCoupon, cart.length, handleApplyCoupon, validateCoupon.isPending]);
 
   // Sync selected address to form
   useEffect(() => {
@@ -159,39 +202,6 @@ function CheckoutPage() {
       form.setValue('regionCode', cartData.regionCode);
     }
   }, [cartData?.regionCode, form]);
-
-  const handleApplyCoupon = async () => {
-    if (!couponCode) return;
-    
-    const cartItemsForValidation = cart.map(item => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        categoryId: '', // will be fetched by backend
-        subtotal: (BigInt(item.price) * BigInt(item.quantity)).toString()
-    }));
-
-    try {
-        const res = await validateCoupon.mutateAsync({
-            code: couponCode,
-            regionCode: cartRegion,
-            cartItems: cartItemsForValidation as any
-        });
-        
-        if (res.valid) {
-            setAppliedCoupon(res);
-            toast.success("Promo-kod qo'llandi");
-        } else {
-            setAppliedCoupon(null);
-            let msg = res.description || 'Promo-kod noto\'g\'ri yoki muddati o\'tgan';
-            if (res.error === 'MIN_AMOUNT') {
-                msg = `Minimal buyurtma: ${formatPrice(res.amountNeeded || '0', (cartRegion as 'UZB' | 'KOR') ?? 'UZB')}`;
-            }
-            toast.error(msg);
-        }
-    } catch (err: any) {
-        toast.error(err?.message || "Xatolik yuz berdi");
-    }
-  };
 
   const onSubmit = async (data: any) => {
     if (isEmpty) return;

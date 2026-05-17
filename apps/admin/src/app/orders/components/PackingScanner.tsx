@@ -25,19 +25,29 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
   const queryClient = useQueryClient();
   const [manualSku, setManualSku] = React.useState('');
   const [isManualOpen, setIsManualOpen] = React.useState(false);
+  const [isDone, setIsDone] = React.useState(false);
 
   const scanMutation = useMutation({
     mutationFn: (input: { barcode?: string; skuSuffix?: string }) => 
       ordersApi.scanItem(order.id, input),
     onSuccess: (res) => {
-      if (res.match) {
-        toast.success("Mahsulot skanerlandi", {
-          icon: <CheckCircle2 className="text-green-500" />,
-        });
+      if (res.success) {
+        if (res.alreadyScanned) {
+          toast.warning(res.message);
+        } else {
+          toast.success(res.message, {
+            icon: <CheckCircle2 className="text-green-500" />,
+          });
+        }
+
+        if (res.allItemsScanned) {
+          setIsDone(true);
+        }
+
         queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
         if ('vibrate' in navigator) navigator.vibrate(200);
       } else {
-        toast.error("Noto'g'ri mahsulot!", {
+        toast.error(res.message || "Noto'g'ri mahsulot!", {
           icon: <AlertCircle className="text-red-500" />,
         });
         if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
@@ -47,21 +57,20 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
   });
 
   const handleScan = (barcode: string) => {
-    if (scanMutation.isPending) return;
+    if (scanMutation.isPending || isDone) return;
     scanMutation.mutate({ barcode });
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualSku.trim()) return;
+    if (!manualSku.trim() || isDone) return;
     scanMutation.mutate({ skuSuffix: manualSku });
     setManualSku('');
-    setIsManualOpen(false);
   };
 
   const scannedCount = order.items.filter((i: any) => i.isScanned).length;
   const totalCount = order.items.length;
-  const allScanned = scannedCount === totalCount;
+  const allScanned = isDone || scannedCount === totalCount;
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">

@@ -6,7 +6,19 @@ import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuthStore } from '../../stores/auth.store';
-import { formatKrw } from '@/lib/utils';
+import { formatKrw, formatPrice } from '@/lib/utils';
+import { 
+  DataTable, 
+  DataTableHeader, 
+  DataTableBody, 
+  DataTableRow, 
+  DataTableHead, 
+  DataTableCell, 
+  DataTableEmpty 
+} from '@/components/ui/DataTable';
+import { TablePagination } from '@/components/ui/TablePagination';
+import { format as formatDate } from 'date-fns';
+import { ExternalLink } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -80,6 +92,18 @@ function SalesPage() {
     },
   });
 
+  const [page, setPage] = React.useState(1);
+  const [limit, setLimit] = React.useState(10);
+
+  const { data: ordersData, isLoading: isOrdersLoading } = useQuery({
+    queryKey: ['sales-orders', from, to, region, page, limit],
+    queryFn: async () => {
+      let url = `/api/admin/sales?from=${from}&to=${to}&page=${page}&limit=${limit}`;
+      if (region !== 'all') url += `&region=${region}`;
+      return await fetchWithAuth(url);
+    },
+  });
+
   const getDelta = (currStr: string, prevStr: string, isPercent = false) => {
     const curr = Number(currStr || 0);
     const prev = Number(prevStr || 0);
@@ -97,11 +121,12 @@ function SalesPage() {
     return { text: `↓ ${Math.abs(diff).toFixed(1)}${isPercent ? 'pp' : '%'}`, color: 'text-red-600' };
   };
 
-  const currentSummary = current?.summary || { revenueKrw: '0', cogsKrw: '0', cargoKrw: '0', orderCount: 0, grossMargin: '0.0%' };
-  const prevSummary = previous?.summary || { revenueKrw: '0', cogsKrw: '0', cargoKrw: '0', orderCount: 0, grossMargin: '0.0%' };
+  const currentSummary = current?.summary || { revenueKrw: '0', grossRevenueKrw: '0', discountsKrw: '0', cogsKrw: '0', cargoKrw: '0', orderCount: 0, grossMargin: '0.0%' };
+  const prevSummary = previous?.summary || { revenueKrw: '0', grossRevenueKrw: '0', discountsKrw: '0', cogsKrw: '0', cargoKrw: '0', orderCount: 0, grossMargin: '0.0%' };
 
   const revDelta = getDelta(currentSummary.revenueKrw, prevSummary.revenueKrw);
   const ordDelta = getDelta(currentSummary.orderCount.toString(), prevSummary.orderCount.toString());
+  const discDelta = getDelta(currentSummary.discountsKrw, prevSummary.discountsKrw);
   
   const currAov = currentSummary.orderCount > 0 ? Number(currentSummary.revenueKrw) / currentSummary.orderCount : 0;
   const prevAov = prevSummary.orderCount > 0 ? Number(prevSummary.revenueKrw) / prevSummary.orderCount : 0;
@@ -144,12 +169,19 @@ function SalesPage() {
         <div className="text-center py-12">Yuklanmoqda...</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Daromad</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Daromad (Netto)</CardTitle></CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatKrw(currentSummary.revenueKrw)}</div>
                 <div className={`text-xs mt-1 font-medium ${revDelta.color}`}>{revDelta.text} vs prev period</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Kupon chegirmalari</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">-{formatKrw(currentSummary.discountsKrw)}</div>
+                <div className={`text-xs mt-1 font-medium ${discDelta.color}`}>{discDelta.text} vs prev period</div>
               </CardContent>
             </Card>
             <Card>
@@ -287,6 +319,81 @@ function SalesPage() {
               </Card>
             </div>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Barcha sotuvlar (Tranzaksiyalar)</CardTitle>
+              <CardDescription>Statusi 'DELIVERED' bo'lgan buyurtmalar</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-md border">
+                <DataTable>
+                  <DataTableHeader>
+                    <DataTableRow>
+                      <DataTableHead>Order#</DataTableHead>
+                      <DataTableHead>Mijoz</DataTableHead>
+                      <DataTableHead>Mintaqa</DataTableHead>
+                      <DataTableHead className="text-right">Summa (Original)</DataTableHead>
+                      <DataTableHead className="text-right">Summa (₩)</DataTableHead>
+                      <DataTableHead className="text-right">Chegirma</DataTableHead>
+                      <DataTableHead>Sana</DataTableHead>
+                      <DataTableHead></DataTableHead>
+                    </DataTableRow>
+                  </DataTableHeader>
+                  <DataTableBody>
+                    {isOrdersLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <DataTableRow key={i}>
+                          <DataTableCell><div className="h-4 w-24 bg-muted animate-pulse rounded" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-32 bg-muted animate-pulse rounded" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-16 bg-muted animate-pulse rounded" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-20 bg-muted animate-pulse rounded ml-auto" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-20 bg-muted animate-pulse rounded ml-auto" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-20 bg-muted animate-pulse rounded ml-auto" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-24 bg-muted animate-pulse rounded" /></DataTableCell>
+                          <DataTableCell><div className="h-4 w-4 bg-muted animate-pulse rounded ml-auto" /></DataTableCell>
+                        </DataTableRow>
+                      ))
+                    ) : !ordersData?.items || ordersData.items.length === 0 ? (
+                      <DataTableEmpty colSpan={8} message="Tranzaksiyalar topilmadi." />
+                    ) : ordersData.items.map((order: any) => (
+                      <DataTableRow key={order.id}>
+                        <DataTableCell className="font-mono text-xs">{order.orderNumber}</DataTableCell>
+                        <DataTableCell className="font-medium">{order.customerName}</DataTableCell>
+                        <DataTableCell><span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-100 uppercase">{order.regionCode}</span></DataTableCell>
+                        <DataTableCell className="text-right font-mono text-xs">
+                          {order.regionCode === 'UZB' ? formatPrice(order.totalAmount, 'UZB') : '—'}
+                        </DataTableCell>
+                        <DataTableCell className="text-right font-mono font-bold">
+                          {formatKrw(order.totalAmountKrw)}
+                        </DataTableCell>
+                        <DataTableCell className="text-right font-mono text-xs text-orange-600" title={order.couponCode ? `${order.couponCode} kuponi ishlatilgan` : ''}>
+                          {Number(order.discountAmountKrw) > 0 ? `-${formatKrw(order.discountAmountKrw)}` : '—'}
+                        </DataTableCell>
+                        <DataTableCell className="text-xs text-muted-foreground">
+                          {order.deliveredAt ? formatDate(new Date(order.deliveredAt), 'dd.MM.yyyy HH:mm') : '—'}
+                        </DataTableCell>
+                        <DataTableCell className="text-right">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                             <a href={`/orders/${order.id}`} target="_blank" rel="noreferrer">
+                               <ExternalLink className="h-3.5 w-3.5" />
+                             </a>
+                          </Button>
+                        </DataTableCell>
+                      </DataTableRow>
+                    ))}
+                  </DataTableBody>
+                </DataTable>
+              </div>
+              <TablePagination 
+                currentPage={page}
+                totalPages={Math.ceil((ordersData?.total || 0) / limit)}
+                pageSize={limit}
+                onPageChange={setPage}
+                onPageSizeChange={setLimit}
+              />
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

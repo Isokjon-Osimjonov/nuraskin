@@ -12,6 +12,7 @@ const limiter = rateLimit({
 export const router = Router();
 
 router.post('/analyze-image', requireAuth, asyncHandler(ctrl.analyzeImage));
+router.get('/brands', asyncHandler(ctrl.listBrands));
 router.get('/', asyncHandler(ctrl.list));
 router.get('/:id', asyncHandler(ctrl.get));
 router.get('/barcode/:barcode', asyncHandler(ctrl.getByBarcode));

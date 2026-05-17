@@ -21,9 +21,9 @@ export function HeroProduct({ productImage }: HeroProductProps) {
       <img
         src={productImage}
         alt="NuraSkin Face Cream jar"
-        className="object-contain drop-shadow-2xl"
+        className="object-contain drop-shadow-2xl transition-all"
         style={{
-          width: 'clamp(180px, 25vw, 460px)',
+          width: 'clamp(160px, 45vw, 460px)',
           filter: 'drop-shadow(0 30px 60px rgba(74,21,37,0.25))',
         }}
       />

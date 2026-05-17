@@ -40,6 +40,9 @@ export function KpiCards({ data, isLoading }: KpiCardsProps) {
       icon: CircleDollarSign,
       color: 'text-coral-500', 
       accent: 'border-l-4 border-coral-500',
+      subtext: data.gross_revenue_today_krw && data.discounts_today_krw && Number(data.discounts_today_krw) > 0 
+        ? `Jami: ${formatKrw(data.gross_revenue_today_krw)} • Kupon: -${formatKrw(data.discounts_today_krw)}` 
+        : undefined,
     },
     {
       title: 'Bugungi buyurtmalar',

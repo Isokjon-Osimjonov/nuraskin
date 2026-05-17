@@ -48,6 +48,10 @@ interface AppState {
   showRegionConfirm: boolean;
   setPendingRegion: (region: 'UZB' | 'KOR' | null) => void;
   setShowRegionConfirm: (show: boolean) => void;
+
+  // Coupon
+  selectedCouponCode: string | null;
+  setSelectedCouponCode: (code: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -58,7 +62,11 @@ export const useAppStore = create<AppState>()(
       user: null,
       isAuthenticated: false,
       setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false, favorites: [], addresses: [] }),
+      logout: () => set({ token: null, user: null, isAuthenticated: false, favorites: [], addresses: [], selectedCouponCode: null }),
+
+      // Coupon
+      selectedCouponCode: null,
+      setSelectedCouponCode: (code) => set({ selectedCouponCode: code }),
 
       // Region
       regionCode: null,

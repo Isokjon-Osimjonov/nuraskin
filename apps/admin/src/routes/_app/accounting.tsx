@@ -55,6 +55,16 @@ interface AccountingSummary {
     uzb_krw: string;
     total_krw: string;
   };
+  gross_revenue: {
+    kor_krw: string;
+    uzb_krw: string;
+    total_krw: string;
+  };
+  coupon_discounts: {
+    kor_krw: string;
+    uzb_krw: string;
+    total_krw: string;
+  };
   cogs: {
     total_krw: string;
   };
@@ -117,10 +127,18 @@ function AccountingPage() {
   const navigate = useNavigate();
 
   const monthStr = format(selectedMonth, 'yyyy-MM');
+  const [year, monthNum] = monthStr.split('-');
+  const startDate = `${year}-${monthNum}-01`;
+  const endDate = new Date(Number(year), Number(monthNum), 0).toISOString().split('T')[0];
 
   const { data: summary, isLoading, isError } = useQuery<AccountingSummary>({
     queryKey: ['accounting-summary', monthStr],
     queryFn: () => accountingApi.getSummary(monthStr),
+  });
+
+  const { data: couponsSummary = [], isLoading: isCouponsLoading } = useQuery({
+    queryKey: ['accounting-coupons', startDate, endDate],
+    queryFn: () => accountingApi.getCouponSummary(startDate, endDate),
   });
 
   const handlePrevMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
@@ -243,16 +261,25 @@ function AccountingPage() {
               <h3 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Tushumlar</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span>Koreya savdosi</span>
-                  <span className="font-mono">{formatKrw(summary.revenue.kor_krw)}</span>
+                  <span>Koreya savdosi (brutto)</span>
+                  <span className="font-mono">{formatKrw(summary.gross_revenue.kor_krw)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>O'zbekiston savdosi</span>
-                  <span className="font-mono">{formatKrw(summary.revenue.uzb_krw)}</span>
+                  <span>O'zbekiston savdosi (brutto)</span>
+                  <span className="font-mono">{formatKrw(summary.gross_revenue.uzb_krw)}</span>
+                </div>
+                <div className="h-px bg-border my-2" />
+                <div className="flex justify-between items-center font-semibold">
+                  <span>Jami brutto daromad</span>
+                  <span className="font-mono">{formatKrw(summary.gross_revenue.total_krw)}</span>
+                </div>
+                <div className="flex justify-between items-center text-[#dc2626]" title="Bu davr ichida berilgan jami kupon chegirmalari">
+                  <span>Kupon chegirmalari</span>
+                  <span className="font-mono">-{formatKrw(summary.coupon_discounts.total_krw)}</span>
                 </div>
                 <div className="h-px bg-border my-2" />
                 <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Jami daromad</span>
+                  <span>Jami netto daromad</span>
                   <span className="font-mono">{formatKrw(summary.revenue.total_krw)}</span>
                 </div>
                 <div className="flex justify-between items-center text-destructive">
@@ -460,6 +487,60 @@ function AccountingPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* SECTION 4 — Coupons Summary Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Kuponlar statistikasi</CardTitle>
+          <CardDescription>Ushbu davrda ishlatilgan kuponlar va ular keltirgan daromad</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isCouponsLoading ? (
+             <div className="py-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></div>
+          ) : couponsSummary.length === 0 ? (
+             <div className="py-8 text-center text-muted-foreground">Ushbu davrda kupon ishlatilmagan</div>
+          ) : (
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Kupon kodi</TableHead>
+                    <TableHead>Nomi</TableHead>
+                    <TableHead className="text-right">Ishlatilgan</TableHead>
+                    <TableHead className="text-right">Chegirma summasi (₩)</TableHead>
+                    <TableHead className="text-right">Keltirgan daromad (₩)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {couponsSummary.map((coupon: any, idx: number) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-mono text-xs">{coupon.code}</TableCell>
+                      <TableCell className="font-medium">{coupon.name}</TableCell>
+                      <TableCell className="text-right">{coupon.usageCount} marta</TableCell>
+                      <TableCell className="text-right font-mono text-destructive">-{formatKrw(coupon.totalDiscountKrw)}</TableCell>
+                      <TableCell className="text-right font-mono font-semibold text-green-600">{formatKrw(coupon.revenueGeneratedKrw)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow className="bg-muted/50">
+                    <TableCell colSpan={2} className="font-bold text-base">Jami</TableCell>
+                    <TableCell className="text-right font-bold text-base">
+                      {couponsSummary.reduce((acc: number, curr: any) => acc + curr.usageCount, 0)} marta
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold text-base text-destructive whitespace-nowrap">
+                      -{formatKrw(couponsSummary.reduce((acc: bigint, curr: any) => acc + BigInt(curr.totalDiscountKrw), 0n))}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold text-base text-green-600 whitespace-nowrap">
+                      {formatKrw(couponsSummary.reduce((acc: bigint, curr: any) => acc + BigInt(curr.revenueGeneratedKrw), 0n))}
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <AddExpenseSheet 
         open={isExpenseSheetOpen} 

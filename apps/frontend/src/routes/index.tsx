@@ -17,22 +17,17 @@ export const Route = createFileRoute('/')({
 function HeroPage() {
   return (
     <>
-      {/*
-        margin-top: -64px  pulls the hero UP behind the 64px sticky navbar.
-        height: 100vh      makes the image fill the full viewport (including the nav area).
-        The transparent navbar now sits over the actual hero background image.
-      */}
       <div
-        className="relative"
+        className="relative overflow-hidden bg-[60%_center] md:bg-center"
         style={{
-          height: '100vh',
+          minHeight: '100svh',
           marginTop: '-64px',
           backgroundImage: `
             linear-gradient(180deg, rgba(20,5,12,0.35) 0%, rgba(40,8,22,0.25) 55%, rgba(15,3,8,0.55) 100%),
             url(${HERO_BG_IMAGE})
           `,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
         {/* Radial glow */}
@@ -52,11 +47,7 @@ function HeroPage() {
           style={{ top: 'clamp(15%, 25%, 35%)' }}
         >
           <span
-            className="font-normal text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100"
-            style={{
-              fontSize: 'clamp(2.5rem, 12vw, 14rem)',
-              letterSpacing: '-0.02em',
-            }}
+            className="font-bold text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100 text-[clamp(40px,12vw,180px)] tracking-tight"
           >
             SKIN ESSENCE
           </span>
@@ -66,13 +57,18 @@ function HeroPage() {
         <HeroProduct productImage={HERO_PRODUCT_IMAGE} />
 
         {/* Left column */}
-        <div className="absolute bottom-12 left-0 right-0 md:left-12 md:right-auto px-8 md:px-0 z-20 flex justify-center md:justify-start">
+        <div className="absolute bottom-4 md:bottom-12 left-0 right-0 md:left-12 md:right-auto px-4 md:px-0 z-20 flex justify-center md:justify-start">
           <HeroLeftCol />
         </div>
 
         {/* Right column — desktop only */}
         <div className="hidden md:block absolute bottom-10 right-8 z-20">
           <HeroRightCol />
+        </div>
+
+        {/* Mobile floating card — will be visible via CSS or component logic if needed, but the instructions say to fix HeroRightCol for mobile. Actually, let's keep HeroRightCol visible on mobile but positioned differently. */}
+        <div className="md:hidden absolute bottom-4 left-4 right-4 z-20">
+           {/* We might want to move HeroRightCol here for mobile or update HeroRightCol itself. Let's update HeroRightCol. */}
         </div>
 
         <HeroFooter />

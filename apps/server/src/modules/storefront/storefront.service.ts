@@ -6,8 +6,8 @@ import * as cartsRepository from '../carts/carts.repository';
 import * as inventoryRepository from '../inventory/inventory.repository';
 import * as couponsService from '../coupons/coupons.service';
 import * as couponsRepository from '../coupons/coupons.repository';
-import { db, customers, orders, orderItems, orderStatusHistory, products, settings, korShippingTiers, inventoryBatches, stockReservations, productWaitlist, exchangeRateSnapshots, productRegionalConfigs, customerAddresses, coupons } from '@nuraskin/database';
-import { eq, desc, sql, and, or, asc, gt, isNull } from 'drizzle-orm';
+import { db, customers, orders, orderItems, orderStatusHistory, products, settings, korShippingTiers, inventoryBatches, stockReservations, productWaitlist, exchangeRateSnapshots, productRegionalConfigs, customerAddresses, coupons, couponRedemptions, categories } from '@nuraskin/database';
+import { eq, desc, sql, and, or, asc, gt, isNull, inArray } from 'drizzle-orm';
 import { NotFoundError, BadRequestError, PriceChangedError } from '../../common/errors/AppError';
 import { logger } from '../../common/utils/logger';
 import { NotificationService } from '../notifications/notification.service';
@@ -149,6 +149,7 @@ export async function validateCoupon(input: ValidateCouponInput, customerId: str
       valid: true,
       discountAmount: result.discountAmount.toString(),
       description: `Kupon muvaffaqiyatli qo'llandi`,
+      isFreeShipping: (result as any).isFreeShipping,
     };
   } catch (err: any) {
     return {
@@ -161,6 +162,24 @@ export async function validateCoupon(input: ValidateCouponInput, customerId: str
 }
 
 export async function listCoupons(customerId: string, requestRegion: string) {
+  const cart = await cartsRepository.findByCustomerId(customerId);
+  const cartItemsFull: Array<{ productId: string, categoryId: string | null, brandName: string | null }> = [];
+  let cartSubtotal = 0n;
+  
+  if (cart && cart.items.length > 0) {
+    for (const item of cart.items) {
+      const p = await db.query.products.findFirst({ where: eq(products.id, item.productId) });
+      if (p) {
+        cartItemsFull.push({
+          productId: p.id,
+          categoryId: p.categoryId,
+          brandName: p.brandName,
+        });
+        cartSubtotal += BigInt(item.priceSnapshot) * BigInt(item.quantity);
+      }
+    }
+  }
+
   const allCoupons = await db.query.coupons.findMany({
     where: and(
       eq(coupons.status, 'ACTIVE'),
@@ -180,30 +199,92 @@ export async function listCoupons(customerId: string, requestRegion: string) {
     ),
     orderBy: [desc(coupons.createdAt)]
   });
+
+  const customerRedemptions = await db.query.couponRedemptions.findMany({
+    where: eq(couponRedemptions.customerId, customerId)
+  });
   
-  // Filter out fully redeemed coupons
-  const available = allCoupons.filter(c => 
-    !c.maxUsesTotal || 
-    (c.usageCount || 0) < c.maxUsesTotal
-  );
+  const usageCounts = customerRedemptions.reduce((acc, r) => {
+    acc[r.couponId] = (acc[r.couponId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const results = [];
   
-  return available.map(c => ({
-    id: c.id,
-    code: c.code,
-    name: c.name,
-    description: c.description,
-    type: c.type,
-    value: c.value.toString(),
-    valueUzs: c.valueUzs?.toString(),
-    valueKrw: c.valueKrw?.toString(),
-    minOrderAmount: c.minOrderAmount?.toString(),
-    minOrderUzs: c.minOrderUzs?.toString(),
-    minOrderKrw: c.minOrderKrw?.toString(),
-    maxRedemptions: c.maxUsesTotal,
-    usageCount: c.usageCount,
-    expiresAt: c.expiresAt?.toISOString(),
-    regionCode: c.regionCode,
-  }));
+  for (const c of allCoupons) {
+    // Check total uses depleted
+    if (c.maxUsesTotal !== null && (c.usageCount || 0) >= c.maxUsesTotal) continue;
+
+    const isUsed = (usageCounts[c.id] || 0) >= c.maxUsesPerCustomer;
+    
+    // Evaluate scope matching
+    let scopeMatched = false;
+    let applicableProductNames: string[] = [];
+    let applicableCategoryNames: string[] = [];
+    
+    if (c.scope === 'ENTIRE_ORDER') {
+      scopeMatched = true;
+    } else if (c.scope === 'PRODUCTS' && c.applicableResourceIds?.length) {
+      const hasProduct = cartItemsFull.some(i => c.applicableResourceIds!.includes(i.productId));
+      if (hasProduct || cartItemsFull.length === 0) scopeMatched = true; // Still show if cart is empty
+      // Fetch names
+      const prods = await db.query.products.findMany({ where: inArray(products.id, c.applicableResourceIds) });
+      applicableProductNames = prods.map(p => p.name);
+    } else if (c.scope === 'CATEGORIES' && c.applicableResourceIds?.length) {
+      const hasCategory = cartItemsFull.some(i => i.categoryId && c.applicableResourceIds!.includes(i.categoryId));
+      if (hasCategory || cartItemsFull.length === 0) scopeMatched = true;
+      // Fetch names
+      const cats = await db.query.categories.findMany({ where: inArray(categories.id, c.applicableResourceIds) });
+      applicableCategoryNames = cats.map(cat => cat.name);
+    } else if (c.scope === 'BRANDS' && c.applicableBrands?.length) {
+      const hasBrand = cartItemsFull.some(i => i.brandName && c.applicableBrands!.includes(i.brandName));
+      if (hasBrand || cartItemsFull.length === 0) scopeMatched = true;
+    }
+
+    if (!scopeMatched) continue;
+
+    let autoApplied = false;
+    if (c.autoApply && !isUsed) {
+      let minAmount = 0n;
+      if (c.regionCode === 'ALL') {
+          minAmount = requestRegion === 'UZB' ? BigInt(c.minOrderUzs || 0) : BigInt(c.minOrderKrw || 0);
+      } else {
+          minAmount = BigInt(c.minOrderAmount || 0);
+      }
+      
+      if (cartSubtotal >= minAmount && cartItemsFull.length >= c.minOrderQty) {
+        autoApplied = true;
+      }
+    }
+
+    results.push({
+      id: c.id,
+      code: c.code,
+      name: c.name,
+      description: c.description,
+      type: c.type,
+      value: c.value.toString(),
+      valueUzs: c.valueUzs?.toString(),
+      valueKrw: c.valueKrw?.toString(),
+      minOrderAmount: c.minOrderAmount?.toString(),
+      minOrderUzs: c.minOrderUzs?.toString(),
+      minOrderKrw: c.minOrderKrw?.toString(),
+      maxRedemptions: c.maxUsesTotal,
+      usageCount: c.usageCount,
+      expiresAt: c.expiresAt?.toISOString(),
+      regionCode: c.regionCode,
+      scope: c.scope,
+      isUsed,
+      autoApplied,
+      applicableProductNames,
+      applicableCategoryNames,
+      applicableBrands: c.applicableBrands || [],
+      isTargeted: c.targetCustomerIds && c.targetCustomerIds.length > 0,
+      isStackable: c.isStackable,
+    });
+  }
+  
+  return results;
 }
 
 export async function createOrder(customerId: string, input: CreateStorefrontOrderInput): Promise<StorefrontOrderResponse> {
@@ -426,20 +507,17 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     process.nextTick(async () => {
       try {
         await NotificationService.sendOrderPlaced(
-          finalOrder.id,
-          finalOrder.orderNumber,
-          finalOrder.totalAmount,
+          finalOrder,
           itemsForNotification,
-          finalOrder.cargoFee,
-          customer.telegramId as any,
-          finalOrder.regionCode as any
+          customer.telegramId as any
         );
         await NotificationService.sendAdminNewOrder(
           finalOrder.id,
           finalOrder.orderNumber,
           finalOrder.totalAmount,
           finalOrder.regionCode,
-          customer.fullName
+          customer.fullName,
+          cart.items.length
         );
       } catch (e) {
         logger.error({ e }, 'Failed to send order placed notification');

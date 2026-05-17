@@ -1,5 +1,67 @@
-import { db, orders, orderItems, products } from '@nuraskin/database';
-import { eq, sql } from 'drizzle-orm';
+import { db, orders, orderItems, products, customers, exchangeRateSnapshots } from '@nuraskin/database';
+import { eq, sql, and, gte, lte, desc, count } from 'drizzle-orm';
+
+export async function listSalesOrders(from: string, to: string, regionCode?: string, page = 1, limit = 10) {
+  const offset = (page - 1) * limit;
+  let regionFilter = sql`1=1`;
+  if (regionCode && regionCode !== 'all') {
+    regionFilter = sql`${orders.regionCode} = ${regionCode}`;
+  }
+
+  const whereClauses = and(
+    eq(orders.status, 'DELIVERED'),
+    sql`${orders.deliveredAt} >= (${from}::text || ' 00:00:00+09')::timestamptz`,
+    sql`${orders.deliveredAt} <= (${to}::text || ' 23:59:59.999+09')::timestamptz`,
+    regionFilter
+  );
+
+  const totalCount = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(whereClauses)
+    .then(res => res[0]?.count || 0);
+
+  const rows = await db
+    .select({
+      id: orders.id,
+      orderNumber: orders.orderNumber,
+      regionCode: orders.regionCode,
+      totalAmount: orders.totalAmount,
+      totalAmountKrw: sql<bigint>`CASE 
+        WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
+        WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+        ELSE ${orders.totalAmount}
+      END`,
+      discountAmount: orders.discountAmount,
+      couponCode: orders.couponCode,
+      discountAmountKrw: sql<bigint>`CASE 
+        WHEN ${orders.regionCode} = 'KOR' THEN COALESCE(${orders.discountAmount}, 0)
+        WHEN ${orders.regionCode} = 'UZB' THEN ROUND((COALESCE(${orders.discountAmount}, 0)::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+        ELSE COALESCE(${orders.discountAmount}, 0)
+      END`,
+      deliveredAt: orders.deliveredAt,
+      customerName: customers.fullName,
+      currency: orders.currency,
+    })
+    .from(orders)
+    .leftJoin(customers, eq(orders.customerId, customers.id))
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
+    .where(whereClauses)
+    .orderBy(desc(orders.deliveredAt))
+    .limit(limit)
+    .offset(offset);
+
+  return {
+    items: rows.map(r => ({
+      ...r,
+      totalAmount: r.totalAmount.toString(),
+      totalAmountKrw: r.totalAmountKrw.toString(),
+      discountAmount: r.discountAmount ? r.discountAmount.toString() : '0',
+      discountAmountKrw: r.discountAmountKrw.toString(),
+    })),
+    total: totalCount,
+  };
+}
 
 export async function getLiveSales(from: string, to: string, regionCode?: string) {
   let regionFilter = sql`1=1`;
@@ -16,13 +78,25 @@ export async function getLiveSales(from: string, to: string, regionCode?: string
       o.id as order_id,
       oi.product_id,
       oi.quantity,
-      oi.unit_price_snapshot,
+      CASE 
+        WHEN o.region_code = 'KOR' THEN oi.unit_price_snapshot
+        WHEN o.region_code = 'UZB' THEN 
+          ROUND((oi.unit_price_snapshot::numeric / 100) / COALESCE(ers.krw_to_uzs, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+        ELSE oi.unit_price_snapshot
+      END as unit_price_krw,
+      CASE 
+        WHEN o.region_code = 'KOR' THEN COALESCE(o.discount_amount, 0)
+        WHEN o.region_code = 'UZB' THEN 
+          ROUND((COALESCE(o.discount_amount, 0)::numeric / 100) / COALESCE(ers.krw_to_uzs, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+        ELSE COALESCE(o.discount_amount, 0)
+      END as discount_krw,
       oi.cost_at_sale_krw,
       p.weight_grams,
       p.name as product_name
     FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN products p ON oi.product_id = p.id
+    LEFT JOIN exchange_rate_snapshots ers ON o.rate_snapshot_id = ers.id
     WHERE o.status = 'DELIVERED'
       AND o.delivered_at IS NOT NULL
       AND o.delivered_at >= (${from}::text || ' 00:00:00+09')::timestamptz
@@ -42,6 +116,7 @@ function processSalesRows(rows: any[]) {
   let totalRevenue = 0n;
   let totalCogs = 0n;
   let totalCargo = 0n;
+  let totalDiscounts = 0n;
   const uniqueOrders = new Set<string>();
 
   const byDate: Record<string, { date: string; KOR: bigint; UZB: bigint; total: bigint }> = {};
@@ -49,7 +124,7 @@ function processSalesRows(rows: any[]) {
 
   for (const row of rows) {
     const qty = Number(row.quantity);
-    const rev = BigInt(row.unit_price_snapshot || 0) * BigInt(qty);
+    const rev = BigInt(row.unit_price_krw || 0) * BigInt(qty);
     const cogs = BigInt(row.cost_at_sale_krw || 0) * BigInt(qty);
     
     const orderTotalWeight = Number(row.total_weight_grams || 0);
@@ -64,6 +139,11 @@ function processSalesRows(rows: any[]) {
     totalRevenue += rev;
     totalCogs += cogs;
     totalCargo += cargo;
+    
+    if (!uniqueOrders.has(row.order_id)) {
+      totalDiscounts += BigInt(row.discount_krw || 0n);
+    }
+    
     uniqueOrders.add(row.order_id);
 
     const dateStr = row.sale_date instanceof Date ? row.sale_date.toISOString().split('T')[0] : row.sale_date;
@@ -93,17 +173,20 @@ function processSalesRows(rows: any[]) {
     byProduct[pId].cargoKrw += cargo;
   }
 
-  return formatResponse(totalRevenue, totalCogs, totalCargo, uniqueOrders.size, byDate, byProduct);
+  return formatResponse(totalRevenue, totalCogs, totalCargo, uniqueOrders.size, byDate, byProduct, totalDiscounts);
 }
 
-function formatResponse(totalRevenue: bigint, totalCogs: bigint, totalCargo: bigint, orderCount: number, byDate: any, byProduct: any) {
-  const marginStr = totalRevenue > 0n 
-    ? (((Number(totalRevenue - totalCogs - totalCargo) / Number(totalRevenue)) * 100).toFixed(1) + '%') 
+function formatResponse(totalRevenue: bigint, totalCogs: bigint, totalCargo: bigint, orderCount: number, byDate: any, byProduct: any, totalDiscounts: bigint) {
+  const netRevenue = totalRevenue - totalDiscounts;
+  const marginStr = netRevenue > 0n 
+    ? (((Number(netRevenue - totalCogs - totalCargo) / Number(netRevenue)) * 100).toFixed(1) + '%') 
     : '0.0%';
 
   return {
     summary: {
-      revenueKrw: totalRevenue.toString(),
+      revenueKrw: netRevenue.toString(),
+      grossRevenueKrw: totalRevenue.toString(),
+      discountsKrw: totalDiscounts.toString(),
       cogsKrw: totalCogs.toString(),
       cargoKrw: totalCargo.toString(),
       orderCount,

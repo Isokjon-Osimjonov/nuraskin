@@ -322,16 +322,18 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
               tozalash kerak.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-end gap-2 sm:gap-2">
-            <AlertDialogCancel>
-              Bekor qilish
+          <div className="flex gap-3 mt-6">
+            <AlertDialogCancel asChild>
+              <button className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 whitespace-nowrap transition-colors hover:bg-stone-50">
+                Bekor qilish
+              </button>
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmRegionSwitch}
-              className="bg-red-600 hover:bg-red-700 text-white border-0 ml-2">
-              Tozalash
+            <AlertDialogAction asChild onClick={confirmRegionSwitch}>
+              <button className="flex-1 px-4 py-2.5 rounded-xl bg-[#E30B5C] text-white text-sm font-medium whitespace-nowrap transition-colors hover:bg-[#ff1a75]">
+                Tozalash
+              </button>
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </>

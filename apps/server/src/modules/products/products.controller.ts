@@ -59,3 +59,8 @@ export async function updateRegionalConfig(req: Request, res: Response): Promise
   const result = await service.updateRegionalConfig(req.params.id, region, input);
   res.json(result);
 }
+
+export async function listBrands(req: Request, res: Response): Promise<void> {
+  const result = await service.listBrands();
+  res.json(result);
+}

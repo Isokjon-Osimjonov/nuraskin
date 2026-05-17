@@ -124,5 +124,9 @@ export async function updateRegionalConfig(
   return repository.updateRegionalConfig(productId, regionCode, data);
 }
 
+export async function listBrands() {
+  return repository.listBrands();
+}
+
 export { analyzeImage } from './product-analyzer.service';
 export type { AnalyzeImageResult } from './product-analyzer.service';

@@ -6,7 +6,7 @@ export interface StorefrontCoupon {
   code: string;
   name: string;
   description?: string;
-  type: 'FIXED' | 'PERCENTAGE';
+  type: 'FIXED' | 'PERCENTAGE' | 'FREE_SHIPPING';
   value: string; // bigint as string
   valueUzs?: string;
   valueKrw?: string;
@@ -17,6 +17,14 @@ export interface StorefrontCoupon {
   usageCount: number;
   expiresAt?: string;
   regionCode?: string;
+  scope: 'ENTIRE_ORDER' | 'PRODUCTS' | 'CATEGORIES' | 'BRANDS';
+  isUsed: boolean;
+  autoApplied: boolean;
+  applicableProductNames: string[];
+  applicableCategoryNames: string[];
+  applicableBrands: string[];
+  isTargeted: boolean;
+  isStackable: boolean;
 }
 
 export const getAvailableCoupons = () =>

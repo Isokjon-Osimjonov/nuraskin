@@ -8,14 +8,21 @@ export async function getKPIs(region: string) {
 
   const krwTotalAmountSql = sql`CASE 
     WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
-    WHEN ${orders.regionCode} = 'UZB' THEN ROUND(${orders.totalAmount}::numeric / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+    WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
     ELSE ${orders.totalAmount}
+  END`;
+
+  const krwDiscountAmountSql = sql`CASE 
+    WHEN ${orders.regionCode} = 'KOR' THEN COALESCE(${orders.discountAmount}, 0)
+    WHEN ${orders.regionCode} = 'UZB' THEN ROUND((COALESCE(${orders.discountAmount}, 0)::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+    ELSE COALESCE(${orders.discountAmount}, 0)
   END`;
 
   // 1. Today's Revenue & Orders
   const todayStats = await db
     .select({
       revenue: sql<bigint>`coalesce(sum(${krwTotalAmountSql}), 0)::bigint`,
+      discounts: sql<bigint>`coalesce(sum(${krwDiscountAmountSql}), 0)::bigint`,
       orderCount: count(orders.id),
       cogs: sql<bigint>`coalesce(sum(${orderItems.costAtSaleKrw} * ${orderItems.quantity}), 0)::bigint`,
       cargo: sum(orders.cargoCostKrw),
@@ -31,6 +38,8 @@ export async function getKPIs(region: string) {
     .then(res => res[0]);
 
   const rev = BigInt(todayStats?.revenue ?? '0');
+  const discounts = BigInt(todayStats?.discounts ?? '0');
+  const grossRev = rev + discounts;
   const cogs = BigInt(todayStats?.cogs ?? '0');
   const cargo = BigInt(todayStats?.cargo ?? '0');
   const grossProfit = rev - cogs - cargo;
@@ -96,6 +105,8 @@ export async function getKPIs(region: string) {
 
   return {
     revenue_today_krw: rev.toString(),
+    gross_revenue_today_krw: grossRev.toString(),
+    discounts_today_krw: discounts.toString(),
     orders_today: todayStats.orderCount,
     margin_today_percent: margin,
     inventory_value_krw: inventoryValue.toString(),
@@ -113,7 +124,7 @@ export async function getTrend(region: string) {
   const isAll = region === 'ALL';
   const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
-  const uzbRevenueKrwSql = sql<bigint>`coalesce(sum(case when ${orders.regionCode} = 'UZB' then ROUND(${orders.totalAmount}::numeric / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric) else 0 end), 0)::bigint`;
+  const uzbRevenueKrwSql = sql<bigint>`coalesce(sum(case when ${orders.regionCode} = 'UZB' then ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric) else 0 end), 0)::bigint`;
 
   // 1. Last 7 days directly from orders table
   const summaryDays = await db
@@ -157,18 +168,25 @@ export async function getTrend(region: string) {
       product_id: orderItems.productId,
       product_name: products.name,
       units_sold: sum(orderItems.quantity),
-      revenue_krw: sum(orderItems.subtotalSnapshot),
+      revenue_krw: sql<bigint>`sum(
+        CASE 
+          WHEN ${orders.regionCode} = 'KOR' THEN ${orderItems.subtotalSnapshot}
+          WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orderItems.subtotalSnapshot}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+          ELSE ${orderItems.subtotalSnapshot}
+        END
+      )::bigint`,
     })
     .from(orderItems)
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .innerJoin(products, eq(orderItems.productId, products.id))
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
       eq(orders.status, 'DELIVERED'),
       sql`${orders.deliveredAt} IS NOT NULL`,
       sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
-    .groupBy(orderItems.productId, products.name)
+    .groupBy(orderItems.productId, products.name, exchangeRateSnapshots.krwToUzs)
     .orderBy(desc(sql`sum(${orderItems.subtotalSnapshot})`))
     .limit(5);
 

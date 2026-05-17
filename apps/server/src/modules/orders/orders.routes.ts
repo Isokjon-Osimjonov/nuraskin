@@ -28,6 +28,7 @@ router.patch('/:id/ship', requirePermission('orders:write'), asyncHandler(ctrl.s
 router.patch('/:id/deliver', requirePermission('orders:write'), asyncHandler(ctrl.deliverOrder));
 router.patch('/:id/cancel', requirePermission('orders:write'), asyncHandler(ctrl.cancelOrder));
 router.patch('/:id/status', requirePermission('orders:write'), asyncHandler(ctrl.updateStatus));
+router.post('/:id/scan-item', requireAuth, requirePermission('orders:write'), asyncHandler(ctrl.scanItem));
 router.post('/:id/scan', requirePermission('inventory:write'), asyncHandler(ctrl.scanItem));
 router.post('/:id/complete-packing', requirePermission('inventory:write'), asyncHandler(ctrl.completePacking));
 

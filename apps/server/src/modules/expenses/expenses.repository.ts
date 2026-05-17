@@ -1,4 +1,4 @@
-import { db, expenses, users, orderExpenses, orders, orderItems, customers, products, inventoryBatches } from '@nuraskin/database';
+import { db, expenses, users, orderExpenses, orders, orderItems, customers, products, inventoryBatches, exchangeRateSnapshots, coupons, couponRedemptions } from '@nuraskin/database';
 import { eq, and, sql, desc, gte, lte } from 'drizzle-orm';
 import type { NewExpense } from '@nuraskin/database';
 
@@ -92,7 +92,16 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
       id: orders.id,
       orderNumber: orders.orderNumber,
       regionCode: orders.regionCode,
-      totalAmount: orders.totalAmount,
+      totalAmount: sql<bigint>`CASE 
+        WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
+        WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+        ELSE ${orders.totalAmount}
+      END`,
+      discountAmountKrw: sql<bigint>`CASE 
+        WHEN ${orders.regionCode} = 'KOR' THEN COALESCE(${orders.discountAmount}, 0)
+        WHEN ${orders.regionCode} = 'UZB' THEN ROUND((COALESCE(${orders.discountAmount}, 0)::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+        ELSE COALESCE(${orders.discountAmount}, 0)
+      END`,
       cargoCostKrw: orders.cargoCostKrw,
       status: orders.status,
       createdAt: orders.createdAt,
@@ -103,12 +112,13 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
     .from(orders)
     .leftJoin(customers, eq(orders.customerId, customers.id))
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
       eq(orders.status, 'DELIVERED'),
       sql`${orders.deliveredAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
       sql`${orders.deliveredAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
     ))
-    .groupBy(orders.id, customers.fullName);
+    .groupBy(orders.id, customers.fullName, exchangeRateSnapshots.krwToUzs);
 
   return rows;
 }
@@ -133,10 +143,17 @@ export async function getInventoryValuation() {
 export async function getOutstandingDebt() {
   const [row] = await db
     .select({
-      totalKrw: sql<bigint>`coalesce(sum(${orders.totalAmount}), 0)::bigint`,
+      totalKrw: sql<bigint>`coalesce(sum(
+        CASE 
+          WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
+          WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+          ELSE ${orders.totalAmount}
+        END
+      ), 0)::bigint`,
       customerCount: sql<number>`count(distinct ${orders.customerId})::int`,
     })
     .from(orders)
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`);
 
   return row || { totalKrw: 0n, customerCount: 0 };
@@ -184,4 +201,44 @@ export async function getOrderExpensesForMonth(startDate: string, endDate: strin
     .orderBy(desc(orderExpenses.createdAt));
   
   return rows;
+}
+
+export async function getCouponSummary(startDate: string, endDate: string) {
+  const rows = await db
+    .select({
+      code: coupons.code,
+      name: coupons.name,
+      usageCount: sql<number>`count(${couponRedemptions.id})::int`,
+      totalDiscountKrw: sql<bigint>`coalesce(sum(
+        CASE 
+          WHEN ${orders.regionCode} = 'KOR' THEN ${couponRedemptions.discountAmount}
+          WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${couponRedemptions.discountAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+          ELSE ${couponRedemptions.discountAmount}
+        END
+      ), 0)::bigint`,
+      revenueGeneratedKrw: sql<bigint>`coalesce(sum(
+        CASE 
+          WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
+          WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+          ELSE ${orders.totalAmount}
+        END
+      ), 0)::bigint`,
+    })
+    .from(couponRedemptions)
+    .innerJoin(coupons, eq(couponRedemptions.couponId, coupons.id))
+    .innerJoin(orders, eq(couponRedemptions.orderId, orders.id))
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
+    .where(and(
+      eq(orders.status, 'DELIVERED'),
+      sql`${orders.deliveredAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+      sql`${orders.deliveredAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
+    ))
+    .groupBy(coupons.id, coupons.code, coupons.name)
+    .orderBy(desc(sql`totalDiscountKrw`));
+
+  return rows.map(r => ({
+    ...r,
+    totalDiscountKrw: r.totalDiscountKrw.toString(),
+    revenueGeneratedKrw: r.revenueGeneratedKrw.toString()
+  }));
 }

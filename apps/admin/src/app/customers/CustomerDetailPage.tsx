@@ -141,7 +141,7 @@ export function CustomerDetailPage() {
                       <TableCell>{format(new Date(o.createdAt), 'dd.MM.yyyy HH:mm')}</TableCell>
                       <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
                       <TableCell className="text-right">
-                        {Number(BigInt(o.totalAmount) / (o.currency === 'UZS' ? 100n : 1n)).toLocaleString()} {o.currency}
+                        {formatPrice(o.totalAmount, o.currency === 'UZS' ? 'UZB' : 'KOR')}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/orders/${o.id}` } as any)}>{UZ.common.view}</Button>

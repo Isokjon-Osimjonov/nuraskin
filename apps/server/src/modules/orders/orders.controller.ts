@@ -71,9 +71,9 @@ export async function updateStatus(req: Request, res: Response) {
 export async function scanItem(req: Request, res: Response) {
   const input = scanItemSchema.parse(req.body);
   const adminId = req.user?.sub;
-  // implement logic in service if needed, or placeholder
-  // const result = await service.scanItem(req.params.id, input, adminId);
-  res.json({ success: true });
+  if (!adminId) throw new UnauthorizedError();
+  const result = await service.scanOrderItem(req.params.id, input, adminId);
+  res.json(result);
 }
 
 export async function completePacking(req: Request, res: Response) {

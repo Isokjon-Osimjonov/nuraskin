@@ -33,120 +33,126 @@ import type {
 } from '@nuraskin/database';
 
 export async function createManualOrder(input: CreateManualOrderInput, adminId: string) {
-  const customer = await db.query.customers.findFirst({ where: eq(customers.id, input.customerId) });
-  if (!customer) throw new NotFoundError('Mijoz topilmadi');
+  try {
+    const customer = await db.query.customers.findFirst({ where: eq(customers.id, input.customerId) });
+    if (!customer) throw new NotFoundError('Mijoz topilmadi');
 
-  const admin = await usersRepository.findById(adminId);
-  const adminName = admin?.fullName || 'Admin';
+    const admin = await usersRepository.findById(adminId);
+    const adminName = admin?.fullName || 'Admin';
 
-  const orderId = await db.transaction(async (tx: any) => {
-    const orderNumber = await generateManualOrderNumber();
-    const rateSnapshot = await repository.getLatestRateSnapshot();
-    
-    // Check stock for all items
-    for (const item of input.items) {
-      const available = await repository.getAvailableStock(item.productId, tx);
-      if (item.quantity > available && !input.forceCreate) {
-        const product = await productsRepository.findById(item.productId);
-        throw new BadRequestError(`INSUFFICIENT_STOCK: ${product?.name}`, 'INSUFFICIENT_STOCK', {
-          productId: item.productId,
-          productName: product?.name,
-          available,
-          requested: item.quantity
+    const finalOrder = await db.transaction(async (tx: any) => {
+      const orderNumber = await generateManualOrderNumber();
+      const rateSnapshot = await repository.getLatestRateSnapshot();
+      
+      // Check stock for all items
+      for (const item of input.items) {
+        const available = await repository.getAvailableStock(item.productId, tx);
+        if (item.quantity > available && !input.forceCreate) {
+          const product = await productsRepository.findById(item.productId);
+          throw new BadRequestError(`INSUFFICIENT_STOCK: ${product?.name}`, 'INSUFFICIENT_STOCK', {
+            productId: item.productId,
+            productName: product?.name,
+            available,
+            requested: item.quantity
+          });
+        }
+      }
+
+      const orderData: NewOrder = {
+        orderNumber,
+        customerId: input.customerId,
+        regionCode: input.region,
+        status: 'PENDING_PAYMENT',
+        orderSource: 'MANUAL',
+        currency: input.region === 'UZB' ? 'UZS' : 'KRW',
+        deliveryAddressLine1: input.deliveryAddress,
+        deliveryFeeCharged: BigInt(input.deliveryFeeCharged),
+        deliveryFeeActual: BigInt(input.deliveryFeeActual),
+        deliveryCoveredBy: input.deliveryFeeCoveredBy,
+        cargoFee: BigInt(input.deliveryFeeCharged),
+        cargoCostKrw: BigInt(input.deliveryFeeActual),
+        adminNote: input.adminNotes || null,
+        createdBy: adminId,
+        rateSnapshotId: rateSnapshot?.id || null,
+      };
+
+      const [order] = await tx.insert(orders).values(orderData).returning();
+      if (!order) throw new Error('Failed to create manual order');
+
+      await tx.insert(orderStatusHistory).values({
+        orderId: order.id,
+        toStatus: order.status,
+        changedBy: adminId,
+        note: 'Manual order created',
+      });
+
+      const itemsForNotification: any[] = [];
+
+      for (const itemInput of input.items) {
+        const product = await productsRepository.findById(itemInput.productId);
+        if (!product) throw new NotFoundError(`Product ${itemInput.productId} not found`);
+
+        const unitPrice = BigInt(itemInput.negotiatedPriceKrw);
+        const subtotal = unitPrice * BigInt(itemInput.quantity);
+
+        await tx.insert(orderItems).values({
+          orderId: order.id,
+          productId: itemInput.productId,
+          quantity: itemInput.quantity,
+          unitPriceSnapshot: unitPrice,
+          negotiatedPriceKrw: unitPrice,
+          subtotalSnapshot: subtotal,
+          currencySnapshot: order.currency,
+        });
+
+        itemsForNotification.push({
+          name: product.name,
+          qty: itemInput.quantity,
+          subtotal: subtotal
         });
       }
-    }
 
-    const orderData: NewOrder = {
-      orderNumber,
-      customerId: input.customerId,
-      regionCode: input.region,
-      status: 'PENDING_PAYMENT',
-      orderSource: 'MANUAL',
-      currency: input.region === 'UZB' ? 'UZS' : 'KRW',
-      deliveryAddressLine1: input.deliveryAddress,
-      deliveryFeeCharged: BigInt(input.deliveryFeeCharged),
-      deliveryFeeActual: BigInt(input.deliveryFeeActual),
-      deliveryCoveredBy: input.deliveryFeeCoveredBy,
-      adminNote: input.adminNotes || null,
-      createdBy: adminId,
-      rateSnapshotId: rateSnapshot?.id || null,
-    };
+      await recalculateOrderTotals(order.id, tx);
+      
+      // Trigger stock reservation
+      const [settingsRow] = await tx.select().from(settings).limit(1);
+      await reserveStock(order.id, settingsRow?.paymentTimeoutMinutes || 30, tx);
 
-    const [order] = await tx.insert(orders).values(orderData).returning();
-    if (!order) throw new Error('Failed to create manual order');
+      const [orderRefreshed] = await tx.select().from(orders).where(eq(orders.id, order.id)).limit(1);
 
-    await tx.insert(orderStatusHistory).values({
-      orderId: order.id,
-      toStatus: order.status,
-      changedBy: adminId,
-      note: 'Manual order created',
-    });
-
-    const itemsForNotification: any[] = [];
-
-    for (const itemInput of input.items) {
-      const product = await productsRepository.findById(itemInput.productId);
-      if (!product) throw new NotFoundError(`Product ${itemInput.productId} not found`);
-
-      const unitPrice = BigInt(itemInput.negotiatedPriceKrw);
-      const subtotal = unitPrice * BigInt(itemInput.quantity);
-
-      await tx.insert(orderItems).values({
-        orderId: order.id,
-        productId: itemInput.productId,
-        quantity: itemInput.quantity,
-        unitPriceSnapshot: unitPrice,
-        negotiatedPriceKrw: unitPrice,
-        subtotalSnapshot: subtotal,
-        currencySnapshot: order.currency,
-      });
-
-      itemsForNotification.push({
-        name: product.name,
-        qty: itemInput.quantity,
-        subtotal: subtotal
-      });
-    }
-
-    await recalculateOrderTotals(order.id, tx);
-    
-    // Trigger stock reservation
-    const [settingsRow] = await tx.select().from(settings).limit(1);
-    await reserveStock(order.id, settingsRow?.paymentTimeoutMinutes || 30, tx);
-
-    const [finalOrder] = await tx.select().from(orders).where(eq(orders.id, order.id)).limit(1);
-
-    // Notifications
-    process.nextTick(async () => {
-      try {
-        if (customer.telegramId) {
-          const text = `📦 <b>Sizga buyurtma yaratildi!</b>\n\n` +
-            `#${orderNumber}\n` +
-            `Admin tomonidan: ${adminName}\n` +
-            `💰 Jami: ${formatPrice(finalOrder.totalAmount, input.region)}\n\n` +
-            `To'lovni amalga oshiring va kvitansiyani yuboring.\n` +
-            `🔗 https://nuraskin.uz/orders/${order.id}`;
-          await NotificationService.sendToCustomer(customer.telegramId, text);
-        }
-
-        const adminText = `🛒 <b>Yangi MANUAL buyurtma</b>\n\n` +
-          `📦 #${orderNumber}\n` +
-          `👤 ${customer.fullName}\n` +
-          `💰 ${formatPrice(finalOrder.totalAmount, input.region)}\n` +
-          `🌍 ${input.region}\n` +
-          `👨‍💼 Yaratdi: ${adminName}\n` +
-          `🔗 https://management.nuraskin.uz/orders/${order.id}`;
-        await NotificationService.sendToAdmin(adminText);
-      } catch (e) {
-        logger.error({ e }, 'Failed to send manual order notifications');
+      // Notifications
+      if (customer.telegramId) {
+        NotificationService.sendManualOrderCreated(
+          orderRefreshed.id,
+          orderRefreshed.orderNumber,
+          orderRefreshed.totalAmount,
+          orderRefreshed.regionCode,
+          adminName,
+          customer.telegramId
+        ).catch(err => {
+          logger.error({ err, orderId: orderRefreshed.id }, 'Failed to send manual order notification to customer');
+        });
       }
+
+      NotificationService.sendAdminManualOrderCreated(
+        orderRefreshed.id,
+        orderRefreshed.orderNumber,
+        orderRefreshed.totalAmount,
+        orderRefreshed.regionCode,
+        customer.fullName,
+        adminName
+      ).catch(err => {
+        logger.error({ err, orderId: orderRefreshed.id }, 'Failed to send manual order notification to admin');
+      });
+
+      return orderRefreshed;
     });
 
-    return order.id;
-  });
-
-  return await repository.findById(orderId);
+    return finalOrder;
+  } catch (err: any) {
+    logger.error({ err, input }, 'createManualOrder failed');
+    throw err;
+  }
 }
 
 export async function confirmManualPayment(orderId: string, input: ConfirmManualPaymentInput, adminId: string) {
@@ -187,14 +193,13 @@ export async function confirmManualPayment(orderId: string, input: ConfirmManual
     try {
       const customer = await db.query.customers.findFirst({ where: eq(customers.id, order.customerId) });
       if (customer?.telegramId) {
-        const region = (order.regionCode as 'UZB' | 'KOR') || 'UZB';
-        const text = `✅ <b>To'lovingiz tasdiqlandi!</b>\n\n` +
-          `📦 #${order.orderNumber}\n` +
-          `💰 ${formatPrice(input.paymentAmount, region)}\n` +
-          `💳 ${input.paymentMethod}\n\n` +
-          `🎁 Buyurtmangiz tayyorlanmoqda.\n` +
-          `🔗 https://nuraskin.uz/orders/${order.id}`;
-        await NotificationService.sendToCustomer(customer.telegramId, text);
+        await NotificationService.sendPaymentVerified(
+          order.id,
+          order.orderNumber,
+          input.paymentAmount,
+          (order.regionCode as any) || 'UZB',
+          customer.telegramId
+        );
       }
     } catch (e) {
       logger.error({ e }, 'Failed to send manual payment confirmation notification');
@@ -230,7 +235,7 @@ export async function searchCustomersForManualOrder(q: string) {
 async function generateManualOrderNumber() {
   const date = new Date();
   const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
-  const prefix = `NS-MANUAL-${dateStr}-`;
+  const prefix = `NSM-${dateStr}-`;
   
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -455,11 +460,22 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     totalWeight += (product?.weightGrams || 0) * item.quantity;
   }
 
-  if (order.regionCode === 'KOR') {
+  if (order.orderSource === 'MANUAL') {
+    totalCargo = order.cargoFee;
+  } else if (order.regionCode === 'KOR') {
     totalCargo = await calculateKorCargo(subtotal);
   }
 
-  const discount = BigInt(order.discountAmount || 0n);
+  let discount = BigInt(order.discountAmount || 0n);
+  
+  if (order.couponId) {
+    const [coupon] = await tx.select().from(coupons).where(eq(coupons.id, order.couponId)).limit(1);
+    if (coupon && coupon.type === 'FREE_SHIPPING') {
+      discount = totalCargo; // The discount IS the cargo fee
+      totalCargo = 0n; // Zero out the cargo fee for the customer
+    }
+  }
+
   let totalAmount = subtotal + totalCargo - discount;
   if (totalAmount < 0n) totalAmount = 0n;
 
@@ -496,21 +512,19 @@ async function notifyStatusChange(orderId: string, to: string) {
       // Customer notifications
       if (customerTelegramId) {
         if (to === 'PENDING_PAYMENT') {
-          // sendOrderPlaced handles items detail, called from storefront.service.ts for new orders
-          // But for admin transitions we still send simple version
+          // Manual orders call specialized method in createManualOrder
+          // This catch-all handles other transitions
           await NotificationService.sendToCustomer(customerTelegramId, `✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n📦 #${orderNumber}\n💰 Jami: ${formatPrice(totalAmount, region)}\n\nTo'lovni amalga oshiring va kvitansiya yuboring.\n🔗 Buyurtmani ko'rish: https://nuraskin.uz/orders/${orderId}`);
         } else if (to === 'PAYMENT_SUBMITTED') {
-          await NotificationService.sendPaymentSubmitted(orderId, orderNumber, customerTelegramId as any);
+          await NotificationService.sendPaymentSubmitted(orderId, orderNumber, customerTelegramId);
         } else if (to === 'PAYMENT_VERIFIED' || to === 'PAID') {
-          await NotificationService.sendPaymentVerified(orderId, orderNumber, customerTelegramId as any);
-        } else if (to === 'PACKING') {
-          await NotificationService.sendPacking(orderId, orderNumber, customerTelegramId as any);
-        } else if (to === 'SHIPPED') {
-          await NotificationService.sendShipped(orderId, orderNumber, customerTelegramId as any);
+          await NotificationService.sendPaymentVerified(orderId, orderNumber, totalAmount, region, customerTelegramId);
+        } else if (to === 'PACKING' || to === 'SHIPPED') {
+          await NotificationService.sendOrderShipped(orderId, orderNumber, customerTelegramId);
         } else if (to === 'DELIVERED') {
-          await NotificationService.sendDelivered(orderId, orderNumber, customerTelegramId as any);
+          await NotificationService.sendOrderDelivered(orderId, orderNumber, customerTelegramId);
         } else if (to === 'CANCELED') {
-          await NotificationService.sendCancelled(orderId, orderNumber, customerTelegramId as any);
+          await NotificationService.sendOrderCancelled(orderId, orderNumber, totalAmount, region, customerTelegramId);
         }
       }
 
@@ -518,7 +532,7 @@ async function notifyStatusChange(orderId: string, to: string) {
       if (to === 'PAYMENT_SUBMITTED') {
         await NotificationService.sendAdminPaymentSubmitted(orderId, orderNumber, totalAmount, customerName, region);
       } else if (to === 'CANCELED') {
-        await NotificationService.sendAdminCancelled(orderId, orderNumber, customerName);
+        await NotificationService.sendAdminCancelled(orderId, orderNumber, totalAmount, customerName, region);
       }
     } catch (e) {
       logger.error({ e, orderId, to }, 'Failed to send status transition notification');
@@ -620,11 +634,23 @@ export async function transitionOrderStatus(
     if (input.trackingNumber) updates.trackingNumber = input.trackingNumber;
 
     if (to === 'PAYMENT_SUBMITTED') updates.paymentSubmittedAt = now;
-    if (to === 'PAYMENT_VERIFIED') updates.paymentVerifiedAt = now;
+    if (to === 'PAYMENT_VERIFIED') {
+      updates.paymentVerifiedAt = now;
+      updates.paymentVerifiedBy = adminId || null;
+      updates.paymentConfirmedAt = now;
+      updates.paymentConfirmedBy = adminId || null;
+    }
     if (to === 'PAYMENT_REJECTED') updates.paymentRejectedAt = now;
+    if (to === 'PACKING') {
+      updates.packedAt = now;
+      updates.packedBy = adminId;
+    }
     if (to === 'SHIPPED') {
       updates.shippedAt = now;
-      if (!order.packedAt) updates.packedAt = now;
+      if (!order.packedAt) {
+        updates.packedAt = now;
+        updates.packedBy = adminId;
+      }
     }
     if (to === 'DELIVERED') updates.deliveredAt = now;
 
@@ -658,6 +684,106 @@ export async function transitionOrderStatus(
 
     return await repository.findById(orderId, tx);
   });
+}
+
+export async function scanOrderItem(
+  orderId: string,
+  input: { barcode?: string; sku?: string },
+  adminId: string
+) {
+  // 1. Find order
+  const order = await repository.findById(orderId);
+  if (!order) throw new NotFoundError('Buyurtma topilmadi');
+
+  // 2. Find product by barcode OR sku
+  const productResult = await db
+    .select()
+    .from(products)
+    .where(
+      input.barcode
+        ? eq(products.barcode, input.barcode)
+        : eq(products.sku, input.sku!)
+    )
+    .limit(1);
+
+  const product = productResult[0];
+  if (!product) {
+    throw new NotFoundError(
+      `Mahsulot topilmadi: ${input.barcode || input.sku}`
+    );
+  }
+
+  // 3. Find matching order item
+  const itemResult = await db
+    .select()
+    .from(orderItems)
+    .where(
+      and(
+        eq(orderItems.orderId, orderId),
+        eq(orderItems.productId, product.id)
+      )
+    )
+    .limit(1);
+
+  const item = itemResult[0];
+  if (!item) {
+    throw new NotFoundError(
+      `Bu mahsulot bu buyurtmada yo'q: ${product.name}`
+    );
+  }
+
+  // 4. Check if already scanned
+  if (item.isScanned) {
+    return {
+      success: false,
+      alreadyScanned: true,
+      message: `${product.name} allaqachon skanerlangan`,
+      product: {
+        name: product.name,
+        barcode: product.barcode,
+        sku: product.sku
+      }
+    };
+  }
+
+  // 5. Mark as scanned
+  await db
+    .update(orderItems)
+    .set({
+      isScanned: true,
+      scannedAt: new Date(),
+      scannedBy: adminId,
+      updatedAt: new Date()
+    })
+    .where(eq(orderItems.id, item.id));
+
+  // 6. Check if ALL items scanned
+  const allItems = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, orderId));
+
+  const allScanned = allItems.every(i => 
+    i.id === item.id ? true : i.isScanned
+  );
+
+  // 7. Return result
+  return {
+    success: true,
+    alreadyScanned: false,
+    allItemsScanned: allScanned,
+    message: `${product.name} skanerlandi ✓`,
+    product: {
+      id: product.id,
+      name: product.name,
+      barcode: product.barcode,
+      sku: product.sku
+    },
+    scannedCount: allItems.filter(i => 
+      i.isScanned || i.id === item.id
+    ).length,
+    totalCount: allItems.length
+  };
 }
 
 async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {

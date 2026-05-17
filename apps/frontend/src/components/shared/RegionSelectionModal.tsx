@@ -25,55 +25,52 @@ export function RegionSelectionModal() {
       // Intentionally empty: modal cannot be closed manually
     }}>
       <DialogContent 
-        className="sm:max-w-md p-8 border-none bg-background shadow-2xl flex flex-col items-center text-center"
+        className="max-w-[340px] w-[calc(100%-32px)] p-8 border-none bg-white shadow-2xl flex flex-col items-center text-center"
         // Prevent closing via overlay or Esc
         onPointerDownOutside={(e: any) => e.preventDefault()}
         onEscapeKeyDown={(e: any) => e.preventDefault()}
       >
-        <DialogHeader className="mb-6">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+        <DialogHeader className="mb-6 w-full">
+          <div className="mx-auto w-16 h-16 bg-[#E30B5C]/10 rounded-full flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
               height="32"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="currentColor"
+              stroke="#E30B5C"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary"
             >
               <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
           </div>
-          <DialogTitle className="text-3xl font-black tracking-tight">
+          <DialogTitle className="text-2xl font-bold tracking-tight text-[#3A0311]">
             Mintaqangizni tanlang
           </DialogTitle>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-stone-500 text-sm mt-2">
             Xarid qilishni davom ettirish uchun hududingizni belgilang.
           </p>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+        <div className="grid grid-cols-1 gap-3 w-full">
           <Button
             variant="outline"
-            size="lg"
-            className="h-24 text-xl flex flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all"
+            className="h-20 text-lg flex items-center justify-start gap-4 border-stone-100 hover:bg-stone-50 hover:border-[#E30B5C]/30 transition-all rounded-2xl px-6"
             onClick={() => handleSelect('UZB')}
           >
-            <span className="text-3xl">🇺🇿</span>
-            O'zbekiston
+            <span className="text-2xl">🇺🇿</span>
+            <span className="font-medium text-[#3A0311]">O'zbekiston</span>
           </Button>
           <Button
             variant="outline"
-            size="lg"
-            className="h-24 text-xl flex flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all"
+            className="h-20 text-lg flex items-center justify-start gap-4 border-stone-100 hover:bg-stone-50 hover:border-[#E30B5C]/30 transition-all rounded-2xl px-6"
             onClick={() => handleSelect('KOR')}
           >
-            <span className="text-3xl">🇰🇷</span>
-            Koreya
+            <span className="text-2xl">🇰🇷</span>
+            <span className="font-medium text-[#3A0311]">Koreya</span>
           </Button>
         </div>
       </DialogContent>

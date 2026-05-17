@@ -7,5 +7,6 @@ export const router = Router();
 
 router.use(requireAuth);
 
+router.get('/', asyncHandler(ctrl.list));
 router.get('/live', asyncHandler(ctrl.getLiveSales));
 router.get('/summary', asyncHandler(ctrl.getSummarySales));

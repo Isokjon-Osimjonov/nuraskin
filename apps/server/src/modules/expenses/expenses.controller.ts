@@ -49,6 +49,12 @@ export async function getAccountingSummary(req: Request, res: Response) {
   res.json(result);
 }
 
+export async function getCouponSummary(req: Request, res: Response) {
+  const { startDate, endDate } = req.query;
+  const result = await service.getCouponSummary(startDate as string, endDate as string);
+  res.json(result);
+}
+
 export async function exportAccounting(req: Request, res: Response) {
   const month = req.query.month as string;
   const buffer = await service.exportAccountingToExcel(month);

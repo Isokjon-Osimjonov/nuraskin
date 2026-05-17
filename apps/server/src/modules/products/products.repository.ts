@@ -268,3 +268,13 @@ export async function updateRegionalConfig(
 
   return updated;
 }
+
+export async function listBrands(): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ name: products.brandName })
+    .from(products)
+    .where(isNotNull(products.brandName))
+    .orderBy(products.brandName);
+  
+  return rows.map(r => r.name).filter((name): name is string => Boolean(name));
+}

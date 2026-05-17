@@ -53,7 +53,15 @@ export const ordersApi = {
   updateStatus: (id: string, data: UpdateOrderStatusInput & { bypassDebtLimit?: boolean }): Promise<void> =>
     fetchWithAuth(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify(data) }),
     
-  scanItem: (id: string, data: ScanItemInput): Promise<{ match: boolean; item?: any; error?: string }> =>
+  scanItem: (id: string, data: ScanItemInput): Promise<{ 
+    success: boolean; 
+    alreadyScanned?: boolean; 
+    allItemsScanned?: boolean; 
+    message: string;
+    product?: any;
+    scannedCount?: number;
+    totalCount?: number;
+  }> =>
     fetchWithAuth(`/orders/${id}/scan-item`, { method: 'POST', body: JSON.stringify(data) }),
     
   completePacking: (id: string): Promise<void> =>

@@ -22,6 +22,10 @@ export const accountingApi = {
     return await fetchWithAuth(`/api/admin/accounting/summary?month=${month}`);
   },
 
+  getCouponSummary: async (startDate: string, endDate: string): Promise<any[]> => {
+    return await fetchWithAuth(`/api/admin/accounting/coupon-summary?startDate=${startDate}&endDate=${endDate}`);
+  },
+
   listExpenses: async (month: string, category?: string): Promise<any[]> => {
     const params = new URLSearchParams({ month });
     if (category) params.append('category', category);

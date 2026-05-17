@@ -86,8 +86,12 @@ export async function validateAndApply(
         applicableItems = cartItems.filter(i => i.brandName && coupon.applicableBrands!.includes(i.brandName));
     }
 
+    if (coupon.excludeWholesale) {
+        applicableItems = applicableItems.filter(i => !i.isWholesale);
+    }
+
     if (applicableItems.length === 0) {
-        throw new CouponNotApplicableError('Kupon savatchangizdagi mahsulotlarga mos kelmadi');
+        throw new CouponNotApplicableError('Kupon savatchangizdagi mahsulotlarga mos kelmadi yoki ular ulgurji narxda');
     }
 
     // 10. Min Amount / Qty checks (on applicable items)
@@ -107,6 +111,15 @@ export async function validateAndApply(
     
     if (applicableQty < coupon.minOrderQty) {
         throw new CouponNotApplicableError(`Minimal mahsulot miqdori: ${coupon.minOrderQty} ta`);
+    }
+
+    if (coupon.type === 'FREE_SHIPPING') {
+        return {
+            discountAmount: 0n,
+            discountedItems: [],
+            couponId: coupon.id,
+            isFreeShipping: true
+        } as any;
     }
 
     // Calculation
@@ -163,6 +176,7 @@ export async function createCoupon(input: CreateCouponInput) {
     startsAt: input.startsAt ? new Date(input.startsAt) : null,
     expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
     regionCode: input.regionCode || null,
+    excludeWholesale: input.excludeWholesale || false,
   } as any);
 }
 
@@ -193,6 +207,7 @@ export async function updateCoupon(id: string, input: UpdateCouponInput) {
   if (input.startsAt !== undefined) updateData.startsAt = input.startsAt ? new Date(input.startsAt) : null;
   if (input.expiresAt !== undefined) updateData.expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
   if (input.regionCode !== undefined) updateData.regionCode = input.regionCode || null;
+  if (input.excludeWholesale !== undefined) updateData.excludeWholesale = input.excludeWholesale;
 
   return await repository.update(id, updateData);
 }

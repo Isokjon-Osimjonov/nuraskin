@@ -1,44 +1,58 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowUpRight } from 'lucide-react';
 
 export const AboutSummary = () => {
   return (
-    <section className="bg-[#f8f7f5] py-16 min-h-[70vh] flex flex-col justify-center">
-      <div className="max-w-[1280px] mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-center gap-12">
+    <section className="px-4 md:px-6 py-12">
+      <div className="max-w-[1280px] mx-auto bg-[#3A0311] rounded-[32px] p-8 md:p-16 relative overflow-hidden">
+        
+        {/* Decorative element */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#E30B5C]/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
 
-          {/* Image */}
-          <div className="w-full md:w-1/2 aspect-[4/3] overflow-hidden rounded-2xl bg-stone-100">
-            <img
-              src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&q=80&w=800"
-              alt="Cherry Care — biz haqimizda"
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
+          
+          {/* Left Column */}
+          <div className="space-y-6">
+            <div>
+              <p className="text-[11px] tracking-[0.2em] text-[#E30B5C] font-semibold mb-3 uppercase">
+                Biz haqimizda
+              </p>
+              <h2 className="text-2xl md:text-4xl font-medium text-white leading-tight">
+                Koreya kosmetikasini <br /> bevosita Seuldan oling
+              </h2>
+            </div>
+            
+            <p className="text-[#c49aaa] text-sm md:text-base leading-relaxed max-w-[480px]">
+              NuraSkin orqali Round Lab, Cosrx, Anua va boshqa brendlarning original mahsulotlarini to'g'ridan-to'g'ri Koreya narxlarida xarid qiling. O'zbekistonga kargo, Koreya ichida tezkor yetkazib berish.
+            </p>
 
-          {/* Text */}
-          <div className="w-full md:w-1/2 space-y-5">
-            <p className="text-[11px] tracking-widest uppercase text-stone-400 font-light">
-              NuraSkin haqida
-            </p>
-            <h2 className="text-[26px] md:text-[32px] font-light text-[#4A1525] leading-snug">
-              Premium Koreya kosmetikasi — teringiz uchun tanlangan.
-            </h2>
-            <p className="text-[14px] font-light text-stone-500 leading-relaxed">
-              Biz eng sifatli Koreya va xalqaro teri parvarish formulalarini sinchkovlik bilan tanlaymiz — dermatolog tomonidan sinovdan o'tgan, yuqori samarali mahsulotlar, chinakam ko'rinadigan natijalar beradi.
-            </p>
-            <p className="text-[14px] font-light text-stone-500 leading-relaxed">
-              Maqsadimiz oddiy: hamma uchun sog'lom, porlagan teri. Kollektsiyamizdagi har bir mahsulot ehtiyotkorlik va maqsad bilan tanlangan.
-            </p>
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 group"
+              className="inline-block border border-[#E30B5C] text-[#E30B5C] px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#E30B5C] hover:text-white transition-all active:scale-95"
             >
-              <span className="text-[13px] font-light text-[#4A1525] tracking-wide border-b border-[#4A1525]/30 group-hover:border-[#4A1525] transition-colors pb-0.5">
-                Batafsil o'qish
-              </span>
-              <ArrowUpRight className="w-4 h-4 text-[#4A1525] opacity-60 group-hover:opacity-100 transition-opacity" strokeWidth={1.5} />
+              Biz haqimizda ko'proq
             </Link>
+          </div>
+
+          {/* Right Column - Stats Grid */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            {[
+              { value: "100%", label: "Original mahsulotlar" },
+              { value: "2 ta", label: "Mintaqa: KOR + UZB" },
+              { value: "Ulgurji", label: "Maxsus narxlar" },
+              { value: "Tezkor", label: "Yetkazib berish" }
+            ].map((stat, idx) => (
+              <div 
+                key={idx} 
+                className="bg-white/5 border border-white/10 rounded-2xl p-5 md:p-6 text-center backdrop-blur-sm transition-colors hover:bg-white/10"
+              >
+                <div className="text-white font-medium text-xl md:text-2xl">
+                  {stat.value}
+                </div>
+                <div className="text-[#c49aaa] text-[11px] md:text-xs mt-1 uppercase tracking-wider font-light">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
 
         </div>

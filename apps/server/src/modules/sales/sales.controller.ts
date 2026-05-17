@@ -11,6 +11,19 @@ export async function getLiveSales(req: Request, res: Response) {
   res.json(result);
 }
 
+export async function list(req: Request, res: Response) {
+  const { from, to, region, page, limit } = req.query;
+  if (!from || !to) throw new BadRequestError('from and to dates are required');
+  const result = await service.listSalesOrders(
+    from as string, 
+    to as string, 
+    region as string,
+    page ? parseInt(page as string) : 1,
+    limit ? parseInt(limit as string) : 10
+  );
+  res.json(result);
+}
+
 export async function getSummarySales(req: Request, res: Response) {
   const { from, to, region } = req.query;
   if (!from || !to) throw new BadRequestError('from and to dates are required');

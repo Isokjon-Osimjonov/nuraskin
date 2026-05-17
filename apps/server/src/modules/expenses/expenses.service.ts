@@ -130,24 +130,34 @@ export async function getAccountingSummary(month: string) {
 
   let korRevenue = 0n;
   let uzbRevenue = 0n;
+  let korDiscounts = 0n;
+  let uzbDiscounts = 0n;
   let totalCogs = 0n;
   let totalCargo = 0n;
 
   for (const row of ordersRows) {
-    if (row.regionCode === 'KOR') korRevenue += BigInt(row.totalAmount);
-    else uzbRevenue += BigInt(row.totalAmount);
+    if (row.regionCode === 'KOR') {
+      korRevenue += BigInt(row.totalAmount);
+      korDiscounts += BigInt(row.discountAmountKrw || 0n);
+    } else {
+      uzbRevenue += BigInt(row.totalAmount);
+      uzbDiscounts += BigInt(row.discountAmountKrw || 0n);
+    }
     
     totalCogs += BigInt(row.cogs);
     totalCargo += BigInt(row.cargoCostKrw);
   }
 
-  const totalRevenue = korRevenue + uzbRevenue;
-  const grossProfit = totalRevenue - totalCogs - totalCargo;
-  const grossMarginPercent = totalRevenue > 0n ? Number(grossProfit * 10000n / totalRevenue) / 100 : 0;
+  const netRevenue = korRevenue + uzbRevenue;
+  const totalDiscounts = korDiscounts + uzbDiscounts;
+  const grossRevenue = netRevenue + totalDiscounts; // Net Revenue + Discounts = Gross Revenue
+  
+  const grossProfit = netRevenue - totalCogs - totalCargo; // Net Revenue is what we actually received
+  const grossMarginPercent = netRevenue > 0n ? Number(grossProfit * 10000n / netRevenue) / 100 : 0;
 
   const grandTotalExpenses = BigInt(expensesSummary.grandTotalKrw);
   const netProfit = grossProfit - grandTotalExpenses;
-  const netMarginPercent = totalRevenue > 0n ? Number(netProfit * 10000n / totalRevenue) / 100 : 0;
+  const netMarginPercent = netRevenue > 0n ? Number(netProfit * 10000n / netRevenue) / 100 : 0;
 
   let inventoryTotalValue = 0n;
   const inventoryItems = inventoryRows.map(row => {
@@ -166,7 +176,17 @@ export async function getAccountingSummary(month: string) {
     revenue: {
       kor_krw: korRevenue.toString(),
       uzb_krw: uzbRevenue.toString(),
-      total_krw: totalRevenue.toString(),
+      total_krw: netRevenue.toString(),
+    },
+    gross_revenue: {
+      kor_krw: (korRevenue + korDiscounts).toString(),
+      uzb_krw: (uzbRevenue + uzbDiscounts).toString(),
+      total_krw: grossRevenue.toString(),
+    },
+    coupon_discounts: {
+      kor_krw: korDiscounts.toString(),
+      uzb_krw: uzbDiscounts.toString(),
+      total_krw: totalDiscounts.toString(),
     },
     cogs: {
       total_krw: totalCogs.toString(),
@@ -307,4 +327,11 @@ export async function exportAccountingToExcel(month: string) {
   });
 
   return await workbook.xlsx.writeBuffer();
+}
+
+export async function getCouponSummary(startDate: string, endDate: string) {
+  if (!startDate || !endDate) {
+    throw new BadRequestError('startDate and endDate are required');
+  }
+  return await repository.getCouponSummary(startDate, endDate);
 }
