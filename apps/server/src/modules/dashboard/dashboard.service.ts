@@ -122,11 +122,17 @@ export async function getKPIs(region: string) {
 
 export async function getTrend(region: string) {
   const isAll = region === 'ALL';
-  const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
   const uzbRevenueKrwSql = sql<bigint>`coalesce(sum(case when ${orders.regionCode} = 'UZB' then ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric) else 0 end), 0)::bigint`;
 
-  // 1. Last 7 days directly from orders table
+  // 1. Generate last 7 days in Asia/Seoul
+  const last7DaysStrings = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  });
+
+  // 2. Fetch last 7 days directly from orders table
   const summaryDays = await db
     .select({
       date: sql<string>`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::text`,
@@ -145,22 +151,17 @@ export async function getTrend(region: string) {
     .groupBy(sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`)
     .orderBy(sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`);
 
-  const days = summaryDays.map(d => ({
-    date: d.date,
-    kor_revenue_krw: d.kor_revenue_krw.toString(),
-    uzb_revenue_krw: d.uzb_revenue_krw.toString(),
-    total_orders: Number(d.total_orders || 0),
-  }));
+  const revenueMap = new Map(summaryDays.map(d => [d.date, d]));
 
-  // Ensure today is always present even if 0 sales
-  if (!days.some(d => d.date === todayKst)) {
-    days.push({
-      date: todayKst,
-      kor_revenue_krw: '0',
-      uzb_revenue_krw: '0',
-      total_orders: 0,
-    });
-  }
+  const days = last7DaysStrings.map(date => {
+    const d = revenueMap.get(date);
+    return {
+      date,
+      kor_revenue_krw: (d?.kor_revenue_krw ?? 0n).toString(),
+      uzb_revenue_krw: (d?.uzb_revenue_krw ?? 0n).toString(),
+      total_orders: Number(d?.total_orders || 0),
+    };
+  });
 
   // 3. Top 5 SKUs last 7 days
   const topSkus = await db

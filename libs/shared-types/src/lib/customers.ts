@@ -26,6 +26,8 @@ export const customerListItemSchema = z.object({
   lastOrderAt: z.string().nullable(),
   orderCount: z.number(),
   totalSpent: z.string(),
+  totalSpentKrw: z.string().optional(),
+  totalSpentUzs: z.string().optional(),
   outstandingDebt: z.string(),
   debtLimit: z.string(),
 });

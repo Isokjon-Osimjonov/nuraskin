@@ -1,9 +1,9 @@
+import { useAuthStore } from '../../stores/auth.store';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from './api/orders.api';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { useAuthStore } from '@/stores/auth.store';
 import { 
   ArrowLeft, 
   PackageCheck, 
@@ -42,7 +42,7 @@ export function OrderDetailPage() {
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = React.useState<string | null>(null);
-  const token = useAuthStore(s => s.token);
+  const token = useAuthStore((s: any) => s.token);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['orders', orderId],
@@ -92,7 +92,10 @@ export function OrderDetailPage() {
         toast.success(`Holat o'zgartirildi: ${variables}`);
       }
     },
-    onError: (err: any) => toast.error(err.message || 'Xatolik yuz berdi'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const completePackingMutation = useMutation({
@@ -103,7 +106,10 @@ export function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       toast.success("Buyurtma tayyorlandi");
     },
-    onError: (err: any) => toast.error(err.message || 'Xatolik yuz berdi'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const handleDownloadInvoice = () => {
@@ -209,19 +215,35 @@ export function OrderDetailPage() {
               </div>
               <div className="pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal:</span>
+                  <span className="text-muted-foreground">Mahsulotlar jami:</span>
                   <span>
                     {formatPrice(order.subtotal, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>
                 </div>
+                
+                {order.couponCode && BigInt(order.couponDiscount || '0') > 0n && (
+                  <div className="flex justify-between text-sm text-emerald-600">
+                    <span className="text-muted-foreground font-medium">Kupon ({order.couponCode}):</span>
+                    <span>-{formatPrice(order.couponDiscount, order.currency === 'UZS' ? 'UZB' : 'KOR')}</span>
+                  </div>
+                )}
+
+                {BigInt(order.wholesaleDiscount || '0') > 0n && (
+                  <div className="flex justify-between text-sm text-emerald-600">
+                    <span className="text-muted-foreground font-medium">Ulgurji chegirma:</span>
+                    <span>-{formatPrice(order.wholesaleDiscount, order.currency === 'UZS' ? 'UZB' : 'KOR')}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Cargo fee:</span>
+                  <span className="text-muted-foreground">Kargo:</span>
                   <span>
                     {formatPrice(order.cargoFee, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>
                 </div>
+
                 <div className="flex justify-between font-bold text-lg pt-2 border-t text-primary">
-                  <span>Jami:</span>
+                  <span>JAMI:</span>
                   <span>
                     {formatPrice(order.totalAmount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>

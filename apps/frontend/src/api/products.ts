@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/apiFetch';
+import { api } from '@/lib/api';
 import type { 
   StorefrontProductListItem, 
   StorefrontProductDetail 
@@ -11,7 +11,7 @@ export async function getProducts(params?: { categoryId?: string; search?: strin
   if (params?.limit) query.set('limit', String(params.limit));
   
   const qs = query.toString() ? `?${query.toString()}` : '';
-  const products = await apiFetch<StorefrontProductListItem[]>(`/storefront/products${qs}`);
+  const products = await api.get<StorefrontProductListItem[]>(`/storefront/products${qs}`);
   
   return {
     data: products
@@ -19,7 +19,7 @@ export async function getProducts(params?: { categoryId?: string; search?: strin
 }
 
 export async function getProductBySlug(slug: string) {
-  const product = await apiFetch<StorefrontProductDetail>(`/storefront/products/${slug}`);
+  const product = await api.get<StorefrontProductDetail>(`/storefront/products/${slug}`);
   
   return {
     data: product

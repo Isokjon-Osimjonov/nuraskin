@@ -126,9 +126,10 @@ export function ManualOrderPage() {
       toast.success('Buyurtma yaratildi! Mijozga xabar yuborildi.');
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       try {
-        const data = JSON.parse(err.message);
+        const errMsg = err instanceof Error ? err.message : '';
+        const data = JSON.parse(errMsg);
         if (data.code === 'INSUFFICIENT_STOCK') {
           if (confirm(`${data.message}. Baribir davom etasizmi?`)) {
             form.setValue('forceCreate', true);

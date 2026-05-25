@@ -196,55 +196,57 @@ function AccountingPage() {
     : summary.inventory.items.slice(0, 10);
 
   return (
-    <div className="p-6 space-y-6 bg-muted/10 min-h-screen pb-20">
+    <div className="p-3 sm:p-4 md:p-6 space-y-6 bg-muted/10 min-h-screen pb-20">
       {/* SECTION 0 — Page header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 py-4 border-b -mx-6 px-6 mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Hisobot</h1>
-          <div className="flex items-center gap-1 bg-muted rounded-md p-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" className="h-8 px-3 font-medium capitalize">
-                  {format(selectedMonth, 'MMMM yyyy', { locale: uz })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-2">
-                <div className="grid grid-cols-3 gap-1 text-center">
-                  {Array.from({ length: 12 }).map((_, i) => {
-                    const d = new Date(selectedMonth.getFullYear(), i, 1);
-                    const isSelected = d.getMonth() === selectedMonth.getMonth();
-                    return (
-                      <Button
-                        key={i}
-                        variant={isSelected ? 'default' : 'ghost'}
-                        size="sm"
-                        className="capitalize text-xs h-10"
-                        onClick={() => setSelectedMonth(d)}
-                      >
-                        {format(d, 'MMM', { locale: uz })}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </PopoverContent>
-            </Popover>
+      <div className="flex flex-col gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 py-4 border-b -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900">Hisobot</h1>
+            <div className="flex items-center gap-1 bg-muted rounded-md p-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" className="h-8 px-3 font-medium capitalize text-sm">
+                    {format(selectedMonth, 'MMMM yyyy', { locale: uz })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2">
+                  <div className="grid grid-cols-3 gap-1 text-center">
+                    {Array.from({ length: 12 }).map((_, i) => {
+                      const d = new Date(selectedMonth.getFullYear(), i, 1);
+                      const isSelected = d.getMonth() === selectedMonth.getMonth();
+                      return (
+                        <Button
+                          key={i}
+                          variant={isSelected ? 'default' : 'ghost'}
+                          size="sm"
+                          className="capitalize text-xs h-10"
+                          onClick={() => setSelectedMonth(d)}
+                        >
+                          {format(d, 'MMM', { locale: uz })}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth}>
-              <ChevronRight className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="flex-1 sm:flex-none h-9 text-xs" onClick={() => openExpenseSheet()}>
+              <Plus className="mr-2 h-3.5 w-3.5" /> Xarajat
+            </Button>
+            <Button className="flex-1 sm:flex-none h-9 text-xs" onClick={handleExport}>
+              <Download className="mr-2 h-3.5 w-3.5" /> Excel
             </Button>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => openExpenseSheet()}>
-            <Plus className="mr-2 h-4 w-4" /> Xarajat qo'shish
-          </Button>
-          <Button size="sm" onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" /> Excel yuklab olish
-          </Button>
         </div>
       </div>
 

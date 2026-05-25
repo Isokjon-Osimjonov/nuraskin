@@ -1,3 +1,5 @@
+import { useAuthStore } from '../../stores/auth.store';
+import { api } from '@/lib/api';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { couponsApi } from './api/coupons.api';
@@ -9,10 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { tiyinToSom, somToTiyin } from '@/lib/currency';
-import { useAuthStore } from '@/stores/auth.store';
 
 export function CouponFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string };
@@ -55,6 +58,9 @@ export function CouponFormPage() {
     maxUsesPerCustomer: 1,
     autoApply: false,
     isStackable: false,
+    isPromotional: false,
+    isFirstPurchaseOnly: false,
+    promoDisplayText: '',
     status: 'DRAFT',
   });
 
@@ -74,29 +80,28 @@ export function CouponFormPage() {
   const [loadingCustomers, setLoadingCustomers] = React.useState(false);
   const [showCustomerDropdown, setShowCustomerDropdown] = React.useState(false);
 
-  const token = useAuthStore(s => s.token);
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
+  const token = useAuthStore((s: any) => s.token);
+  
   const customerScope = (form.targetCustomerIds && form.targetCustomerIds.length > 0) ? 'SPECIFIC' : 'ALL';
 
   // Fetch Data on Scope Change
   React.useEffect(() => {
     if (form.scope === 'BRANDS') {
-      fetch(`${API_BASE}/api/products/brands`, {
+      fetch(`/products/brands`, {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => res.json()).then(data => setAllBrands(data || []));
     }
     if (form.scope === 'PRODUCTS' && allProducts.length === 0) {
-      fetch(`${API_BASE}/api/products?limit=200`, {
+      fetch(`/products?limit=200`, {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => res.json()).then(data => setAllProducts(Array.isArray(data) ? data : data.items || data.products || []));
     }
     if (form.scope === 'CATEGORIES' && allCategories.length === 0) {
-      fetch(`${API_BASE}/api/categories`, {
+      fetch(`/categories`, {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => res.json()).then(data => setAllCategories(data.data || data || []));
     }
-  }, [form.scope, token, API_BASE, allProducts.length, allCategories.length]);
+  }, [form.scope, token, allProducts.length, allCategories.length]);
 
   const filteredProducts = React.useMemo(() => {
     if (!productSearch) return [];
@@ -115,7 +120,7 @@ export function CouponFormPage() {
     const timer = setTimeout(() => {
       if (customerScope === 'SPECIFIC') {
         setLoadingCustomers(true);
-        fetch(`${API_BASE}/api/orders/customers/search?q=${customerSearch}`, {
+        fetch(`/orders/customers/search?q=${customerSearch}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         .then(res => res.json())
@@ -130,7 +135,7 @@ export function CouponFormPage() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [customerSearch, customerScope, token, API_BASE]);
+  }, [customerSearch, customerScope, token]);
 
   React.useEffect(() => {
     if (existingCoupon) {
@@ -156,32 +161,35 @@ export function CouponFormPage() {
         startsAt: existingCoupon.startsAt ? new Date(existingCoupon.startsAt).toISOString().split('T')[0] : '',
         expiresAt: existingCoupon.expiresAt ? new Date(existingCoupon.expiresAt).toISOString().split('T')[0] : '',
         maxUsesTotal: existingCoupon.maxUsesTotal || '',
+        isPromotional: existingCoupon.isPromotional ?? false,
+        isFirstPurchaseOnly: existingCoupon.isFirstPurchaseOnly ?? false,
+        promoDisplayText: existingCoupon.promoDisplayText || '',
       });
 
       // Load names for resources
       if (existingCoupon.applicableResourceIds?.length) {
         if (existingCoupon.scope === 'PRODUCTS') {
           Promise.all(existingCoupon.applicableResourceIds.map((id: string) => 
-            fetch(`${API_BASE}/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
-          )).then(res => setSelectedProducts(res.map(p => ({ id: p.id, name: p.name, barcode: p.barcode }))));
+            api.get(`/products/${id}`)
+          )).then(res => setSelectedProducts(res.map((p: any) => ({ id: p.id, name: p.name, barcode: p.barcode }))));
         } else if (existingCoupon.scope === 'CATEGORIES') {
            Promise.all(existingCoupon.applicableResourceIds.map((id: string) => 
-            fetch(`${API_BASE}/api/categories/${id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
-          )).then(res => setSelectedCategories(res.map(c => ({ id: c.id, name: c.name }))));
+            api.get<any>(`/categories/${id}`)
+          )).then(res => setSelectedCategories(res.map((c: any) => ({ id: c.id, name: c.name }))));
         }
       }
 
       if (existingCoupon.targetCustomerIds?.length) {
         Promise.all(existingCoupon.targetCustomerIds.map((id: string) => 
-          fetch(`${API_BASE}/api/customers/${id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
-        )).then(res => setSelectedCustomers(res.map(c => ({ 
+          api.get(`/customers/${id}`)
+        )).then(res => setSelectedCustomers(res.map((c: any) => ({ 
           id: c.id, 
           name: c.fullName || 'Nomsiz',
           telegramUsername: c.telegramUsername 
         }))));
       }
     }
-  }, [existingCoupon, token, API_BASE]);
+  }, [existingCoupon, token]);
 
   const mutation = useMutation({
     mutationFn: (data: any) => {
@@ -226,6 +234,9 @@ export function CouponFormPage() {
             expiresAt: data.expiresAt ? new Date(data.expiresAt).toISOString() : null,
             maxUsesTotal: data.maxUsesTotal ? parseInt(data.maxUsesTotal) : null,
             excludeWholesale: data.excludeWholesale || false,
+            isPromotional: data.isPromotional ?? false,
+            isFirstPurchaseOnly: data.isFirstPurchaseOnly ?? false,
+            promoDisplayText: data.isPromotional ? (data.promoDisplayText || null) : null,
             applicableResourceIds: 
               data.scope === 'PRODUCTS' ? selectedProducts.map(p => p.id) : 
               data.scope === 'CATEGORIES' ? selectedCategories.map(c => c.id) : 
@@ -240,7 +251,10 @@ export function CouponFormPage() {
       toast.success(isEdit ? "Kupon yangilandi" : "Kupon yaratildi");
       navigate({ to: '/coupons' } as any);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   if (isFetching) return <div className="p-6">Yuklanmoqda...</div>;
@@ -401,8 +415,9 @@ export function CouponFormPage() {
                     value={form.scope} 
                     onValueChange={(v: string) => {
                       setForm({...form, scope: v, applicableResourceIds: [], applicableBrands: []});
-                      setSelectedResources([]);
-                      setResourceSearch('');
+                      setSelectedProducts([]);
+                      setSelectedCategories([]);
+                      setProductSearch('');
                     }}
                     className="flex flex-col gap-3"
                 >
@@ -771,6 +786,52 @@ export function CouponFormPage() {
                   </div>
                 </RadioGroup>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Section: Promotional Banner */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Storefront banneri</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Bannerda ko'rsatish</Label>
+                  <p className="text-xs text-muted-foreground">Bu kuponni storefront sahifasida reklama sifatida ko'rsatish</p>
+                </div>
+                <Switch 
+                  checked={form.isPromotional}
+                  onCheckedChange={(v) => setForm({...form, isPromotional: v})}
+                />
+              </div>
+
+              {form.isPromotional && (
+                <>
+                  <Separator className="my-2" />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Faqat birinchi buyurtma uchun</Label>
+                      <p className="text-xs text-muted-foreground">Faqat hech qachon buyurtma bermagan mijozlarga amal qiladi</p>
+                    </div>
+                    <Switch 
+                      checked={form.isFirstPurchaseOnly}
+                      onCheckedChange={(v) => setForm({...form, isFirstPurchaseOnly: v})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Banner matni</Label>
+                    <Input 
+                      placeholder="Masalan: Birinchi buyurtmangizga 15% chegirma!"
+                      value={form.promoDisplayText}
+                      onChange={(e) => setForm({...form, promoDisplayText: e.target.value})}
+                    />
+                    <p className="text-[10px] text-muted-foreground italic">Bo'sh qoldirilsa kupon nomi ishlatiladi</p>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

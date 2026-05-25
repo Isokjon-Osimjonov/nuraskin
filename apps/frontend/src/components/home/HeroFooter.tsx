@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 
 interface HealthResponse {
@@ -5,10 +6,7 @@ interface HealthResponse {
 }
 
 function fetchHealth(): Promise<HealthResponse> {
-  return fetch('http://localhost:4000/api/health').then((r) => {
-    if (!r.ok) throw new Error('health check failed');
-    return r.json() as Promise<HealthResponse>;
-  });
+  return api.get<HealthResponse>('/health');
 }
 
 export function HeroFooter() {

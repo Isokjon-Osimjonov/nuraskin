@@ -56,7 +56,10 @@ export function CustomersListPage() {
         queryClient.invalidateQueries({ queryKey: ['customers'] });
         toast.success(UZ.common.success);
     },
-    onError: (err: any) => toast.error(translateServerError(err.message)),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(translateServerError(msg));
+    },
   });
 
   const deleteMutation = useMutation({
@@ -65,7 +68,10 @@ export function CustomersListPage() {
         queryClient.invalidateQueries({ queryKey: ['customers'] });
         toast.success(UZ.common.success);
     },
-    onError: (err: any) => toast.error(translateServerError(err.message)),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(translateServerError(msg));
+    },
   });
 
   const getDebtBadge = (outstanding: string, debtLimit: string) => {
@@ -88,51 +94,53 @@ export function CustomersListPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">{UZ.customers.title}</h1>
+    <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">{UZ.customers.title}</h1>
       </div>
 
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">{UZ.common.filter}</CardTitle>
+          <CardTitle className="text-sm font-bold uppercase tracking-widest text-stone-400">{UZ.common.filter}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:flex-1 sm:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={UZ.common.placeholderSearch}
-                className="pl-8"
+                className="pl-8 w-full"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); handlePageChange(1); }}
               />
             </div>
-            <Select value={region} onValueChange={(v) => { setRegion(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder={UZ.common.region} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{UZ.common.all}</SelectItem>
-                <SelectItem value="UZB">O'zbekiston</SelectItem>
-                <SelectItem value="KOR">Koreya</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={status} onValueChange={(v) => { setStatus(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder={UZ.common.status} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{UZ.common.all}</SelectItem>
-                <SelectItem value="active">Faol</SelectItem>
-                <SelectItem value="inactive">Bloklangan</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={debtStatus} onValueChange={(v) => { setDebtStatus(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder={UZ.accounting.outstandingDebt} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{UZ.common.all}</SelectItem>
-                <SelectItem value="GOOD">Yaxshi</SelectItem>
-                <SelectItem value="WARNING">Ogohlantirish</SelectItem>
-                <SelectItem value="BLOCKED">Bloklangan</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+              <Select value={region} onValueChange={(v) => { setRegion(v); handlePageChange(1); }}>
+                <SelectTrigger className="w-full sm:w-[130px]"><SelectValue placeholder={UZ.common.region} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">{UZ.common.all}</SelectItem>
+                  <SelectItem value="UZB">O'zbekiston</SelectItem>
+                  <SelectItem value="KOR">Koreya</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={status} onValueChange={(v) => { setStatus(v); handlePageChange(1); }}>
+                <SelectTrigger className="w-full sm:w-[130px]"><SelectValue placeholder={UZ.common.status} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{UZ.common.all}</SelectItem>
+                  <SelectItem value="active">Faol</SelectItem>
+                  <SelectItem value="inactive">Bloklangan</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={debtStatus} onValueChange={(v) => { setDebtStatus(v); handlePageChange(1); }}>
+                <SelectTrigger className="w-full sm:w-[150px] md:col-span-2 lg:col-span-1"><SelectValue placeholder={UZ.accounting.outstandingDebt} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">{UZ.common.all}</SelectItem>
+                  <SelectItem value="GOOD">Yaxshi</SelectItem>
+                  <SelectItem value="WARNING">Ogohlantirish</SelectItem>
+                  <SelectItem value="BLOCKED">Bloklangan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -186,7 +194,18 @@ export function CustomersListPage() {
                   <DataTableCell className="font-mono text-sm">{customer.phone || '—'}</DataTableCell>
                   <DataTableCell className="text-right font-medium">{(customer as any).orderCount}</DataTableCell>
                   <DataTableCell className="text-right whitespace-nowrap">
-                    {formatPrice((customer as any).totalSpent, customer.regionCode as 'UZB' | 'KOR')}
+                    <div className="flex flex-col items-end gap-0.5">
+                      {(Number((customer as any).totalSpentKrw) ?? 0) > 0 && (
+                        <span className="text-[13px]">{Number((customer as any).totalSpentKrw).toLocaleString()} ₩</span>
+                      )}
+                      {(Number((customer as any).totalSpentUzs) ?? 0) > 0 && (
+                        <span className="text-[13px]">{Math.round(Number((customer as any).totalSpentUzs) / 100).toLocaleString()} so&apos;m</span>
+                      )}
+                      {(! (customer as any).totalSpentKrw || Number((customer as any).totalSpentKrw) === 0) &&
+                       (! (customer as any).totalSpentUzs || Number((customer as any).totalSpentUzs) === 0) && (
+                        <span className="text-stone-300">—</span>
+                      )}
+                    </div>
                   </DataTableCell>
                   <DataTableCell className="text-right font-medium whitespace-nowrap text-stone-900">
                     {formatPrice((customer as any).outstandingDebt, customer.regionCode as 'UZB' | 'KOR')}

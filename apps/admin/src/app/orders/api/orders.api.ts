@@ -1,4 +1,4 @@
-import { useAuthStore } from '../../../stores/auth.store';
+import { api } from '@/lib/api';
 import type { 
   OrderResponse, 
   CreateOrderInput, 
@@ -9,49 +9,34 @@ import type {
   ConfirmManualPaymentInput
 } from '@nuraskin/shared-types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const token = useAuthStore.getState().token;
-  const headers = new Headers(options.headers);
-
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  const response = await fetch(`${API_BASE}/api${endpoint}`, { ...options, headers });
-  if (!response.ok) throw new Error(await response.text());
-  if (response.status === 204) return null;
-  return response.json();
-}
 
 export const ordersApi = {
   create: (data: CreateOrderInput): Promise<OrderResponse> =>
-    fetchWithAuth('/orders', { method: 'POST', body: JSON.stringify(data) }),
+    api.post<any>('/orders', data),
     
   list: (filters: { status?: string[]; customerId?: string } = {}): Promise<OrderResponse[]> => {
     const params = new URLSearchParams();
     if (filters.status?.length) params.set('status', filters.status.join(','));
     if (filters.customerId) params.set('customerId', filters.customerId);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchWithAuth(`/orders${query}`);
+    return api.get<any>(`/orders${query}`);
   },
   
   getById: (id: string): Promise<OrderResponse> =>
-    fetchWithAuth(`/orders/${id}`),
+    api.get<any>(`/orders/${id}`),
 
   getReceipt: (id: string): Promise<{ receipt_url: string }> =>
-    fetchWithAuth(`/orders/${id}/receipt`),
+    api.get<any>(`/orders/${id}/receipt`),
     
   addItem: (id: string, data: AddOrderItemInput): Promise<any> =>
-    fetchWithAuth(`/orders/${id}/items`, { method: 'POST', body: JSON.stringify(data) }),
+    api.post<any>(`/orders/${id}/items`, data),
     
   removeItem: (id: string, itemId: string): Promise<void> =>
-    fetchWithAuth(`/orders/${id}/items/${itemId}`, { method: 'DELETE' }),
+    api.delete<any>(`/orders/${id}/items/${itemId}`),
     
   updateStatus: (id: string, data: UpdateOrderStatusInput & { bypassDebtLimit?: boolean }): Promise<void> =>
-    fetchWithAuth(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify(data) }),
+    api.patch<any>(`/orders/${id}/status`, data),
     
   scanItem: (id: string, data: ScanItemInput): Promise<{ 
     success: boolean; 
@@ -62,17 +47,17 @@ export const ordersApi = {
     scannedCount?: number;
     totalCount?: number;
   }> =>
-    fetchWithAuth(`/orders/${id}/scan-item`, { method: 'POST', body: JSON.stringify(data) }),
+    api.post<any>(`/orders/${id}/scan-item`, data),
     
   completePacking: (id: string): Promise<void> =>
-    fetchWithAuth(`/orders/${id}/complete-packing`, { method: 'POST' }),
+    api.post<any>(`/orders/${id}/complete-packing`, {}),
 
   createManual: (data: CreateManualOrderInput): Promise<OrderResponse> =>
-    fetchWithAuth('/orders/manual', { method: 'POST', body: JSON.stringify(data) }),
+    api.post<any>('/orders/manual', data),
 
   confirmPayment: (id: string, data: ConfirmManualPaymentInput): Promise<OrderResponse> =>
-    fetchWithAuth(`/orders/${id}/confirm-payment`, { method: 'POST', body: JSON.stringify(data) }),
+    api.post<any>(`/orders/${id}/confirm-payment`, data),
 
   searchCustomers: (q: string): Promise<any[]> =>
-    fetchWithAuth(`/orders/customers/search?q=${encodeURIComponent(q)}`),
+    api.get<any>(`/orders/customers/search?q=${encodeURIComponent(q)}`),
 };

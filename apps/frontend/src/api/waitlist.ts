@@ -1,15 +1,10 @@
-import { apiFetch } from '@/lib/apiFetch';
+import { api } from '@/lib/api';
 import type { ProductWaitlistResponse } from '@nuraskin/shared-types';
 
-export const getMyWaitlist = () => apiFetch<ProductWaitlistResponse[]>('/storefront/waitlist');
+export const getMyWaitlist = () => api.auth.get<ProductWaitlistResponse[]>('/storefront/waitlist');
 
 export const addToWaitlist = (productId: string) =>
-  apiFetch<void>('/storefront/waitlist', {
-    method: 'POST',
-    body: JSON.stringify({ productId }),
-  });
+  api.auth.post<any>('/storefront/waitlist', { productId });
 
 export const removeFromWaitlist = (productId: string) =>
-  apiFetch<void>(`/storefront/waitlist/${productId}`, {
-    method: 'DELETE',
-  });
+  api.auth.delete<any>(`/storefront/waitlist/${productId}`);

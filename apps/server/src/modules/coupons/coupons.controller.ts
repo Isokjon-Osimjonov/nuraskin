@@ -30,6 +30,22 @@ export async function updateCoupon(req: Request, res: Response) {
   res.json(result);
 }
 
+export async function updateStatus(req: Request, res: Response) {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!['ACTIVE', 'PAUSED'].includes(status)) {
+    res.status(400).json({
+      error: 'BAD_REQUEST',
+      message: "Status faqat ACTIVE yoki PAUSED bo'lishi mumkin"
+    });
+    return;
+  }
+
+  const result = await service.updateCouponStatus(id, status);
+  res.json(result);
+}
+
 export async function deleteCoupon(req: Request, res: Response) {
   await service.deleteCoupon(req.params.id);
   res.status(204).end();

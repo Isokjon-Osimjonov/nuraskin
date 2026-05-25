@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import React from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LogOut, User as UserIcon } from 'lucide-react';
@@ -29,22 +30,14 @@ function AccountPage() {
 
       try {
         const parsed = JSON.parse(tgAuthResult) as TelegramAuthResult;
-        const res = await fetch('http://localhost:4000/api/auth/telegram', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(parsed),
-        });
+        const data = await api.post<any>('/auth/telegram', parsed);
 
-        if (res.ok) {
-          const { token, user: userData } = await res.json();
-          setAuth(token, userData);
-          
-          // Clear query params and redirect
-          const redirectPath = new URLSearchParams(window.location.search).get('redirect') || '/account';
-          navigate({ to: redirectPath, replace: true });
-        } else {
-          navigate({ to: '/login' });
-        }
+        const { token, user: userData } = data;
+        setAuth(token, userData);
+        
+        // Clear query params and redirect
+        const redirectPath = new URLSearchParams(window.location.search).get('redirect') || '/account';
+        navigate({ to: redirectPath, replace: true });
       } catch {
         navigate({ to: '/login' });
       }
@@ -72,11 +65,11 @@ function AccountPage() {
 
       <div className="max-w-lg mx-auto mt-12 p-4">
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-8">
-          <div className="w-16 h-16 rounded-full bg-[#E30B5C]/10 flex items-center justify-center">
-            <UserIcon className="h-8 w-8 text-[#E30B5C]" />
+          <div className="w-16 h-16 rounded-full bg-[#4A1525]/10 flex items-center justify-center">
+            <UserIcon className="h-8 w-8 text-[#4A1525]" />
           </div>
 
-          <h2 className="text-zinc-900 font-semibold text-xl mt-4">{user.first_name}</h2>
+          <h2 className="text-zinc-900 font-normal text-xl mt-4">{user.first_name}</h2>
           {user.username && (
             <p className="text-zinc-400 text-sm">@{user.username}</p>
           )}
@@ -85,11 +78,11 @@ function AccountPage() {
 
           <div className="flex justify-between">
             <div className="text-center">
-              <p className="text-zinc-900 font-bold text-lg">0</p>
+              <p className="text-zinc-900 font-normal text-lg">0</p>
               <p className="text-zinc-400 text-xs mt-1">Buyurtmalar</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-lg text-[#E30B5C]">0 UZS</p>
+              <p className="font-normal text-lg text-[#4A1525]">0 UZS</p>
               <p className="text-zinc-400 text-xs mt-1">Qarz</p>
             </div>
             <div className="text-center">

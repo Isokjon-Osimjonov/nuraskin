@@ -13,8 +13,6 @@ export const updateSettingsSchema = z.object({
   minOrderUzbUzs: z.coerce.number().int().min(0).optional(),
   minOrderKorKrw: z.coerce.number().int().min(0).optional(),
   paymentTimeoutMinutes: z.coerce.number().int().min(5).max(1440).optional(),
-  freeShippingThresholdKrw: z.coerce.number().int().min(0).optional(),
-  standardShippingFeeKrw: z.coerce.number().int().min(0).optional(),
 
   korBankEnabled: z.boolean().optional(),
   korBankName: z.string().nullable().optional(),
@@ -69,8 +67,6 @@ export interface SettingsResponse {
   minOrderUzbUzs: string; // BigInt as string
   minOrderKorKrw: string; // BigInt as string
   paymentTimeoutMinutes: number;
-  freeShippingThresholdKrw: string;
-  standardShippingFeeKrw: string;
   updatedAt: string;
 
   korBankEnabled: boolean;

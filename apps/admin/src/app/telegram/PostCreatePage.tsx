@@ -185,7 +185,10 @@ export function PostCreatePage() {
         toast.success("Post saqlandi");
         navigate({ to: `/telegram/posts/${post.id}` as any });
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const nextStep = () => {

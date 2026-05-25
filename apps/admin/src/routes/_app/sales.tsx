@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { createFileRoute } from '@tanstack/react-router';
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -5,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useAuthStore } from '../../stores/auth.store';
 import { formatKrw, formatPrice } from '@/lib/utils';
 import { 
   DataTable, 
@@ -20,22 +20,7 @@ import { TablePagination } from '@/components/ui/TablePagination';
 import { format as formatDate } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const token = useAuthStore.getState().token;
-  const headers = new Headers(options.headers);
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  if (!headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
-  if (!response.ok) {
-    throw new Error('Failed to fetch');
-  }
-  return response.json();
-}
 
 export const Route = createFileRoute('/_app/sales')({
   component: SalesPage,
@@ -72,14 +57,14 @@ function SalesPage() {
     return { from, to, prevFrom, prevTo };
   }, [period]);
 
-  const endpoint = period === '7d' ? '/api/admin/sales/live' : '/api/admin/sales/summary';
+  const endpoint = period === '7d' ? '/admin/sales/live' : '/admin/sales/summary';
 
   const { data: current, isLoading } = useQuery({
     queryKey: ['sales', endpoint, from, to, region],
     queryFn: async () => {
       let url = `${endpoint}?from=${from}&to=${to}`;
       if (region !== 'all') url += `&region=${region}`;
-      return await fetchWithAuth(url);
+      return await api.get<any>(url);
     },
   });
 
@@ -88,7 +73,7 @@ function SalesPage() {
     queryFn: async () => {
       let url = `${endpoint}?from=${prevFrom}&to=${prevTo}`;
       if (region !== 'all') url += `&region=${region}`;
-      return await fetchWithAuth(url);
+      return await api.get<any>(url);
     },
   });
 
@@ -98,9 +83,9 @@ function SalesPage() {
   const { data: ordersData, isLoading: isOrdersLoading } = useQuery({
     queryKey: ['sales-orders', from, to, region, page, limit],
     queryFn: async () => {
-      let url = `/api/admin/sales?from=${from}&to=${to}&page=${page}&limit=${limit}`;
+      let url = `/admin/sales?from=${from}&to=${to}&page=${page}&limit=${limit}`;
       if (region !== 'all') url += `&region=${region}`;
-      return await fetchWithAuth(url);
+      return await api.get<any>(url);
     },
   });
 
@@ -150,18 +135,20 @@ function SalesPage() {
   }) || [];
 
   return (
-    <div className="p-6 space-y-6 bg-muted/20 min-h-[calc(100vh-4rem)]">
-      <div className="flex flex-col sm:flex-row justify-between gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 p-4 rounded-xl shadow-sm border">
-        <div className="flex flex-wrap gap-2">
-          <Button variant={period === '7d' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setPeriod('7d')}>7 kun</Button>
-          <Button variant={period === '30d' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setPeriod('30d')}>30 kun</Button>
-          <Button variant={period === '90d' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setPeriod('90d')}>90 kun</Button>
-          <Button variant={period === 'year' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setPeriod('year')}>Bu yil</Button>
-        </div>
-        <div className="flex gap-2">
-          <Button variant={region === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setRegion('all')}>Hammasi</Button>
-          <Button variant={region === 'UZB' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setRegion('UZB')}>O'zbekiston</Button>
-          <Button variant={region === 'KOR' ? 'default' : 'outline'} size="sm" className="rounded-full" onClick={() => setRegion('KOR')}>Koreya</Button>
+    <div className="p-3 sm:p-4 md:p-6 space-y-6 bg-muted/20 min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-col gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 p-4 rounded-xl shadow-sm border">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            <Button variant={period === '7d' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setPeriod('7d')}>7 kun</Button>
+            <Button variant={period === '30d' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setPeriod('30d')}>30 kun</Button>
+            <Button variant={period === '90d' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setPeriod('90d')}>90 kun</Button>
+            <Button variant={period === 'year' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setPeriod('year')}>Bu yil</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant={region === 'all' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setRegion('all')}>Hammasi</Button>
+            <Button variant={region === 'UZB' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setRegion('UZB')}>UZB</Button>
+            <Button variant={region === 'KOR' ? 'default' : 'outline'} size="sm" className="rounded-full h-8 text-[11px] px-3" onClick={() => setRegion('KOR')}>KOR</Button>
+          </div>
         </div>
       </div>
 

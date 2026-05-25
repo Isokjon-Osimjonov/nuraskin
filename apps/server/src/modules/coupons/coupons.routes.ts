@@ -10,6 +10,7 @@ router.use(requireAuth);
 router.get('/', requirePermission('settings:read'), asyncHandler(ctrl.listCoupons));
 router.get('/:id', requirePermission('settings:read'), asyncHandler(ctrl.getCoupon));
 router.post('/', requirePermission('settings:write'), asyncHandler(ctrl.createCoupon));
+router.patch('/:id/status', requirePermission('settings:write'), asyncHandler(ctrl.updateStatus));
 router.patch('/:id', requirePermission('settings:write'), asyncHandler(ctrl.updateCoupon));
 router.delete('/:id', requirePermission('settings:write'), asyncHandler(ctrl.deleteCoupon));
 

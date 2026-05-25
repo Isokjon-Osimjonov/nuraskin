@@ -118,7 +118,7 @@ export function AddressForm({
       >
         {/* Region Specific Error */}
         {errors.root && (
-          <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-red-600 text-[12px] font-medium flex items-center gap-2">
+          <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-red-600 text-[12px] font-normal flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
             {errors.root.message}
           </div>
@@ -127,7 +127,7 @@ export function AddressForm({
         {/* Common: Label & Full Name */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-stone-500 ml-1">
+            <label className="text-[12px] font-normal text-stone-500 ml-1">
               Manzil nomi (Masalan: Uy, Ish joyi)
             </label>
             <div className="relative">
@@ -146,7 +146,7 @@ export function AddressForm({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-stone-500 ml-1">
+            <label className="text-[12px] font-normal text-stone-500 ml-1">
               Qabul qiluvchi F.I.SH
             </label>
             <div className="relative">
@@ -167,7 +167,7 @@ export function AddressForm({
 
         {/* Common: Phone */}
         <div className="space-y-1.5">
-          <label className="text-[12px] font-medium text-stone-500 ml-1">
+          <label className="text-[12px] font-normal text-stone-500 ml-1">
             Telefon raqam
           </label>
           <div className="relative">
@@ -192,7 +192,7 @@ export function AddressForm({
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-stone-500 ml-1">
+                <label className="text-[12px] font-normal text-stone-500 ml-1">
                   Viloyat
                 </label>
                 <select
@@ -212,7 +212,7 @@ export function AddressForm({
                 )}
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-stone-500 ml-1">
+                <label className="text-[12px] font-normal text-stone-500 ml-1">
                   Shahar / Tuman
                 </label>
                 <input
@@ -228,7 +228,7 @@ export function AddressForm({
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-stone-500 ml-1">
+              <label className="text-[12px] font-normal text-stone-500 ml-1">
                 Ko'cha va uy raqami
               </label>
               <input
@@ -247,7 +247,7 @@ export function AddressForm({
           <div className="space-y-4">
             <div className="flex items-end gap-3">
               <div className="flex-1 space-y-1.5">
-                <label className="text-[12px] font-medium text-stone-500 ml-1">
+                <label className="text-[12px] font-normal text-stone-500 ml-1">
                   Pochta indeksi
                 </label>
                 <input
@@ -260,7 +260,7 @@ export function AddressForm({
               <button
                 type="button"
                 onClick={() => setJusoModalOpen(true)}
-                className="h-11 px-6 rounded-xl bg-[#4A1525] text-white text-[13px] font-medium hover:bg-[#6B2540] transition-colors flex items-center gap-2"
+                className="h-11 px-6 rounded-xl bg-[#4A1525] text-white text-[13px] font-normal hover:bg-[#6B2540] transition-colors flex items-center gap-2"
               >
                 <Search className="w-4 h-4" />
                 Manzilni qidirish
@@ -273,7 +273,7 @@ export function AddressForm({
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-stone-500 ml-1">
+              <label className="text-[12px] font-normal text-stone-500 ml-1">
                 Asosiy manzil
               </label>
               <input
@@ -291,7 +291,7 @@ export function AddressForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-stone-500 ml-1">
+                <label className="text-[12px] font-normal text-stone-500 ml-1">
                   Bino nomi
                 </label>
                 <input
@@ -306,7 +306,7 @@ export function AddressForm({
                 )}
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-stone-500 ml-1">
+                <label className="text-[12px] font-normal text-stone-500 ml-1">
                   Batafsil manzil (Kvartira, uy)
                 </label>
                 <input
@@ -345,14 +345,14 @@ export function AddressForm({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 h-12 rounded-xl border border-stone-200 text-stone-500 text-[14px] font-medium hover:bg-stone-50 transition-colors"
+            className="flex-1 h-12 rounded-xl border border-stone-200 text-stone-500 text-[14px] font-normal hover:bg-stone-50 transition-colors"
           >
             Bekor qilish
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-[2] h-12 rounded-xl bg-[#4A1525] text-white text-[14px] font-medium hover:bg-[#6B2540] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-[2] h-12 rounded-xl bg-[#4A1525] text-white text-[14px] font-normal hover:bg-[#6B2540] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isSubmitting ? (
               <Loader2 className="w-5 h-5 animate-spin" />

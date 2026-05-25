@@ -6,6 +6,7 @@ import { HeroFooter } from '@/components/home/HeroFooter';
 import { CategoriesSection } from '@/components/home/CategoriesSection';
 import { RecentProductsSection } from '@/components/home/RecentProductsSection';
 import { AboutSummary } from '@/components/home/AboutSummary';
+import { PromoSection } from '@/components/home/PromoSection';
 
 const HERO_BG_IMAGE = '/nsbg.png';
 export const HERO_PRODUCT_IMAGE = '/nsb.png';
@@ -47,7 +48,7 @@ function HeroPage() {
           style={{ top: 'clamp(15%, 25%, 35%)' }}
         >
           <span
-            className="font-bold text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100 text-[clamp(40px,12vw,180px)] tracking-tight"
+            className="font-normal text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100 text-[clamp(40px,12vw,180px)] tracking-tight"
           >
             SKIN ESSENCE
           </span>
@@ -56,19 +57,10 @@ function HeroPage() {
         {/* Product jar */}
         <HeroProduct productImage={HERO_PRODUCT_IMAGE} />
 
-        {/* Left column */}
-        <div className="absolute bottom-4 md:bottom-12 left-0 right-0 md:left-12 md:right-auto px-4 md:px-0 z-20 flex justify-center md:justify-start">
+        {/* Hero content wrapper — sitting ~30% up */}
+        <div className="absolute bottom-24 sm:bottom-28 lg:bottom-32 left-0 right-0 px-6 sm:px-12 lg:px-16 z-20 flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between">
           <HeroLeftCol />
-        </div>
-
-        {/* Right column — desktop only */}
-        <div className="hidden md:block absolute bottom-10 right-8 z-20">
           <HeroRightCol />
-        </div>
-
-        {/* Mobile floating card — will be visible via CSS or component logic if needed, but the instructions say to fix HeroRightCol for mobile. Actually, let's keep HeroRightCol visible on mobile but positioned differently. */}
-        <div className="md:hidden absolute bottom-4 left-4 right-4 z-20">
-           {/* We might want to move HeroRightCol here for mobile or update HeroRightCol itself. Let's update HeroRightCol. */}
         </div>
 
         <HeroFooter />
@@ -79,6 +71,8 @@ function HeroPage() {
       <RecentProductsSection />
 
       <AboutSummary />
+
+      <PromoSection />
     </>
   );
 }

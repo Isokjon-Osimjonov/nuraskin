@@ -62,22 +62,22 @@ export function OrdersListPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Buyurtmalar</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">Buyurtmalar</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Mijozlar buyurtmalari va to'lovlar holati.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate({ to: '/orders/manual' as any })}>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button variant="outline" className="flex-1 sm:flex-none h-10 px-4" onClick={() => navigate({ to: '/orders/manual' as any })}>
             <CreditCard className="mr-2 h-4 w-4" />
-            Manual buyurtma
+            Manual
           </Button>
-          <Button onClick={() => navigate({ to: '/orders/new' as any })}>
+          <Button className="flex-1 sm:flex-none h-10 px-4" onClick={() => navigate({ to: '/orders/new' as any })}>
             <Plus className="mr-2 h-4 w-4" />
-            Yangi buyurtma
+            Yangi
           </Button>
         </div>
       </div>

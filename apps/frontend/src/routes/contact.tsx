@@ -1,99 +1,55 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { api } from '@/lib/api';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useAppStore } from '@/stores/app.store';
 
 export const Route = createFileRoute('/contact')({
   component: Contact,
 });
 
-const PREFIX = '+998 ';
-
-// Format digits after +998 as: xx yyy yy yy
-function formatDigits(digits: string): string {
-  const d = digits.replace(/\D/g, '').slice(0, 9);
-  if (d.length <= 2) return d;
-  if (d.length <= 5) return `${d.slice(0, 2)} ${d.slice(2)}`;
-  if (d.length <= 7) return `${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5)}`;
-  return `${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 7)} ${d.slice(7)}`;
-}
-
-interface FieldErrors {
-  name?: string;
-  phone?: string;
-  message?: string;
-}
-
 // Dummy fetch since endpoint doesn't seem to exist yet
 async function getPublicSettings() {
   try {
-    const res = await fetch('http://localhost:4000/api/settings');
+    const res = await fetch('/api/storefront/settings');
     if (res.ok) {
       return await res.json();
     }
-    return { data: null };
+    return null;
   } catch {
-    return { data: null };
+    return null;
   }
 }
 
 function Contact() {
-  const { data } = useQuery({
+  const regionCode = useAppStore((s) => s.regionCode);
+  const phonePrefix = regionCode === 'KOR' ? '+82' : '+998';
+  const phonePlaceholder = regionCode === 'KOR' ? '10 0000 0000' : '00 000 00 00';
+
+  const { data: s } = useQuery({
     queryKey: ['public-settings'],
     queryFn: getPublicSettings,
     staleTime: 5 * 60 * 1000,
   });
 
-  const s = data?.data;
-
-  const [form, setForm] = useState({ name: '', phone: PREFIX, subject: '', message: '' });
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  
+  const [errors, setErrors] = useState<{ name?: string; phone?: string; message?: string }>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // Phone digits after +998
-  const phoneDigits = form.phone.slice(PREFIX.length).replace(/\D/g, '');
-  const isPhoneComplete = phoneDigits.length === 9;
-
-  const isAnyFilled = form.name.trim() || phoneDigits.length > 0 || form.message.trim();
-  const isAllRequired = form.name.trim() && isPhoneComplete && form.message.trim();
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    // Prevent deleting the prefix
-    if (!raw.startsWith(PREFIX)) {
-      setForm((f) => ({ ...f, phone: PREFIX }));
-      return;
-    }
-    const after = raw.slice(PREFIX.length);
-    const formatted = formatDigits(after);
-    setForm((f) => ({ ...f, phone: PREFIX + formatted }));
-    if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
-  };
-
-  // Keep cursor after prefix when user clicks into prefix area
-  const handlePhoneFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    const el = e.target;
-    setTimeout(() => {
-      if (el.selectionStart !== null && el.selectionStart < PREFIX.length) {
-        el.setSelectionRange(PREFIX.length, PREFIX.length);
-      }
-    }, 0);
-  };
-
-  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const el = e.currentTarget;
-    const pos = el.selectionStart ?? 0;
-    // Block Backspace/Delete from eating into the prefix
-    if ((e.key === 'Backspace' || e.key === 'Delete') && pos <= PREFIX.length) {
-      e.preventDefault();
-    }
-  };
+  useEffect(() => {
+    setPhoneNumber('');
+  }, [regionCode]);
 
   const validate = (): boolean => {
-    const next: FieldErrors = {};
-    if (!form.name.trim()) next.name = 'Ismingizni kiriting';
-    if (!isPhoneComplete) next.phone = "To'liq telefon raqam kiriting (9 ta raqam)";
-    if (!form.message.trim()) next.message = 'Xabar matnini kiriting';
+    const next: typeof errors = {};
+    if (!name.trim()) next.name = 'Ismingizni kiriting';
+    if (phoneNumber.replace(/\D/g, '').length < 7) next.phone = "Telefon raqamingizni to'liq kiriting";
+    if (!message.trim()) next.message = 'Xabar matnini kiriting';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -103,22 +59,17 @@ function Contact() {
     if (!validate()) return;
     setStatus('loading');
     try {
-      const res = await fetch('http://localhost:4000/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: form.name,
-          contact: form.phone,
-          subject: form.subject,
-          message: form.message,
-        }),
-      });
-      if (!res.ok) throw new Error('Failed to send contact');
+      await api.post<any>('/storefront/contact', {
+          name,
+          phone: `${phonePrefix}${phoneNumber}`,
+          subject,
+          message,
+          region: regionCode,
+        });
       
       setStatus('success');
-      setForm({ name: '', phone: PREFIX, subject: '', message: '' });
+      setName(''); setPhoneNumber('');
+      setSubject(''); setMessage('');
       setErrors({});
     } catch {
       setStatus('error');
@@ -162,7 +113,7 @@ function Contact() {
                 <div className="flex items-start gap-4">
                   <Phone className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="text-[14px] font-medium text-white mb-1">Telefon</h3>
+                    <h3 className="text-[14px] font-normal text-white mb-1">Telefon</h3>
                     <a
                       href={`tel:${s.contactPhone}`}
                       className="block text-[13px] font-light text-white/60 hover:text-white transition-colors"
@@ -177,7 +128,7 @@ function Contact() {
                 <div className="flex items-start gap-4">
                   <Mail className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="text-[14px] font-medium text-white mb-1">Email</h3>
+                    <h3 className="text-[14px] font-normal text-white mb-1">Email</h3>
                     <a
                       href={`mailto:${s.contactEmail}`}
                       className="text-[13px] font-light text-white/60 hover:text-white transition-colors"
@@ -191,7 +142,7 @@ function Contact() {
               <div className="flex items-start gap-4">
                 <Clock className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="text-[14px] font-medium text-white mb-1">Ish vaqti</h3>
+                  <h3 className="text-[14px] font-normal text-white mb-1">Ish vaqti</h3>
                   <p className="text-[13px] font-light text-white/60">Dush - Shan: 09:00 - 18:00</p>
                   <p className="text-[13px] font-light text-white/60">Yakshanba: Dam olish kuni</p>
                 </div>
@@ -206,7 +157,7 @@ function Contact() {
             {status === 'success' ? (
               <div className="flex flex-col items-center justify-center h-64 text-center gap-3">
                 <div className="text-[#4A1525] text-3xl">✓</div>
-                <p className="text-[15px] font-medium text-[#4A1525]">Xabaringiz yuborildi!</p>
+                <p className="text-[15px] font-normal text-[#4A1525]">Xabaringiz yuborildi!</p>
                 <p className="text-[13px] font-light text-stone-500">
                   Tez orada siz bilan bog'lanamiz.
                 </p>
@@ -226,9 +177,9 @@ function Contact() {
                     </label>
                     <input
                       type="text"
-                      value={form.name}
+                      value={name}
                       onChange={(e) => {
-                        setForm((f) => ({ ...f, name: e.target.value }));
+                        setName(e.target.value);
                         if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
                       }}
                       className={inputClass(errors.name)}
@@ -243,15 +194,21 @@ function Contact() {
                     <label className="block text-[13px] font-light text-stone-600 mb-2">
                       Telefon raqam
                     </label>
-                    <input
-                      type="tel"
-                      value={form.phone}
-                      onChange={handlePhoneChange}
-                      onFocus={handlePhoneFocus}
-                      onKeyDown={handlePhoneKeyDown}
-                      className={inputClass(errors.phone)}
-                      placeholder="+998 90 123 45 67"
-                    />
+                    <div className="flex items-center border rounded-xl overflow-hidden focus-within:border-[#4A1525] transition-colors border-stone-200">
+                      <span className="px-4 py-3 bg-stone-50 border-r border-stone-200 text-stone-600 text-sm whitespace-nowrap shrink-0 font-light">
+                        {phonePrefix}
+                      </span>
+                      <input
+                        type="tel"
+                        placeholder={phonePlaceholder}
+                        className="flex-1 px-4 py-3 outline-none text-[14px] font-light bg-white"
+                        value={phoneNumber}
+                        onChange={(e) => {
+                          setPhoneNumber(e.target.value);
+                          if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+                        }}
+                      />
+                    </div>
                     {errors.phone && (
                       <p className="mt-1 text-[12px] text-red-500 font-light">{errors.phone}</p>
                     )}
@@ -264,8 +221,8 @@ function Contact() {
                   </label>
                   <input
                     type="text"
-                    value={form.subject}
-                    onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
                     className={inputClass()}
                     placeholder="Kichik sarlavha ushbu xabar haqida"
                   />
@@ -277,9 +234,9 @@ function Contact() {
                   </label>
                   <textarea
                     rows={5}
-                    value={form.message}
+                    value={message}
                     onChange={(e) => {
-                      setForm((f) => ({ ...f, message: e.target.value }));
+                      setMessage(e.target.value);
                       if (errors.message) setErrors((prev) => ({ ...prev, message: undefined }));
                     }}
                     className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] font-light outline-none transition-colors placeholder:text-stone-400 resize-none ${
@@ -302,8 +259,7 @@ function Contact() {
 
                 <button
                   type="submit"
-                  disabled={!isAnyFilled || status === 'loading'}
-                  title={!isAllRequired ? "Barcha majburiy maydonlarni to'ldiring" : ''}
+                  disabled={status === 'loading'}
                   className="bg-[#4A1525] text-white text-[13px] font-light tracking-wide px-8 py-3 rounded-full hover:bg-[#6B2540] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {status === 'loading' ? 'Yuborilmoqda...' : 'Xabarni yuborish'}
@@ -316,3 +272,4 @@ function Contact() {
     </div>
   );
 }
+

@@ -129,8 +129,8 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
     : 'text-[13px] font-light tracking-wide text-stone-500 hover:text-stone-900 transition-colors duration-200';
 
   const linkActive = isDarkMode
-    ? 'text-[13px] font-medium tracking-wide text-white'
-    : 'text-[13px] font-medium tracking-wide text-zinc-900';
+    ? 'text-[13px] font-normal tracking-wide text-white'
+    : 'text-[13px] font-normal tracking-wide text-zinc-900';
 
   const logoColor = isDarkMode ? 'text-white' : 'text-[#4A1525]';
 
@@ -258,17 +258,17 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
         >
           <div className="px-6 py-6 flex flex-col gap-1">
             <div className="px-4 py-2 mb-2 flex flex-col gap-2">
-               <p className="text-[10px] uppercase tracking-widest text-stone-400 font-medium">Mintaqa</p>
+               <p className="text-[10px] uppercase tracking-widest text-stone-400 font-normal">Mintaqa</p>
                <div className="flex gap-2">
                   <button 
                     onClick={() => handleRegionSwitch('UZB')}
-                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${regionCode === 'UZB' ? 'bg-[#4A1525] text-white' : 'bg-stone-50 text-stone-600 border border-stone-100'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-normal transition-all ${regionCode === 'UZB' ? 'bg-[#4A1525] text-white' : 'bg-stone-50 text-stone-600 border border-stone-100'}`}
                   >
                     🇺🇿 UZ
                   </button>
                   <button 
                     onClick={() => handleRegionSwitch('KOR')}
-                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${regionCode === 'KOR' ? 'bg-[#4A1525] text-white' : 'bg-stone-50 text-stone-600 border border-stone-100'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-normal transition-all ${regionCode === 'KOR' ? 'bg-[#4A1525] text-white' : 'bg-stone-50 text-stone-600 border border-stone-100'}`}
                   >
                     🇰🇷 KR
                   </button>
@@ -324,12 +324,12 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
           </AlertDialogHeader>
           <div className="flex gap-3 mt-6">
             <AlertDialogCancel asChild>
-              <button className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 whitespace-nowrap transition-colors hover:bg-stone-50">
+              <button className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-sm font-normal text-stone-700 whitespace-nowrap transition-colors hover:bg-stone-50">
                 Bekor qilish
               </button>
             </AlertDialogCancel>
             <AlertDialogAction asChild onClick={confirmRegionSwitch}>
-              <button className="flex-1 px-4 py-2.5 rounded-xl bg-[#E30B5C] text-white text-sm font-medium whitespace-nowrap transition-colors hover:bg-[#ff1a75]">
+              <button className="flex-1 px-4 py-2.5 rounded-xl bg-[#4A1525] text-white text-sm font-normal whitespace-nowrap transition-colors hover:bg-[#ff1a75]">
                 Tozalash
               </button>
             </AlertDialogAction>

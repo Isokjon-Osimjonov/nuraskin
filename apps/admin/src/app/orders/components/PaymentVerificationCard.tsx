@@ -33,7 +33,10 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success("To'lov tasdiqlandi");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const rejectMutation = useMutation({
@@ -45,7 +48,10 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
       toast.warning("To'lov rad etildi");
       setRejectNote('');
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   if (!['PENDING_PAYMENT', 'PAYMENT_SUBMITTED'].includes(order.status)) return null;

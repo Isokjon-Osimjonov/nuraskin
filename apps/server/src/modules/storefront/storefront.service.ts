@@ -48,6 +48,10 @@ async function getCachedLatestRate() {
   return cachedRate;
 }
 
+export async function listCategories(): Promise<any[]> {
+  return await db.select().from(categories).where(isNull(categories.deletedAt)).orderBy(asc(categories.name));
+}
+
 export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, search?: string, customerId?: string, limit?: number): Promise<StorefrontProductListItem[]> {
   const rawProducts = await storefrontRepository.findActiveProducts({ categoryId, search, limit });
   const latestRate = await getCachedLatestRate();
@@ -289,6 +293,8 @@ export async function listCoupons(customerId: string, requestRegion: string) {
 
 export async function createOrder(customerId: string, input: CreateStorefrontOrderInput): Promise<StorefrontOrderResponse> {
   return await db.transaction(async (tx) => {
+    const settingsRow = await tx.query.settings.findFirst();
+    
     const customer = await tx.query.customers.findFirst({
       where: eq(customers.id, customerId)
     });
@@ -297,6 +303,21 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     const cart = await cartsRepository.findByCustomerId(customerId, tx);
     if (!cart || cart.items.length === 0) {
       throw new BadRequestError('Savatda mahsulot yo\'q');
+    }
+
+    const subtotal = cart.items.reduce((acc, item) => acc + BigInt(item.priceSnapshot) * BigInt(item.quantity), 0n);
+
+    // Min order validation
+    const minOrderAmount = customer.regionCode === 'KOR'
+      ? BigInt((settingsRow as any)?.minOrderKorKrw || 0n)
+      : BigInt((settingsRow as any)?.minOrderUzbUzs || 0n);
+
+    if (minOrderAmount > 0n && subtotal < minOrderAmount) {
+      const formatted = customer.regionCode === 'KOR'
+        ? `${Number(minOrderAmount).toLocaleString()} ₩`
+        : `${Number(minOrderAmount / 100n).toLocaleString()} so'm`;
+
+      throw new BadRequestError(`Minimal buyurtma summasi ${formatted} bo'lishi kerak`);
     }
 
     for (const cartItem of cart.items) {
@@ -481,7 +502,6 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
       tx
     );
 
-    const settingsRow = await tx.query.settings.findFirst();
     const timeoutMinutes = Number(settingsRow?.paymentTimeoutMinutes || 30);
     const delayMs = timeoutMinutes * 60 * 1000;
 
@@ -550,7 +570,11 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
 }
 
 export async function getPublicSettings() {
-    return await storefrontRepository.getStorefrontSettings();
+  const settingsRow = await storefrontRepository.getStorefrontSettings();
+  return {
+    minOrderAmountKrw: Number(settingsRow?.minOrderKorKrw || 0),
+    minOrderAmountUzs: Number(BigInt(settingsRow?.minOrderUzbUzs || 0n) / 100n),
+  };
 }
 
 export async function getPaymentInfo(region: 'UZB' | 'KOR') {

@@ -28,7 +28,10 @@ export function CouponDetailPage() {
       toast.success("Kupon o'chirildi");
       navigate({ to: '/coupons' } as any);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   if (isLoading) return <div className="p-6">Yuklanmoqda...</div>;

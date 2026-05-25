@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { useState } from "react"
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
@@ -44,23 +45,15 @@ export function LoginForm({
     setIsPending(true)
     setError(null)
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-
-      if (res.ok) {
-        const json = await res.json()
-        setAuth(json.token, json.user)
-        navigate({ to: search.redirect || "/" })
-      } else if (res.status === 401) {
+      const json = await api.post<any>('/auth/login', data)
+      setAuth(json.token, json.user)
+      navigate({ to: search.redirect || "/" })
+    } catch (err: any) {
+      if (err?.status === 401) {
         setError("Email yoki parol noto'g'ri")
       } else {
-        setError("Server xatosi yuz berdi")
+        setError(err.message || "Server xatosi yuz berdi")
       }
-    } catch {
-      setError("Server bilan bog'lanib bo'lmadi")
     } finally {
       setIsPending(false)
     }

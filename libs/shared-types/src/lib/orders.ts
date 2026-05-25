@@ -101,6 +101,10 @@ export interface OrderResponse {
   deliveryCity: string | null;
   deliveryPostalCode: string | null;
   deliveryRegionCode: string | null;
+  couponCode: string | null;
+  discountAmount: string;
+  couponDiscount: string;
+  wholesaleDiscount: string;
   // Manual order fields
   orderSource: 'STOREFRONT' | 'MANUAL';
   paymentAmount: string | null;

@@ -6,28 +6,28 @@ export const AboutSummary = () => {
       <div className="max-w-[1280px] mx-auto bg-[#3A0311] rounded-[32px] p-8 md:p-16 relative overflow-hidden">
         
         {/* Decorative element */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#E30B5C]/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
           
           {/* Left Column */}
           <div className="space-y-6">
             <div>
-              <p className="text-[11px] tracking-[0.2em] text-[#E30B5C] font-semibold mb-3 uppercase">
+              <p className="text-[11px] tracking-[0.2em] text-white/50 font-normal mb-3 uppercase">
                 Biz haqimizda
               </p>
-              <h2 className="text-2xl md:text-4xl font-medium text-white leading-tight">
+              <h2 className="text-2xl md:text-4xl font-normal text-white leading-tight">
                 Koreya kosmetikasini <br /> bevosita Seuldan oling
               </h2>
             </div>
             
-            <p className="text-[#c49aaa] text-sm md:text-base leading-relaxed max-w-[480px]">
+            <p className="text-white/70 text-sm md:text-base leading-relaxed max-w-[480px]">
               NuraSkin orqali Round Lab, Cosrx, Anua va boshqa brendlarning original mahsulotlarini to'g'ridan-to'g'ri Koreya narxlarida xarid qiling. O'zbekistonga kargo, Koreya ichida tezkor yetkazib berish.
             </p>
 
             <Link
               to="/about"
-              className="inline-block border border-[#E30B5C] text-[#E30B5C] px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#E30B5C] hover:text-white transition-all active:scale-95"
+              className="inline-block border border-white/40 text-white px-6 py-2.5 rounded-xl text-sm font-normal hover:bg-white/10 transition-all active:scale-95"
             >
               Biz haqimizda ko'proq
             </Link>
@@ -45,10 +45,10 @@ export const AboutSummary = () => {
                 key={idx} 
                 className="bg-white/5 border border-white/10 rounded-2xl p-5 md:p-6 text-center backdrop-blur-sm transition-colors hover:bg-white/10"
               >
-                <div className="text-white font-medium text-xl md:text-2xl">
+                <div className="text-white font-normal text-xl md:text-2xl">
                   {stat.value}
                 </div>
-                <div className="text-[#c49aaa] text-[11px] md:text-xs mt-1 uppercase tracking-wider font-light">
+                <div className="text-white/50 text-[11px] md:text-xs mt-1 uppercase tracking-wider font-light">
                   {stat.label}
                 </div>
               </div>

@@ -52,4 +52,21 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  @keyframes marquee {
+    0%   { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  @media (min-width: 640px) {
+    .animate-marquee {
+      animation: none;
+      transform: none;
+      white-space: normal;
+    }
+  }
 }

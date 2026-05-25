@@ -231,9 +231,9 @@ export function ProductFormPage({
     <TooltipProvider>
       <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {/* Left column */}
-          <div className="col-span-2 space-y-5">
+          <div className="sm:col-span-2 space-y-5">
             <FormField
               name="imageUrls"
               render={() => (
@@ -260,7 +260,7 @@ export function ProductFormPage({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 name="name"
                 render={({ field }) => (
@@ -408,7 +408,7 @@ export function ProductFormPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-5">
             <FormField
               name="ingredients"

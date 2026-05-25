@@ -52,11 +52,14 @@ export function CouponsListPage() {
       queryClient.invalidateQueries({ queryKey: ['coupons'] });
       toast.success("Kupon o'chirildi");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string, status: string }) => couponsApi.update(id, { status: status as any }),
+    mutationFn: ({ id, status }: { id: string, status: 'ACTIVE' | 'PAUSED' }) => couponsApi.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coupons'] });
       toast.success("Kupon holati yangilandi");
@@ -83,13 +86,13 @@ export function CouponsListPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kuponlar</h1>
-          <p className="text-muted-foreground">Promo-kodlar va chegirmalar boshqaruvi</p>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">Kuponlar</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Promo-kodlar va chegirmalar boshqaruvi</p>
         </div>
-        <Button onClick={() => navigate({ to: '/coupons/new' } as any)}>
+        <Button className="w-full sm:w-auto" onClick={() => navigate({ to: '/coupons/new' } as any)}>
           <Plus className="mr-2 h-4 w-4" />
           Yangi kupon
         </Button>
@@ -97,18 +100,18 @@ export function CouponsListPage() {
 
       <Card className="shadow-sm">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative md:col-span-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:flex-1 sm:max-w-md">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Kod yoki nom bo'yicha qidirish..."
-                className="pl-8"
+                className="pl-8 w-full"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); handlePageChange(1); }}
               />
             </div>
             <Select value={status} onValueChange={(v) => { setStatus(v); handlePageChange(1); }}>
-              <SelectTrigger><SelectValue placeholder="Holat" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Holat" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Barcha holatlar</SelectItem>
                 <SelectItem value="ACTIVE">Faol</SelectItem>
@@ -183,11 +186,11 @@ export function CouponsListPage() {
                         <Eye className="h-4 w-4" />
                       </Button>
                       {coupon.status === 'ACTIVE' ? (
-                        <Button variant="ghost" size="icon" className="text-stone-400 hover:text-yellow-600" onClick={() => statusMutation.mutate({ id: coupon.id, status: 'PAUSED' })}>
+                        <Button title="To'xtatish" variant="ghost" size="icon" className="text-stone-400 hover:text-yellow-600" onClick={() => statusMutation.mutate({ id: coupon.id, status: 'PAUSED' })}>
                           <Pause className="h-4 w-4" />
                         </Button>
                       ) : (coupon.status === 'PAUSED' || coupon.status === 'DRAFT') ? (
-                        <Button variant="ghost" size="icon" className="text-stone-400 hover:text-green-600" onClick={() => statusMutation.mutate({ id: coupon.id, status: 'ACTIVE' })}>
+                        <Button title="Davom ettirish" variant="ghost" size="icon" className="text-stone-400 hover:text-green-600" onClick={() => statusMutation.mutate({ id: coupon.id, status: 'ACTIVE' })}>
                           <Play className="h-4 w-4" />
                         </Button>
                       ) : null}

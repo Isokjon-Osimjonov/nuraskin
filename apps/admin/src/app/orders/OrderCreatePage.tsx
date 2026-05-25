@@ -172,8 +172,9 @@ export function OrderCreatePage() {
       toast.success('Buyurtma yaratildi');
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
     },
-    onError: (err: any) => {
-      toast.error(err.message || 'Xatolik yuz berdi');
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 

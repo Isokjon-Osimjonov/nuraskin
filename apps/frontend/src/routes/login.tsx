@@ -1,10 +1,10 @@
+import { api } from '@/lib/api';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { createFileRoute, useNavigate, Link, redirect } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
 import { z } from 'zod';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { updateRegion } from '@/api/profile';
-import { apiFetch } from '@/lib/apiFetch';
 import {
   Dialog,
   DialogContent,
@@ -49,7 +49,7 @@ function LoginPage() {
   const [pendingRedirect, setPendingRedirect] = useState('/');
 
   const clearCartMutation = useMutation({
-    mutationFn: () => apiFetch('/storefront/cart', { method: 'DELETE' })
+    mutationFn: () => api.delete<any>('/storefront/cart')
   });
   const clearCart = () => clearCartMutation.mutateAsync();
 
@@ -58,45 +58,35 @@ function LoginPage() {
   const handleAuth = useCallback(async (user: any) => {
     setError(null);
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
-      const res = await fetch(`${baseUrl}/api/auth/telegram`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user),
-      });
+      const data = await api.post<any>('/auth/telegram', user);
+      
+      const { token, user: userData } = data;
+      setAuth(token, userData);
 
-      if (res.ok) {
-        const { token, user: userData } = await res.json();
-        setAuth(token, userData);
+      const guestRegion = useAppStore.getState().regionCode;
+      const profileRegion = userData.regionCode || userData.region;
+      const cartData = queryClient.getQueryData(['cart']);
+      const hasCartItems = (cartData as any)?.items?.length > 0;
 
-        const guestRegion = useAppStore.getState().regionCode;
-        const profileRegion = userData.regionCode || userData.region;
-        const cartData = queryClient.getQueryData(['cart']);
-        const hasCartItems = (cartData as any)?.items?.length > 0;
-
-        if (guestRegion === profileRegion || !profileRegion) {
-          navigate({ to: redirectUrl || '/', replace: true });
-          return;
-        }
-
-        if (!hasCartItems) {
-          setRegion(profileRegion);
-          await updateRegion(profileRegion);
-          navigate({ to: redirectUrl || '/', replace: true });
-          return;
-        }
-
-        setPendingProfileRegion(profileRegion);
-        setPendingRedirect(redirectUrl || '/');
-        setShowRegionConflict(true);
-
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Login failed. Please try again.');
+      if (guestRegion === profileRegion || !profileRegion) {
+        navigate({ to: redirectUrl || '/', replace: true });
+        return;
       }
-    } catch (err) {
+
+      if (!hasCartItems) {
+        setRegion(profileRegion);
+        await updateRegion(profileRegion);
+        navigate({ to: redirectUrl || '/', replace: true });
+        return;
+      }
+
+      setPendingProfileRegion(profileRegion);
+      setPendingRedirect(redirectUrl || '/');
+      setShowRegionConflict(true);
+
+    } catch (err: any) {
       console.error('Auth error:', err);
-      setError('Server connection error.');
+      setError(err.message || 'Login failed. Please try again.');
     }
   }, [setAuth, navigate, redirectUrl, queryClient, setRegion]);
 
@@ -153,7 +143,7 @@ function LoginPage() {
       >
         <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 max-w-sm w-full">
           <div className="text-center">
-            <h1 className="text-white text-2xl font-bold tracking-tight">NuraSkin</h1>
+            <h1 className="text-white text-2xl font-normal tracking-tight">NuraSkin</h1>
             <p className="text-white/60 text-sm mt-1">Hisobingizga kiring</p>
           </div>
 

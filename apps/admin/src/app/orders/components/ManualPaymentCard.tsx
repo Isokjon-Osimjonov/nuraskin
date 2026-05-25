@@ -28,7 +28,10 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success("To'lov tasdiqlandi!");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   if (order.orderSource !== 'MANUAL') return null;

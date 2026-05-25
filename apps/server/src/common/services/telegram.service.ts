@@ -3,6 +3,7 @@ import { env } from '../config/env';
 import { logger } from '../utils/logger';
 
 export const customerBot = new Bot(env.TELEGRAM_BOT_TOKEN || 'dummy-token');
+
 export const adminBot = new Bot(env.TELEGRAM_ADMIN_BOT_TOKEN || 'dummy-admin-token');
 
 customerBot.catch((err) => logger.error(err, 'Customer bot error'));

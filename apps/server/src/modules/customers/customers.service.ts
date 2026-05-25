@@ -1,8 +1,10 @@
 import * as repository from './customers.repository';
 import { db, productWaitlist, orders, stockReservations, products } from '@nuraskin/database';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import { ConflictError, NotFoundError } from '../../common/errors/AppError';
 import type { CustomerFilters, UpdateCustomerInput } from '@nuraskin/shared-types';
+
+const PAID_STATUSES = ['PAYMENT_VERIFIED', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
 
 export async function listCustomersAdmin(filters: CustomerFilters) {
   return await repository.findAdminList(filters);
@@ -61,22 +63,35 @@ export async function getCustomerDetailAdmin(id: string) {
     .where(eq(productWaitlist.customerId, id as string))
     .orderBy(desc(productWaitlist.createdAt));
 
-  // Calculate total spent (DELIVERED orders only)
-  const totalSpentRow = await db
-    .select({ total: sql`sum(total_amount)::bigint` })
+  // Calculate total spent KRW (KOR orders)
+  const [totalSpentKrw] = await db
+    .select({ total: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)::text` })
     .from(orders)
     .where(and(
       eq(orders.customerId, id as string),
-      eq(orders.status, 'DELIVERED')
+      eq(orders.regionCode, 'KOR'),
+      inArray(orders.status, PAID_STATUSES)
+    ));
+
+  // Calculate total spent UZS (UZB orders)
+  const [totalSpentUzs] = await db
+    .select({ total: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)::text` })
+    .from(orders)
+    .where(and(
+      eq(orders.customerId, id as string),
+      eq(orders.regionCode, 'UZB'),
+      inArray(orders.status, PAID_STATUSES)
     ));
 
   return {
     ...customer,
     telegramId: customer.telegramId?.toString() || null,
     debtLimitOverride: customer.debtLimitOverride?.toString() || null,
+    totalSpentKrw: totalSpentKrw.total,
+    totalSpentUzs: totalSpentUzs.total,
     stats: {
       orderCount: Number(orderCount as any),
-      totalSpent: totalSpentRow[0]?.total?.toString() || '0',
+      totalSpent: (BigInt(totalSpentKrw.total) + BigInt(totalSpentUzs.total) / 100n).toString(), // mixed units, just for legacy
       outstandingDebt: BigInt(outstandingDebt as any).toString(),
       waitlistCount: waitlist.length,
     },

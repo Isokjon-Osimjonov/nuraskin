@@ -1,100 +1,97 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
-
-interface Product {
-  name: string;
-  image: string;
-  slug: string;
-}
-
-// Placeholder products — will be swapped for real API data
-const PRODUCTS: Product[] = [
-  { name: 'Heartleaf 77\nClear Toner Pad', image: '/nsb.png', slug: 'heartleaf-77-clear-toner-pad' },
-  { name: 'NuraSkin\nFace Cream',          image: '/nsb.png', slug: 'nuraskin-face-cream' },
-  { name: 'Soothing\nBarrier Serum',       image: '/nsb.png', slug: 'soothing-barrier-serum' },
-  { name: 'Ceramide\nMoisture Gel',        image: '/nsb.png', slug: 'ceramide-moisture-gel' },
-  { name: 'Niacinamide\nBright Essence',   image: '/nsb.png', slug: 'niacinamide-bright-essence' },
-];
+import { useNavigate } from '@tanstack/react-router';
+import { useProducts } from '@/hooks/useProducts';
+import { useAppStore } from '@/stores/app.store';
 
 export function HeroRightCol() {
   const [index, setIndex] = useState(0);
+  const { regionCode } = useAppStore();
+  const navigate = useNavigate();
+  const { data: productsData, isLoading } = useProducts({ limit: 5 });
 
-  const prev = () => setIndex((i) => (i - 1 + PRODUCTS.length) % PRODUCTS.length);
-  const next = () => setIndex((i) => (i + 1) % PRODUCTS.length);
+  const heroProducts = productsData?.data ?? [];
+  const total = heroProducts.length;
 
-  const product = PRODUCTS[index];
-  const total   = PRODUCTS.length;
-  const progressPct = ((index + 1) / total) * 100;
+  const handlePrev = () => setIndex((i) => (i - 1 + total) % total);
+  const handleNext = () => setIndex((i) => (i + 1) % total);
+
+  if (isLoading) {
+    return (
+      <div className="hidden sm:flex flex-col items-end w-full sm:w-auto">
+        <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] sm:w-[300px] flex items-center gap-4 animate-pulse">
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-stone-100 rounded w-3/4" />
+            <div className="h-4 bg-stone-100 rounded w-1/2" />
+            <div className="h-3 bg-stone-100 rounded w-1/3 mt-3" />
+          </div>
+          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-stone-100" />
+        </div>
+      </div>
+    );
+  }
+
+  if (total === 0) return null;
+
+  const currentProduct = heroProducts[index];
 
   return (
-    <div className="flex flex-col items-end gap-4 w-full md:w-auto">
-
-      {/* Carousel nav — left btn | progress line | counter | right btn */}
-      <div className="hidden md:flex items-center gap-3 w-full">
-        <button
-          onClick={prev}
-          aria-label="Oldingi"
-          className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/40 text-white/80 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        {/* Animated progress line */}
-        <div className="flex-1 h-px bg-white/20 relative">
-          <div
-            className="absolute left-0 top-0 h-full bg-white/70 transition-all duration-300"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-
-        <span className="text-white/70 text-xs tabular-nums shrink-0 hidden sm:block">
-          {String(index + 1).padStart(2, '0')}&thinsp;/&thinsp;{String(total).padStart(2, '0')}
-        </span>
-
-        <button
-          onClick={next}
-          aria-label="Keyingi"
-          className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white text-zinc-900 flex items-center justify-center hover:bg-white/90 transition-colors shadow-lg shrink-0"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Mobile Slide Counter (Optional per instructions) */}
-      <div className="flex md:hidden absolute bottom-20 sm:bottom-6 right-4 bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 z-30 hidden sm:flex">
-         <span className="text-white text-[10px] font-medium tracking-widest tabular-nums">
-           {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
-         </span>
-      </div>
-
-      {/* Product card */}
-      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex w-[160px] sm:w-[200px] md:w-64 h-28 md:h-36 absolute bottom-20 sm:bottom-6 right-4 md:static max-w-[280px] md:max-w-none transition-all">
-
-        {/* Left: product name + link */}
-        <div className="flex flex-col justify-between p-3 md:p-4 flex-1">
-          <p className="text-zinc-900 font-normal text-xs sm:text-sm md:text-base leading-tight md:leading-snug whitespace-pre-line">
-            {product.name}
+    <div className="hidden sm:flex flex-col items-center justify-center sm:items-end sm:justify-end w-full sm:w-auto">
+      {/* Card */}
+      <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] sm:w-[300px] flex items-center gap-4 transition-all mx-auto sm:mx-0">
+        {/* Left: text */}
+        <div className="flex-1 min-w-0">
+          <p className="text-stone-900 font-normal text-sm sm:text-base leading-snug line-clamp-3 mb-3">
+            {currentProduct?.name}
           </p>
-
-          <Link
-            to="/products/$slug"
-            params={{ slug: product.slug }}
-            className="text-zinc-900 text-[10px] md:text-xs font-light underline underline-offset-4 decoration-zinc-300 hover:decoration-zinc-900 transition-colors"
+          <button
+            onClick={() => navigate({ to: `/products/${currentProduct?.slug ?? currentProduct?.id}` })}
+            className="text-xs sm:text-sm text-[#4A1525] underline underline-offset-2 hover:opacity-80 transition-opacity"
           >
-            Mahsulotni ko&apos;rish
-          </Link>
+            Mahsulotni kashf qilish
+          </button>
         </div>
 
-        {/* Right: product image panel */}
-        <div className="w-16 sm:w-20 md:w-28 relative bg-zinc-50 shrink-0">
-          <img
-            src={product.image}
-            alt={product.name.replace('\n', ' ')}
-            className="absolute inset-0 w-full h-full object-contain p-2"
-          />
+        {/* Right: image */}
+        <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-stone-50">
+          {currentProduct?.imageUrls?.[0] ? (
+            <img
+              src={currentProduct.imageUrls[0]}
+              alt={currentProduct.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-stone-100 flex items-center justify-center">
+              <span className="text-2xl">🧴</span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Navigation */}
+      {total > 1 && (
+        <div className="flex items-center justify-end gap-3 mt-3 w-full">
+          {/* Prev — outline circle */}
+          <button
+            onClick={handlePrev}
+            className="w-9 h-9 rounded-full border border-stone-300 bg-white flex items-center justify-center text-stone-600 hover:border-stone-400 transition-colors shadow-sm"
+          >
+            ‹
+          </button>
+
+          {/* Counter */}
+          <span className="text-stone-400 text-sm font-mono min-w-[40px] text-center">
+            {String(index + 1).padStart(2, '0')}/{String(total).padStart(2, '0')}
+          </span>
+
+          {/* Next — filled dark circle */}
+          <button
+            onClick={handleNext}
+            className="w-9 h-9 rounded-full bg-[#3A0311] flex items-center justify-center text-white hover:opacity-90 transition-opacity shadow-sm"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }

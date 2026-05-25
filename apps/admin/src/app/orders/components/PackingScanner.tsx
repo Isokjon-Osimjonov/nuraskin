@@ -53,7 +53,10 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
         if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
       }
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const handleScan = (barcode: string) => {

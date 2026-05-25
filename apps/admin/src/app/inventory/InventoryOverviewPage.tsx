@@ -84,8 +84,9 @@ export function InventoryOverviewPage() {
       setIsDeleteDialogOpen(false);
       setProductToDelete(null);
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Xatolik yuz berdi');
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 
@@ -96,7 +97,10 @@ export function InventoryOverviewPage() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Mahsulot tiklandi');
     },
-    onError: (error: any) => toast.error(error.message || 'Xatolik yuz berdi'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const filteredItems = items.filter(
@@ -137,17 +141,18 @@ export function InventoryOverviewPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Omborxona</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">Omborxona</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Mahsulotlar qoldig'i va partiyalar boshqaruvi.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
+            className="flex-1 sm:flex-none"
             onClick={() => navigate({ to: '/inventory/scan' })}
           >
             <Scan className="mr-2 h-4 w-4" />
@@ -164,19 +169,19 @@ export function InventoryOverviewPage() {
         }}
         className="w-full"
       >
-        <div className="flex items-center justify-between gap-4">
-          <TabsList>
-            <TabsTrigger value="active">Faol mahsulotlar</TabsTrigger>
-            <TabsTrigger value="deleted">
-              O'chirilganlar mahsulotlar
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList className="w-full sm:w-auto overflow-x-auto flex justify-start">
+            <TabsTrigger value="active" className="flex-1 sm:flex-none">Faol mahsulotlar</TabsTrigger>
+            <TabsTrigger value="deleted" className="flex-1 sm:flex-none">
+              O'chirilganlar
             </TabsTrigger>
           </TabsList>
 
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Mahsulotlarni qidirish..."
-              className="pl-8"
+              className="pl-8 w-full"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

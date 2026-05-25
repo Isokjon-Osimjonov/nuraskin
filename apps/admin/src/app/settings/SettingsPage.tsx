@@ -15,6 +15,7 @@ import { UZ, translateServerError } from '@/lib/uz';
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
+  const hasInitialized = React.useRef(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['settings'],
@@ -32,8 +33,6 @@ export function SettingsPage() {
       minOrderUzbUzs: 0,
       minOrderKorKrw: 0,
       paymentTimeoutMinutes: 30,
-      freeShippingThresholdKrw: 200000,
-      standardShippingFeeKrw: 3000,
       korBankEnabled: false,
       korBankName: '',
       korBankHolder: '',
@@ -51,8 +50,10 @@ export function SettingsPage() {
     },
   });
 
+  const { formState: { isDirty } } = form;
+
   React.useEffect(() => {
-    if (settings) {
+    if (settings && !hasInitialized.current) {
       form.reset({
         debtLimitDefault: Number(BigInt(settings.debtLimitDefault)), 
         lowStockThreshold: settings.lowStockThreshold,
@@ -62,8 +63,6 @@ export function SettingsPage() {
         minOrderUzbUzs: Number(BigInt(settings.minOrderUzbUzs)) / 100,
         minOrderKorKrw: Number(BigInt(settings.minOrderKorKrw)),
         paymentTimeoutMinutes: settings.paymentTimeoutMinutes,
-        freeShippingThresholdKrw: Number(BigInt(settings.freeShippingThresholdKrw || '200000')),
-        standardShippingFeeKrw: Number(BigInt(settings.standardShippingFeeKrw || '3000')),
         korBankEnabled: settings.korBankEnabled ?? false,
         korBankName: settings.korBankName || '',
         korBankHolder: settings.korBankHolder || '',
@@ -79,16 +78,21 @@ export function SettingsPage() {
         uzbE9payName: settings.uzbE9payName || '',
         uzbE9payAccount: settings.uzbE9payAccount || '',
       });
+      hasInitialized.current = true;
     }
   }, [settings, form]);
 
   const updateMutation = useMutation({
     mutationFn: settingsApi.update,
     onSuccess: () => {
+      hasInitialized.current = false;
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       toast.success(UZ.settings.saved);
     },
-    onError: (err: any) => toast.error(translateServerError(err.message)),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(translateServerError(msg));
+    },
   });
 
   const onSubmit = (data: UpdateSettingsInput) => {
@@ -468,56 +472,7 @@ export function SettingsPage() {
             </TabsContent>
           </Tabs>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{UZ.settings.deliverySettings}</CardTitle>
-              <CardDescription>Koreya ichida yetkazib berish (Delivery Settings)</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="freeShippingThresholdKrw"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{UZ.settings.freeShippingThreshold} (KOR)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
-                    </FormControl>
-                    <FormDescription>
-                      Bu summadan yuqori KOR buyurtmalar uchun yetkazib berish bepul
-                      <br/>
-                      <span className="font-semibold mt-1 block">
-                        Joriy: ₩{Number(field.value || 0).toLocaleString()}
-                      </span>
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="standardShippingFeeKrw"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{UZ.settings.standardShippingFee} (KOR)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
-                    </FormControl>
-                    <FormDescription>
-                      Bepul chegaraga yetmagan buyurtmalar uchun narx
-                      <br/>
-                      <span className="font-semibold mt-1 block">
-                        Joriy: ₩{Number(field.value || 0).toLocaleString()}
-                      </span>
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <Button type="submit" className="w-full" disabled={updateMutation.isPending}>
+          <Button type="submit" className="w-full" disabled={!isDirty || updateMutation.isPending}>
             {updateMutation.isPending ? UZ.common.loading : UZ.common.save}
           </Button>
         </form>

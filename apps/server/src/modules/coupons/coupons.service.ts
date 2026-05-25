@@ -187,9 +187,18 @@ export async function updateCoupon(id: string, input: UpdateCouponInput) {
   // Can only update if DRAFT or PAUSED (business rule to avoid logic breaking active users)
   if (existing.status !== 'DRAFT' && existing.status !== 'PAUSED') {
     // Only allow status changes or certain fields if ACTIVE
-    if (Object.keys(input).length === 1 && input.status) {
-        // allowing status change
-    } else {
+    const nonStatusKeys = Object.keys(input).filter(k => k !== 'status');
+    
+    // Check if any significant fields are being changed
+    const hasSignificantChanges = nonStatusKeys.some(k => {
+        const val = (input as any)[k];
+        // Ignore fields that are already the same or are just false/null
+        if (val === (existing as any)[k]) return false;
+        if ((k === 'isPromotional' || k === 'isFirstPurchaseOnly') && val === false && !(existing as any)[k]) return false;
+        return true;
+    });
+
+    if (hasSignificantChanges) {
         throw new BadRequestError('Faol kuponni tahrirlab bo\'lmaydi. Uni avval to\'xtating (Pause).');
     }
   }
@@ -210,6 +219,12 @@ export async function updateCoupon(id: string, input: UpdateCouponInput) {
   if (input.excludeWholesale !== undefined) updateData.excludeWholesale = input.excludeWholesale;
 
   return await repository.update(id, updateData);
+}
+
+export async function updateCouponStatus(id: string, status: 'ACTIVE' | 'PAUSED') {
+  const updated = await repository.update(id, { status });
+  if (!updated) throw new Error('Kupon topilmadi');
+  return updated;
 }
 
 export async function listCoupons(filters: any) {

@@ -46,7 +46,10 @@ export function PostDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['tg-posts', postId] });
       toast.success("Post yuborish boshlandi");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const deleteMutation = useMutation({

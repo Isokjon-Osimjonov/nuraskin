@@ -1,8 +1,8 @@
+import { api } from '@/lib/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
-import { apiFetch } from '@/lib/apiFetch';
 import { formatPrice } from '@/lib/utils';
 import type { KorShippingTierResponse, StorefrontSettings } from '@nuraskin/shared-types';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
@@ -26,12 +26,12 @@ function CartPage() {
 
   const { data: settings } = useQuery({
     queryKey: ['storefront-settings'],
-    queryFn: () => apiFetch<StorefrontSettings>('/storefront/settings'),
+    queryFn: () => api.get<any>('/storefront/settings'),
   });
 
   const { data: shippingTiers = [] } = useQuery({
     queryKey: ['shipping-tiers'],
-    queryFn: () => apiFetch<KorShippingTierResponse[]>('/storefront/shipping-tiers'),
+    queryFn: () => api.get<any[]>('/storefront/shipping-tiers'),
     enabled: cartRegion === 'KOR',
   });
 
@@ -45,6 +45,13 @@ function CartPage() {
 
   const total = subtotal + shipping;
 
+  const minOrder = cartRegion === 'KOR'
+    ? (settings?.minOrderAmountKrw ?? 0)
+    : (settings?.minOrderAmountUzs ?? 0);
+
+  const subtotalSom = cartRegion === 'UZB' ? subtotal / 100 : subtotal;
+  const isBelowMinOrder = minOrder > 0 && subtotalSom < minOrder;
+
   const hasStockError = cart.some(item => item.quantity > (item.availableStock ?? 999));
 
   const displayPrice = (val: number | string) =>
@@ -53,7 +60,7 @@ function CartPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center py-24 px-6">
-        <h1 className="text-2xl font-medium text-[#4A1525] mb-3">Savatchani ko'rish uchun kiring</h1>
+        <h1 className="text-2xl font-normal text-[#4A1525] mb-3">Savatchani ko'rish uchun kiring</h1>
         <Link
           to="/login"
           className="bg-[#4A1525] text-white text-[13px] font-light tracking-wide px-7 py-3 rounded-full hover:bg-[#6B2540] transition-colors"
@@ -74,7 +81,7 @@ function CartPage() {
         <div className="w-24 h-24 bg-[#4A1525]/5 rounded-full flex items-center justify-center mb-6">
           <ShoppingBag className="w-10 h-10 text-[#4A1525]/30" />
         </div>
-        <h1 className="text-2xl font-medium text-[#4A1525] mb-3">Savatchangiz bo'sh</h1>
+        <h1 className="text-2xl font-normal text-[#4A1525] mb-3">Savatchangiz bo'sh</h1>
         <p className="text-[14px] font-light text-stone-500 mb-8 max-w-md text-center">
           Siz hozircha hech qanday mahsulot tanlamadingiz. Katalogga o'tib, teriningiz uchun eng yaxshi variantlarni kashf eting.
         </p>
@@ -135,12 +142,12 @@ function CartPage() {
 
                         <div className="text-[13px] font-light text-stone-500 mb-3 flex flex-col gap-1">
                           <div className="flex items-center gap-2">
-                            <span className={isWholesale ? 'text-emerald-600 font-medium' : ''}>
+                            <span className={isWholesale ? 'text-emerald-600 font-normal' : ''}>
                               {displayPrice(item.price)}
                             </span>
                             {isWholesale && (
                               <>
-                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
+                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-normal italic">Ulgurji</span>
                                 {Number(item.retailPrice) > Number(item.wholesalePrice) && (
                                   <span className="text-[11px] text-emerald-600 ml-1">
                                     Tejash: {displayPrice((Number(item.retailPrice) - Number(item.wholesalePrice)) * item.quantity)}
@@ -150,7 +157,7 @@ function CartPage() {
                             )}
                           </div>
                           {isOverStock && (
-                            <div className="text-[11px] text-red-600 font-medium flex items-center gap-1">
+                            <div className="text-[11px] text-red-600 font-normal flex items-center gap-1">
                               <AlertTriangle className="h-3.5 w-3.5" />
                               Faqat {item.availableStock} ta mavjud
                             </div>
@@ -167,7 +174,7 @@ function CartPage() {
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className={`text-[13px] font-medium text-center ${isOverStock ? 'text-red-600' : ''}`}>{item.quantity}</span>
+                            <span className={`text-[13px] font-normal text-center ${isOverStock ? 'text-red-600' : ''}`}>{item.quantity}</span>
                             <button
                               onClick={() => {
                                 if (item.quantity >= (item.availableStock ?? 0)) {
@@ -183,7 +190,7 @@ function CartPage() {
                             </button>
                           </div>
 
-                          <span className="text-[14px] font-medium text-[#4A1525]">
+                          <span className="text-[14px] font-normal text-[#4A1525]">
                             {displayPrice(Number(item.price) * item.quantity)}
                           </span>
                         </div>
@@ -227,22 +234,33 @@ function CartPage() {
                 {cartRegion === 'UZB' && (
                   <div className="flex justify-between items-center text-white/70 text-[13px] font-light">
                     <span>Kargo (kiritilgan):</span>
-                    <span className="text-emerald-400 font-medium">BEPUL ✓</span>
+                    <span className="text-emerald-400 font-normal">BEPUL ✓</span>
                   </div>
                 )}
               </div>
 
               <div className="flex justify-between items-center border-t border-white/20 pt-5 mb-6">
                 <span className="text-[14px] font-light">Jami:</span>
-                <span className="text-2xl font-medium tracking-tight">
+                <span className="text-2xl font-normal tracking-tight">
                   {displayPrice(total)}
                 </span>
               </div>
 
+              {isBelowMinOrder && (
+                <div className="rounded-lg bg-white/10 border border-red-400/50 px-4 py-3 mb-3">
+                  <p className="text-sm text-red-300 font-normal">
+                    {cartRegion === 'KOR'
+                      ? `Minimal buyurtma: ${minOrder.toLocaleString()} ₩. Kamida shu miqdorda xarid qiling.`
+                      : `Minimal buyurtma: ${minOrder.toLocaleString()} so'm. Kamida shu miqdorda xarid qiling.`
+                    }
+                  </p>
+                </div>
+              )}
+
               <button
-                className="w-full h-12 rounded-full bg-white text-[#4A1525] text-[13px] font-light tracking-wide hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full h-12 rounded-full bg-white text-[#4A1525] text-[13px] font-light tracking-wide hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 group ${isBelowMinOrder ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => navigate({ to: '/checkout' })}
-                disabled={hasStockError}
+                disabled={hasStockError || isBelowMinOrder}
               >
                 {hasStockError ? 'Zaxira yetarli emas' : 'Buyurtmani rasmiylashtirish'}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

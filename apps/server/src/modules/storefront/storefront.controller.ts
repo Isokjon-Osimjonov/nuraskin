@@ -22,6 +22,11 @@ async function tryGetCustomerId(req: Request): Promise<string | undefined> {
   }
 }
 
+export async function listCategories(req: Request, res: Response) {
+  const result = await service.listCategories();
+  res.json(result);
+}
+
 export async function listProducts(req: Request, res: Response) {
   const region = getRegion(req);
   const categoryId = req.query.categoryId as string;

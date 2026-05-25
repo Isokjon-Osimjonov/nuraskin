@@ -80,8 +80,9 @@ export function ChannelsPage() {
           setNewChannel(prev => ({ ...prev, name: res.title || '' }));
       }
     },
-    onError: (err: any) => {
-      setTestResult({ ok: false, error: err.message });
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      setTestResult({ ok: false, error: msg });
     },
     onSettled: () => setIsTesting(false)
   });
@@ -95,7 +96,10 @@ export function ChannelsPage() {
       setTestResult(null);
       toast.success("Kanal muvaffaqiyatli qo'shildi");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const removeMutation = useMutation({
@@ -104,7 +108,10 @@ export function ChannelsPage() {
       queryClient.invalidateQueries({ queryKey: ['tg-channels'] });
       toast.success("Kanal olib tashlandi");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   return (

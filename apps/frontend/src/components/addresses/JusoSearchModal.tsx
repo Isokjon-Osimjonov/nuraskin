@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import {
@@ -7,7 +8,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Search, Loader2 } from 'lucide-react';
-import { apiFetch } from '@/lib/apiFetch';
 
 interface JusoResult {
   postal_code: string;
@@ -45,7 +45,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
 
       setLoading(true);
       try {
-        const data = await apiFetch<{ results: JusoResult[]; fallback: boolean }>(
+        const data = await api.get<any>(
           `/storefront/addresses/juso-search?q=${encodeURIComponent(query)}`
         );
         setResults(data.results);
@@ -97,10 +97,10 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
                     onClick={() => onSelect(item)}
                   >
                     <div className="flex items-start gap-3">
-                      <span className="text-[11px] font-medium bg-[#4A1525]/5 text-[#4A1525] px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-normal bg-[#4A1525]/5 text-[#4A1525] px-2 py-0.5 rounded">
                         {item.postal_code}
                       </span>
-                      <p className="text-[13px] text-[#4A1525] font-medium group-hover:text-[#6B2540]">
+                      <p className="text-[13px] text-[#4A1525] font-normal group-hover:text-[#6B2540]">
                         {item.road_address}
                       </p>
                     </div>

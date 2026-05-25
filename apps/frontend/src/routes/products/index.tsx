@@ -1,20 +1,21 @@
 import { useState, useMemo } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Search, SlidersHorizontal, X, ShoppingBag, Heart, Bell, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ShoppingBag, Bell } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
-import { formatPrice } from '@/lib/utils';
-import { toast } from 'sonner';
+import { formatPrice, cn } from '@/lib/utils';
 import { useCart, useAddToCart } from '@/hooks/useCart';
+import { typography } from '@/lib/typography';
+import { EmptySection } from '@/components/shared/EmptySection';
 
 export const Route = createFileRoute('/products/')({
   component: CategoryPage,
 });
 
 function CategoryPage() {
-  const { favorites, toggleFavorite, isAuthenticated, regionCode } = useAppStore();
+  const { isAuthenticated, regionCode } = useAppStore();
   const { data: waitlistIds = [] } = useMyWaitlistIds();
   const { add: addWaitlist, remove: removeWaitlist } = useToggleWaitlist();
   const navigate = useNavigate();
@@ -72,11 +73,11 @@ function CategoryPage() {
     <div className="space-y-8">
       {/* Category list */}
       <div>
-        <h3 className="text-[14px] font-light text-[#4A1525] mb-4">Kategoriyalar</h3>
+        <h3 className={cn(typography.cardTitle, "mb-4")}>Kategoriyalar</h3>
         <div className="space-y-2">
           <Link
             to="/products"
-            className="block text-[13px] font-medium text-[#4A1525] transition-colors"
+            className="block text-[13px] font-normal text-[#4A1525] transition-colors"
           >
             Barchasi
           </Link>
@@ -95,7 +96,7 @@ function CategoryPage() {
 
       {availableBrands.length > 0 && (
         <div>
-          <h3 className="text-[14px] font-light text-[#4A1525] mb-4">Brend</h3>
+          <h3 className={cn(typography.cardTitle, "mb-4")}>Brend</h3>
           <div className="space-y-2">
             {availableBrands.map((brand) => (
               <label key={brand} className="flex items-center gap-3 cursor-pointer group">
@@ -119,8 +120,8 @@ function CategoryPage() {
   return (
     <div className="bg-white min-h-screen pb-24 pt-8">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 border-b border-stone-100 pb-8 mb-8">
-        <h1 className="text-2xl md:text-3xl font-light text-[#4A1525]">{categoryName}</h1>
-        <p className="text-[13px] font-light text-stone-500 mt-2">
+        <h1 className={typography.sectionTitle}>{categoryName}</h1>
+        <p className={typography.sectionSub}>
           {filteredProducts.length} mahsulot topildi
         </p>
       </div>
@@ -139,7 +140,7 @@ function CategoryPage() {
           >
             <SlidersHorizontal className="w-4 h-4" /> Filtrlar
           </button>
-          <div className="text-[12px] font-light text-stone-400">{filteredProducts.length} mahsulot</div>
+          <div className={typography.cardMeta}>{filteredProducts.length} mahsulot</div>
         </div>
 
         {/* Main Content */}
@@ -150,7 +151,7 @@ function CategoryPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 h-4 w-4" />
               <input
                 placeholder="Qidirish..."
-                className="w-full h-10 pl-10 pr-4 rounded-full bg-[#f8f7f5] border border-stone-200 text-[13px] font-light outline-none focus:border-[#4A1525] transition-colors placeholder:text-stone-400"
+                className="w-full h-10 pl-10 pr-4 rounded-full bg-stone-50 border border-stone-200 text-[13px] font-light outline-none focus:border-[#4A1525] transition-colors placeholder:text-stone-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -159,7 +160,7 @@ function CategoryPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <span className="text-[12px] font-light text-stone-400 whitespace-nowrap hidden sm:inline-block">Saralash:</span>
               <select
-                className="w-full sm:w-auto h-10 rounded-full border border-stone-200 bg-[#f8f7f5] px-4 py-1 text-[13px] font-light focus:outline-none focus:border-[#4A1525]"
+                className="w-full sm:w-auto h-10 rounded-full border border-stone-200 bg-stone-50 px-4 py-1 text-[13px] font-light focus:outline-none focus:border-[#4A1525]"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'arzon' | 'qimmat' | 'yangi')}
               >
@@ -174,20 +175,31 @@ function CategoryPage() {
           {isLoading && (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-[#f8f7f5] rounded-2xl overflow-hidden animate-pulse">
-                  <div className="h-[200px] bg-stone-200" />
-                  <div className="p-4 space-y-2">
-                    <div className="h-4 bg-stone-200 rounded w-3/4" />
-                    <div className="h-3 bg-stone-200 rounded w-1/2" />
-                    <div className="h-4 bg-stone-200 rounded w-1/3" />
-                  </div>
-                </div>
+                <div key={i} className="bg-stone-50 rounded-2xl overflow-hidden animate-pulse h-80" />
               ))}
             </div>
           )}
 
+          {/* Empty state */}
+          {!isLoading && filteredProducts.length === 0 && (
+            <div className="space-y-6">
+              <EmptySection
+                title="Hech narsa topilmadi"
+                subtitle="Qidiruv yoki filtrlaringizni o'zgartirib ko'ring."
+              />
+              <div className="flex justify-center">
+                <button
+                  onClick={() => { setSearchQuery(''); setSelectedBrands([]); }}
+                  className="border border-stone-300 text-stone-700 text-[13px] font-light px-6 py-2.5 rounded-full hover:border-[#4A1525] hover:text-[#4A1525] transition-colors"
+                >
+                  Filtrlarni tozalash
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Product Grid */}
-          {!isLoading && (
+          {!isLoading && filteredProducts.length > 0 && (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
               {filteredProducts.map((product) => {
                 const isOnWaitlist = waitlistIds.includes(product.id);
@@ -203,11 +215,11 @@ function CategoryPage() {
                     
                     {product.availableStock === 0 && (
                       <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center backdrop-blur-[2px] transition-all duration-500">
-                        <span className="text-white text-[10px] font-bold tracking-widest uppercase">Tez orada keladi</span>
+                        <span className="text-white text-[10px] font-normal tracking-widest uppercase">Tez orada keladi</span>
                       </div>
                     )}
                     {product.showStockCount && product.availableStock > 0 && product.availableStock <= 5 && (
-                      <div className="absolute bottom-3 left-3 bg-orange-500/90 text-white px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                      <div className="absolute bottom-3 left-3 bg-orange-500/90 text-white px-2 py-0.5 rounded-md text-[9px] font-normal uppercase tracking-wider">
                         Faqat {product.availableStock} ta
                       </div>
                     )}
@@ -215,20 +227,20 @@ function CategoryPage() {
 
                   <div className="flex flex-col flex-1 p-3">
                     <div className="flex flex-col mb-2">
-                       <span className="text-[10px] text-stone-400 uppercase tracking-tight">{product.categoryName}</span>
+                       <span className={typography.cardMeta}>{product.categoryName}</span>
                        {product.brandName && (
-                        <span className="text-[10px] text-stone-400 font-light">{product.brandName}</span>
+                        <span className={cn(typography.cardMeta, "font-light opacity-70")}>{product.brandName}</span>
                        )}
                     </div>
                     
                     <Link to="/products/$slug" params={{ slug: product.slug }}>
-                      <h3 className="text-sm font-medium text-[#4A1525] leading-snug mb-3 group-hover:text-[#6B2540] transition-colors truncate">
+                      <h3 className={cn(typography.cardTitle, "mb-3 group-hover:text-[#4A1525] transition-colors truncate")}>
                         {product.name}
                       </h3>
                     </Link>
 
                     <div className="mt-auto flex items-center justify-between">
-                      <span className="text-sm font-semibold text-[#4A1525]">
+                      <span className={typography.cardPrice}>
                         {displayPrice(product.calculatedPrice)}
                       </span>
                       {product.availableStock === 0 ? (
@@ -267,8 +279,8 @@ function CategoryPage() {
                           disabled={addToCart.isPending}
                           className={`w-8 h-8 rounded-full transition-colors flex items-center justify-center border ${
                             isInCart
-                              ? 'bg-[#4A1525] border-[#4A1525] text-white hover:bg-[#6B2540]'
-                              : 'bg-white border-stone-200 text-[#4A1525] hover:border-[#4A1525]'
+                              ? 'bg-[#4A1525] border-[#4A1525] text-white'
+                              : 'bg-white border-stone-200 text-[#4A1525] hover:border-[#4A1525] hover:text-[#4A1525]'
                           }`}
                         >
                           <ShoppingBag className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -279,19 +291,6 @@ function CategoryPage() {
                 </div>
                 );
               })}
-
-              {filteredProducts.length === 0 && (
-                <div className="col-span-full py-20 text-center">
-                  <h3 className="text-lg font-medium text-stone-400 mb-2">Hech narsa topilmadi</h3>
-                  <p className="text-[13px] font-light text-stone-400">Qidiruv yoki filtrlaringizni o'zgartirib ko'ring.</p>
-                  <button
-                    onClick={() => { setSearchQuery(''); setSelectedBrands([]); }}
-                    className="mt-6 border border-stone-300 text-stone-700 text-[13px] font-light px-6 py-2.5 rounded-full hover:border-[#4A1525] hover:text-[#4A1525] transition-colors"
-                  >
-                    Filtrlarni tozalash
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -302,7 +301,7 @@ function CategoryPage() {
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex justify-end">
           <div className="w-[85%] max-sm h-full bg-white flex flex-col">
             <div className="p-5 border-b border-stone-100 flex justify-between items-center">
-              <h2 className="text-[16px] font-medium text-[#4A1525]">Filtrlar</h2>
+              <h2 className="text-[16px] font-normal text-stone-900">Filtrlar</h2>
               <button className="text-stone-400 hover:text-stone-700 transition-colors" onClick={() => setIsMobileFiltersOpen(false)}>
                 <X className="w-5 h-5" />
               </button>
@@ -318,7 +317,7 @@ function CategoryPage() {
                 Tozalash
               </button>
               <button
-                className="flex-1 bg-[#4A1525] text-white text-[13px] font-light py-2.5 rounded-full hover:bg-[#6B2540] transition-colors"
+                className="flex-1 bg-[#4A1525] text-white text-[13px] font-light py-2.5 rounded-full hover:opacity-90 transition-opacity"
                 onClick={() => setIsMobileFiltersOpen(false)}
               >
                 Qo'llash

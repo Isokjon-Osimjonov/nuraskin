@@ -64,7 +64,7 @@ function CouponsPage() {
           <Link to="/profile">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-xl font-medium text-[#4A1525]">Kuponlarim</h1>
+          <h1 className="text-xl font-normal text-[#4A1525]">Kuponlarim</h1>
         </div>
 
         {isLoading ? (
@@ -97,28 +97,28 @@ function CouponsPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           {isUsed && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-stone-200 text-stone-600 px-2 py-0.5 rounded">
+                            <span className="text-[10px] font-normal uppercase tracking-wider bg-stone-200 text-stone-600 px-2 py-0.5 rounded">
                               Ishlatilgan
                             </span>
                           )}
                           {!isUsed && coupon.autoApplied && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded flex items-center gap-1">
+                            <span className="text-[10px] font-normal uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded flex items-center gap-1">
                               ✓ Avtomatik qo'llanildi
                             </span>
                           )}
                           {!isUsed && coupon.isTargeted && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                            <span className="text-[10px] font-normal uppercase tracking-wider bg-green-100 text-green-700 px-2 py-0.5 rounded">
                               👤 Maxsus taklif
                             </span>
                           )}
                         </div>
-                        <h3 className="text-[16px] font-medium text-stone-800">{coupon.name}</h3>
+                        <h3 className="text-[16px] font-normal text-stone-800">{coupon.name}</h3>
                         {coupon.description && (
                           <p className="text-[12px] text-stone-500 mt-1">{coupon.description}</p>
                         )}
                       </div>
                       <div className="text-right">
-                        <span className="text-[20px] font-bold text-[#4A1525]">
+                        <span className="text-[20px] font-normal text-[#4A1525]">
                           {coupon.type === 'PERCENTAGE'
                             ? `${coupon.value}%`
                             : coupon.type === 'FREE_SHIPPING'
@@ -135,17 +135,17 @@ function CouponsPage() {
                     {/* Scope and Conditions */}
                     <div className="flex flex-wrap gap-2 mt-3">
                       {coupon.scope === 'PRODUCTS' && (
-                        <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-medium">
+                        <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-normal">
                           📦 {coupon.applicableProductNames?.length === 1 ? coupon.applicableProductNames[0] : `${coupon.applicableProductNames?.length || 0} ta mahsulot`} uchun
                         </span>
                       )}
                       {coupon.scope === 'CATEGORIES' && (
-                        <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-medium">
+                        <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-normal">
                           🏷 {coupon.applicableCategoryNames?.length === 1 ? coupon.applicableCategoryNames[0] : `${coupon.applicableCategoryNames?.length || 0} ta kategoriya`} uchun
                         </span>
                       )}
                       {coupon.scope === 'BRANDS' && (
-                        <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-medium">
+                        <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-normal">
                           🏷 {coupon.applicableBrands?.length === 1 ? coupon.applicableBrands[0] : `${coupon.applicableBrands?.length || 0} ta brend`} uchun
                         </span>
                       )}
@@ -173,12 +173,12 @@ function CouponsPage() {
                     {/* Code + Copy / Select */}
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-stone-200">
                       <div className="flex items-center gap-3">
-                        <code className="text-[14px] font-mono font-bold text-[#4A1525] bg-white px-4 py-2 rounded-lg border border-stone-100 tracking-wider">
+                        <code className="text-[14px] font-mono font-normal text-[#4A1525] bg-white px-4 py-2 rounded-lg border border-stone-100 tracking-wider">
                           {coupon.code}
                         </code>
                         <button
                           onClick={() => copyCode(coupon.code)}
-                          className="text-[12px] text-[#4A1525] hover:underline font-medium"
+                          className="text-[12px] text-[#4A1525] hover:underline font-normal"
                         >
                           Nusxalash
                         </button>
@@ -188,8 +188,8 @@ function CouponsPage() {
                         <div className="relative group">
                           <button
                             onClick={() => handleSelect(coupon)}
-                            disabled={isDisabledSelection}
-                            className={`px-6 py-2 rounded-xl text-[13px] font-medium transition-colors ${
+                            disabled={!!isDisabledSelection}
+                            className={`px-6 py-2 rounded-xl text-[13px] font-normal transition-colors ${
                               isSelected
                                 ? 'bg-red-50 text-red-600 hover:bg-red-100'
                                 : isDisabledSelection

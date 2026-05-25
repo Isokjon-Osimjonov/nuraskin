@@ -234,7 +234,7 @@ export async function getCouponSummary(startDate: string, endDate: string) {
       sql`${orders.deliveredAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
     ))
     .groupBy(coupons.id, coupons.code, coupons.name)
-    .orderBy(desc(sql`totalDiscountKrw`));
+    .orderBy(sql`4 desc`);
 
   return rows.map(r => ({
     ...r,

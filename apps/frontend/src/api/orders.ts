@@ -1,27 +1,24 @@
-import { apiFetch } from '@/lib/apiFetch';
+import { api } from '@/lib/api';
 import type { 
   CreateStorefrontOrderInput, 
   StorefrontOrderResponse 
 } from '@nuraskin/shared-types';
 
 export async function createOrder(data: CreateStorefrontOrderInput) {
-  return await apiFetch<StorefrontOrderResponse>('/storefront/orders', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  return await api.auth.post<any>('/storefront/orders', data);
 }
 
 export async function getMyOrders() {
-  return await apiFetch<any[]>('/storefront/orders/my');
+  return await api.auth.get<any>('/storefront/orders/my');
 }
 
 export async function getOrderById(id: string) {
-  return await apiFetch<StorefrontOrderResponse>(`/storefront/orders/${id}`);
+  return await api.auth.get<any>(`/storefront/orders/${id}`);
 }
 
 export async function getReceipt(orderId: string) {
   try {
-    return await apiFetch<{ receipt_url: string }>(`/storefront/orders/${orderId}/receipt`);
+    return await api.auth.get<any>(`/storefront/orders/${orderId}/receipt`);
   } catch (err: any) {
     if (err.status === 404) return null;
     throw err;
@@ -29,23 +26,16 @@ export async function getReceipt(orderId: string) {
 }
 
 export async function getUploadUrl() {
-  return await apiFetch<{ url: string; timestamp: number; signature: string; apiKey: string }>('/categories/upload-url', {
-    method: 'POST',
-  });
+  return await api.auth.post<any>('/categories/upload-url', {});
 }
 
 export async function uploadReceipt(orderId: string, paymentProofUrl: string) {
-  return await apiFetch<any>(`/storefront/orders/${orderId}/receipt`, {
-    method: 'PATCH',
-    body: JSON.stringify({ 
-      payment_proof_url: paymentProofUrl
-    }),
+  return await api.auth.patch<any>(`/storefront/orders/${orderId}/receipt`, { 
+    payment_proof_url: paymentProofUrl
   });
 }
 
 export async function cancelOrder(orderId: string) {
-  return await apiFetch<any>(`/storefront/orders/${orderId}`, {
-    method: 'DELETE',
-  });
+  return await api.auth.delete<any>(`/storefront/orders/${orderId}`);
 }
 

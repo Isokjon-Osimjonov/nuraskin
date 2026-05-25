@@ -239,6 +239,13 @@
       "when": 1778910737086,
       "tag": "0033_neat_energizer",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1779241491737,
+      "tag": "0034_awesome_hawkeye",
+      "breakpoints": true
     }
   ]
 }

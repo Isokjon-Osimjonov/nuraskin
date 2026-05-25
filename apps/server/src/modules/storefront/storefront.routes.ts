@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import * as ctrl from './storefront.controller';
 import * as addressCtrl from './addresses.controller';
+import * as promoCtrl from './promotions/storefront-promotions.controller';
+import * as contactCtrl from './contact/storefront-contact.controller';
 import { asyncHandler } from '../../common/utils/async-handler';
 import { requireAuth } from '../../common/middleware/auth.middleware';
 import * as service from './storefront.service';
@@ -37,11 +39,14 @@ const resolveCustomer = asyncHandler(async (req, res, next) => {
 
 // Public routes
 router.get('/products', asyncHandler(ctrl.listProducts));
+router.get('/categories', asyncHandler(ctrl.listCategories));
 router.get('/products/:slug', asyncHandler(ctrl.getProduct));
 router.get('/settings', asyncHandler(ctrl.getSettings));
 router.get('/payment-info', asyncHandler(ctrl.getPaymentInfo));
 router.get('/rates/latest', asyncHandler(ctrl.getLatestRates));
 router.get('/shipping-tiers', asyncHandler(ctrl.listShippingTiers));
+router.get('/promotions/active', asyncHandler(promoCtrl.getActivePromotions));
+router.post('/contact', asyncHandler(contactCtrl.send));
 
 // Customer protected routes (Telegram Login)
 router.use(requireAuth);

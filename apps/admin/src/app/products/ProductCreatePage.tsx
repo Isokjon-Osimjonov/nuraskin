@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
@@ -17,9 +18,7 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`).then(
-        (r) => r.json() as Promise<CategoryResponse[]>
-      ),
+      api.get<CategoryResponse[]>('/categories'),
   });
 
   const createMutation = useMutation({
@@ -30,8 +29,9 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
       toast.success('Mahsulot yaratildi');
       navigate({ to: '/inventory/scan' });
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Xatolik yuz berdi');
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 

@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';

@@ -38,7 +38,10 @@ export function CustomerDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['customers', id] });
       toast.success(UZ.settings.saved);
     },
-    onError: (err: any) => toast.error(translateServerError(err.message)),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(translateServerError(msg));
+    },
   });
 
   if (isLoading) return <div className="p-6">{UZ.common.loading}</div>;
@@ -100,9 +103,22 @@ export function CustomerDetailPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.customers.totalSpent}</p>
-                <p className="text-2xl font-bold">
-                    {formatPrice(customer.stats.totalSpent, customer.regionCode as 'UZB' | 'KOR')}
-                </p>
+                <div className="space-y-1">
+                  {(Number(customer.totalSpentKrw) ?? 0) > 0 && (
+                    <p className="text-2xl font-normal">
+                      {Number(customer.totalSpentKrw).toLocaleString()} ₩
+                    </p>
+                  )}
+                  {(Number(customer.totalSpentUzs) ?? 0) > 0 && (
+                    <p className="text-2xl font-normal">
+                      {Math.round(Number(customer.totalSpentUzs) / 100).toLocaleString()} so&apos;m
+                    </p>
+                  )}
+                  {(!customer.totalSpentKrw || Number(customer.totalSpentKrw) === 0) &&
+                   (!customer.totalSpentUzs || Number(customer.totalSpentUzs) === 0) && (
+                    <p className="text-2xl font-normal text-muted-foreground">—</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
             <Card>

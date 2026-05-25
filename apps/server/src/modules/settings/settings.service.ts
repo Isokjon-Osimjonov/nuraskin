@@ -17,8 +17,6 @@ export async function updateSettings(input: UpdateSettingsInput) {
   if (input.telegramUrl !== undefined) data.telegramUrl = input.telegramUrl;
   if (input.instagramUrl !== undefined) data.instagramUrl = input.instagramUrl;
   if (input.websiteUrl !== undefined) data.websiteUrl = input.websiteUrl;
-  if (input.freeShippingThresholdKrw !== undefined) data.freeShippingThresholdKrw = BigInt(Math.round(input.freeShippingThresholdKrw));
-  if (input.standardShippingFeeKrw !== undefined) data.standardShippingFeeKrw = BigInt(Math.round(input.standardShippingFeeKrw));
   if (input.paymentTimeoutMinutes !== undefined) data.paymentTimeoutMinutes = input.paymentTimeoutMinutes;
 
   if (input.korBankEnabled !== undefined) data.korBankEnabled = input.korBankEnabled;

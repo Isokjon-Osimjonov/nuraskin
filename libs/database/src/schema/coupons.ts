@@ -61,6 +61,10 @@ export const coupons = pgTable('coupons', {
   
   autoApply: boolean('auto_apply').notNull().default(false),
   isStackable: boolean('is_stackable').notNull().default(false),
+
+  isPromotional: boolean('is_promotional').notNull().default(false),
+  isFirstPurchaseOnly: boolean('is_first_purchase_only').notNull().default(false),
+  promoDisplayText: text('promo_display_text'),
   
   status: varchar('status', { length: 20 }).notNull().default('DRAFT'),
   

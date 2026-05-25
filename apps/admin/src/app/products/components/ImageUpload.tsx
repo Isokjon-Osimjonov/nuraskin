@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import * as React from 'react';
 import { UploadCloudIcon, X, LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';

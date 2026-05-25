@@ -2,6 +2,7 @@ import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Navbar } from '@/components/shared/Navbar';
 import { Footer } from '@/components/shared/Footer';
+import { AnnouncementBar } from '@/components/shared/AnnouncementBar';
 import { RegionSelectionModal } from '@/components/shared/RegionSelectionModal';
 import { Toaster } from 'sonner';
 
@@ -19,6 +20,7 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex flex-col min-h-screen">
+        <AnnouncementBar />
         {!isLogin && <Navbar variant={isHero ? 'dark' : 'light'} />}
         <main className="flex-grow">
           <Outlet />

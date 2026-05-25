@@ -1,8 +1,8 @@
+import { useAuthStore } from '../../../stores/auth.store';
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { teamApi } from '@/app/settings/team/api/team.api';
-import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -36,7 +36,10 @@ function ProfilePage() {
       // Note: Ideally we'd update the auth store here too if we want immediate name change in sidebar
       queryClient.invalidateQueries({ queryKey: ['team'] });
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi")
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    }
   });
 
   const passMutation = useMutation({
@@ -45,7 +48,10 @@ function ProfilePage() {
       toast.success("Parol muvaffaqiyatli o'zgartirildi");
       setPassForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi")
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    }
   });
 
   const handleProfileSubmit = (e: React.FormEvent) => {

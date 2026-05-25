@@ -200,6 +200,9 @@ export async function downloadInvoice(req: Request, res: Response) {
     customerPhone: order.customerPhone || '',
     items,
     savings: totalSavings > 0 ? totalSavings : undefined,
+    couponCode: order.couponCode,
+    couponDiscount: order.couponDiscount,
+    wholesaleDiscount: order.wholesaleDiscount,
   });
 
   res.setHeader(

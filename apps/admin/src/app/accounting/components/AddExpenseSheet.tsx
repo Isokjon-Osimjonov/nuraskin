@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -101,8 +102,9 @@ export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }
       onOpenChange(false);
       form.reset();
     },
-    onError: (error: any) => {
-      toast.error('Xatolik yuz berdi: ' + error.message);
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 

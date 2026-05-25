@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Bell, ChevronRight, Trash2, ShoppingBag, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
@@ -122,19 +123,19 @@ function WaitingListPage() {
                       <div className="space-y-0.5">
                         <p className="text-[10px] text-stone-400 uppercase tracking-tight truncate">{product.brandName}</p>
                         <Link to="/products/$slug" params={{ slug: product.slug }}>
-                          <p className="text-sm font-medium text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">{product.name}</p>
+                          <p className="text-sm font-normal text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">{product.name}</p>
                         </Link>
-                        <p className="text-sm font-semibold text-[#4A1525]">{displayPrice(product.calculatedPrice)}</p>
+                        <p className="text-sm font-normal text-[#4A1525]">{displayPrice(product.calculatedPrice)}</p>
                       </div>
                       
                       {/* Status badge */}
                       <div>
                         {isAvailable ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-normal bg-emerald-50 text-emerald-700 border border-emerald-100">
                             Mavjud!
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-stone-50 text-stone-500 border border-stone-100">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-normal bg-stone-50 text-stone-500 border border-stone-100">
                             Kutilmoqda
                           </span>
                         )}
@@ -156,7 +157,7 @@ function WaitingListPage() {
                         <button 
                           onClick={() => addToCart.mutate({ productId: product.id, quantity: 1 })}
                           disabled={addToCart.isPending}
-                          className="h-8 px-3 bg-[#4A1525] text-white text-[11px] font-medium rounded-lg hover:bg-[#6B2540] transition-colors flex items-center gap-1.5"
+                          className="h-8 px-3 bg-[#4A1525] text-white text-[11px] font-normal rounded-lg hover:bg-[#6B2540] transition-colors flex items-center gap-1.5"
                         >
                           <ShoppingBag className="w-3 h-3" />
                           Savatchaga

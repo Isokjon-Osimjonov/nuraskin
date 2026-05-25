@@ -56,8 +56,9 @@ function CategoriesPage() {
       handleClose();
       toast.success('Kategoriya yaratildi');
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Xatolik yuz berdi');
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 
@@ -68,8 +69,9 @@ function CategoriesPage() {
       handleClose();
       toast.success('Kategoriya yangilandi');
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Xatolik yuz berdi');
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 
@@ -80,8 +82,9 @@ function CategoriesPage() {
       toast.success('Kategoriya o\'chirildi');
       setCategoryToDelete(undefined);
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Xatolik yuz berdi');
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     },
   });
 

@@ -1,8 +1,8 @@
+import { useAuthStore } from '../stores/auth.store';
 import * as React from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { teamApi } from '@/app/settings/team/api/team.api';
-import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/change-password')({
 
 function ChangePasswordPage() {
   const navigate = useNavigate();
-  const user = useAuthStore(s => s.user);
+  const user = useAuthStore((s: any) => s.user);
   
   const [showCurrent, setShowCurrent] = React.useState(false);
   const [showNew, setShowNew] = React.useState(false);
@@ -33,8 +33,9 @@ function ChangePasswordPage() {
       toast.success("Parol muvaffaqiyatli o'zgartirildi");
       navigate({ to: '/' });
     },
-    onError: (err: any) => {
-        toast.error(err.message || "Xatolik yuz berdi");
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
     }
   });
 

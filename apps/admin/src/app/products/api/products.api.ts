@@ -1,26 +1,11 @@
-import { useAuthStore } from '../../../stores/auth.store';
+import { api } from '@/lib/api';
 import type {
   CreateProductInput,
   UpdateProductInput,
   AnalyzeImageResponse,
 } from '@nuraskin/shared-types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const token = useAuthStore.getState().token;
-  const headers = new Headers(options.headers);
-
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  const response = await fetch(`${API_BASE}/api${endpoint}`, { ...options, headers });
-  if (!response.ok) throw new Error(await response.text());
-  if (response.status === 204) return null;
-  return response.json();
-}
 
 export interface ProductListItem {
   id: string;
@@ -77,22 +62,19 @@ export const productsApi = {
     if (filters?.search) params.set('search', filters.search);
     if (filters?.deleted) params.set('deleted', 'true');
     const qs = params.toString();
-    return fetchWithAuth(`/products${qs ? `?${qs}` : ''}`);
+    return api.get<any>(`/products${qs ? `?${qs}` : ''}`);
   },
-  getById: (id: string): Promise<ProductDetail> => fetchWithAuth(`/products/${id}`),
+  getById: (id: string): Promise<ProductDetail> => api.get<any>(`/products/${id}`),
   getByBarcode: (barcode: string): Promise<ProductDetail> =>
-    fetchWithAuth(`/products/barcode/${barcode}`),
+    api.get<any>(`/products/barcode/${barcode}`),
   create: (data: CreateProductInput) =>
-    fetchWithAuth('/products', { method: 'POST', body: JSON.stringify(data) }),
+    api.post<any>('/products', data),
   update: (id: string, data: UpdateProductInput) =>
-    fetchWithAuth(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  restore: (id: string) => fetchWithAuth(`/products/${id}/restore`, { method: 'PATCH' }),
-  delete: (id: string) => fetchWithAuth(`/products/${id}`, { method: 'DELETE' }),
+    api.patch<any>(`/products/${id}`, data),
+  restore: (id: string) => api.patch<any>(`/products/${id}/restore`, {}),
+  delete: (id: string) => api.delete<any>(`/products/${id}`),
   analyzeImage: (imageUrl: string): Promise<AnalyzeImageResponse> =>
-    fetchWithAuth('/products/analyze-image', {
-      method: 'POST',
-      body: JSON.stringify({ imageUrl }),
-    }),
+    api.post<any>('/products/analyze-image', { imageUrl }),
   getUploadUrl: (): Promise<{ url: string; timestamp: number; signature: string; apiKey: string }> =>
-    fetchWithAuth('/categories/upload-url', { method: 'POST' }),
+    api.post<any>('/categories/upload-url', {}),
 };

@@ -1,26 +1,16 @@
-import { apiFetch } from '@/lib/apiFetch';
+import { api } from '@/lib/api';
 import type { AddressResponse, CreateAddressInput, UpdateAddressInput } from '@nuraskin/shared-types';
 
-export const getAddresses = () => apiFetch<AddressResponse[]>('/storefront/addresses');
+export const getAddresses = () => api.auth.get<AddressResponse[]>('/storefront/addresses');
 
 export const createAddress = (data: CreateAddressInput) =>
-  apiFetch<AddressResponse>('/storefront/addresses', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  api.auth.post<any>('/storefront/addresses', data);
 
 export const updateAddress = (id: string, data: UpdateAddressInput) =>
-  apiFetch<AddressResponse>(`/storefront/addresses/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(data),
-  });
+  api.auth.patch<any>(`/storefront/addresses/${id}`, data);
 
 export const deleteAddress = (id: string) =>
-  apiFetch<{ success: true }>(`/storefront/addresses/${id}`, {
-    method: 'DELETE',
-  });
+  api.auth.delete<any>(`/storefront/addresses/${id}`);
 
 export const setDefaultAddress = (id: string) =>
-  apiFetch<AddressResponse>(`/storefront/addresses/${id}/set-default`, {
-    method: 'PATCH',
-  });
+  api.auth.patch<any>(`/storefront/addresses/${id}/set-default`, {});

@@ -24,7 +24,7 @@ function SettingsPage() {
           <Link to="/profile" className="text-stone-400 hover:text-stone-700 transition-colors">
             <ArrowLeft className="w-5 h-5" strokeWidth={1.5} />
           </Link>
-          <h1 className="text-xl font-medium text-[#4A1525]">Sozlamalar</h1>
+          <h1 className="text-xl font-normal text-[#4A1525]">Sozlamalar</h1>
         </div>
 
         <div className="bg-[#f8f7f5] rounded-2xl p-12 text-center">

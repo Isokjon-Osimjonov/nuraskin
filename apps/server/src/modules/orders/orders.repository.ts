@@ -89,6 +89,10 @@ export async function findAll(filters: {
     subtotal: r.order.subtotal.toString(),
     cargoFee: r.order.cargoFee.toString(),
     totalAmount: r.order.totalAmount.toString(),
+    couponCode: r.order.couponCode,
+    discountAmount: r.order.discountAmount.toString(),
+    couponDiscount: r.order.discountAmount.toString(),
+    wholesaleDiscount: '0',
     itemCount: r.itemCount,
     items: [], // list view usually doesn't need full items, but we need to match interface if any
   }));
@@ -135,6 +139,10 @@ export async function findById(id: string, txIn: any = db) {
     subtotal: row.order.subtotal.toString(),
     cargoFee: row.order.cargoFee.toString(),
     totalAmount: row.order.totalAmount.toString(),
+    couponCode: row.order.couponCode,
+    discountAmount: row.order.discountAmount.toString(),
+    couponDiscount: row.order.discountAmount.toString(),
+    wholesaleDiscount: '0',
     paymentExpiresAt: resRow?.earliest ?? null,
     items: items.map((i) => ({
       ...i.item,

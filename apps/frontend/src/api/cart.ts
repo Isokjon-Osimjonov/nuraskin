@@ -1,27 +1,19 @@
-import { apiFetch } from '@/lib/apiFetch';
+import { api } from '@/lib/api';
 import type { CartResponse, AddToCartInput, UpdateCartItemInput } from '@nuraskin/shared-types';
+import { useAppStore } from '@/stores/app.store';
 
-export const getCart = () => apiFetch<CartResponse>('/storefront/cart');
+export const getCart = () => api.auth.get<CartResponse>('/storefront/cart');
 
-export const addToCart = (input: AddToCartInput) => 
-  apiFetch<CartResponse>('/storefront/cart/items', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
+export const addToCart = (input: AddToCartInput) => {
+  const regionCode = useAppStore.getState().regionCode;
+  return api.auth.post<any>('/storefront/cart/items', { ...input, regionCode });
+};
 
 export const updateCartItem = (itemId: string, input: UpdateCartItemInput) =>
-  apiFetch<CartResponse>(`/storefront/cart/items/${itemId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(input),
-  });
+  api.auth.patch<any>(`/storefront/cart/items/${itemId}`, input);
 
 export const removeCartItem = (itemId: string) =>
-  apiFetch<CartResponse>(`/storefront/cart/items/${itemId}`, {
-    method: 'DELETE',
-  });
+  api.auth.delete<any>(`/storefront/cart/items/${itemId}`);
 
 export const clearCart = (regionCode?: string) =>
-  apiFetch<CartResponse>('/storefront/cart', {
-    method: 'DELETE',
-    body: regionCode ? JSON.stringify({ regionCode }) : undefined,
-  });
+  api.auth.delete<any>('/storefront/cart' + (regionCode ? `?regionCode=${regionCode}` : ''));

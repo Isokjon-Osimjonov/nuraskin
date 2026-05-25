@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
@@ -40,6 +41,12 @@ function CheckoutPage() {
   const cart = cartData?.items ?? [];
   const cartRegion = (cartData?.regionCode || regionCode) as 'UZB' | 'KOR';
 
+  const { data: publicSettings } = useQuery({
+    queryKey: ['public-settings'],
+    queryFn: () => api.get<any>('/storefront/settings'),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: paymentInfo } = useQuery({
     queryKey: ['payment-info', cartRegion],
     queryFn: () => getPaymentInfo(cartRegion),
@@ -62,6 +69,17 @@ function CheckoutPage() {
   const subtotal = useMemo(() => {
     return cart.reduce((acc, item) => acc + BigInt(item.price) * BigInt(item.quantity), 0n);
   }, [cart]);
+
+  // Min order calculation
+  const minOrder = cartRegion === 'KOR'
+    ? Number(publicSettings?.minOrderAmountKrw || 0)
+    : Number(publicSettings?.minOrderAmountUzs || 0);
+  
+  const subtotalNum = cartRegion === 'KOR' 
+    ? Number(subtotal) 
+    : Number(subtotal / 100n);
+
+  const isBelowMinOrder = minOrder > 0 && subtotalNum < minOrder;
 
   const displayPrice = (val: number | string | bigint) =>
     formatPrice(val, (cartRegion as 'UZB' | 'KOR') ?? 'UZB');
@@ -273,7 +291,7 @@ function CheckoutPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <ShoppingBag className="w-16 h-16 text-stone-200 mb-4" />
-        <h1 className="text-xl font-medium text-[#4A1525] mb-2">Savatchangiz bo'sh</h1>
+        <h1 className="text-xl font-normal text-[#4A1525] mb-2">Savatchangiz bo'sh</h1>
         <p className="text-stone-400 text-sm mb-8">Buyurtma berish uchun mahsulot qo'shing</p>
         <Link to="/products" className="bg-[#4A1525] text-white px-8 py-3 rounded-full text-sm">
             Mahsulotlarni ko'rish
@@ -299,7 +317,7 @@ function CheckoutPage() {
             {/* Address Selector */}
             {regionalAddresses.length > 0 && (
                 <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-stone-100">
-                    <h2 className="text-lg font-medium text-[#4A1525] mb-6 flex items-center gap-2">
+                    <h2 className="text-lg font-normal text-[#4A1525] mb-6 flex items-center gap-2">
                         <MapPin className="w-5 h-5" />
                         Saqlangan manzillar
                     </h2>
@@ -316,7 +334,7 @@ function CheckoutPage() {
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="text-[13px] font-medium text-[#4A1525]">{addr.label}</span>
+                                    <span className="text-[13px] font-normal text-[#4A1525]">{addr.label}</span>
                                     {addr.isDefault && <Star className="w-3 h-3 text-[#4A1525] fill-current" />}
                                 </div>
                                 <p className="text-[12px] text-stone-600 font-normal line-clamp-1">{addr.fullName}</p>
@@ -337,7 +355,7 @@ function CheckoutPage() {
                             }`}
                         >
                             <Plus className="w-5 h-5" />
-                            <span className="text-[12px] font-medium">Yangi manzil</span>
+                            <span className="text-[12px] font-normal">Yangi manzil</span>
                         </button>
                     </div>
                 </section>
@@ -351,7 +369,7 @@ function CheckoutPage() {
                         <div className="w-10 h-10 rounded-2xl bg-[#4A1525]/5 flex items-center justify-center text-[#4A1525]">
                             <MapPin className="w-5 h-5" />
                         </div>
-                        <h2 className="text-lg font-medium text-[#4A1525]">
+                        <h2 className="text-lg font-normal text-[#4A1525]">
                             {selectedAddressId === 'new' ? 'Yangi manzil kiritish' : 'Manzil tafsilotlari'}
                         </h2>
                     </div>
@@ -368,7 +386,7 @@ function CheckoutPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[12px] font-medium text-stone-500 ml-1">F.I.SH</label>
+                    <label className="text-[12px] font-normal text-stone-500 ml-1">F.I.SH</label>
                     <div className="relative">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-300" />
                         <input 
@@ -386,7 +404,7 @@ function CheckoutPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[12px] font-medium text-stone-500 ml-1">Telefon raqam</label>
+                    <label className="text-[12px] font-normal text-stone-500 ml-1">Telefon raqam</label>
                     <div className="relative">
                         <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-300" />
                         <input 
@@ -406,7 +424,7 @@ function CheckoutPage() {
                   {cartRegion === 'UZB' ? (
                     <>
                       <div className="space-y-1">
-                        <label className="text-[12px] font-medium text-stone-500 ml-1">Viloyat</label>
+                        <label className="text-[12px] font-normal text-stone-500 ml-1">Viloyat</label>
                         <select
                           {...register('district')}
                           disabled={selectedAddressId !== 'new'}
@@ -420,7 +438,7 @@ function CheckoutPage() {
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[12px] font-medium text-stone-500 ml-1">Shahar / Tuman</label>
+                        <label className="text-[12px] font-normal text-stone-500 ml-1">Shahar / Tuman</label>
                         <input
                           {...register('city')}
                           readOnly={selectedAddressId !== 'new'}
@@ -437,12 +455,12 @@ function CheckoutPage() {
                     <>
                       <div className="space-y-1">
                         <div className="flex items-end justify-between">
-                            <label className="text-[12px] font-medium text-stone-500 ml-1">Pochta indeksi</label>
+                            <label className="text-[12px] font-normal text-stone-500 ml-1">Pochta indeksi</label>
                             {selectedAddressId === 'new' && (
                                 <button 
                                     type="button" 
                                     onClick={() => setJusoModalOpen(true)}
-                                    className="text-[11px] text-[#4A1525] font-medium hover:underline mb-1"
+                                    className="text-[11px] text-[#4A1525] font-normal hover:underline mb-1"
                                 >
                                     Qidirish
                                 </button>
@@ -456,7 +474,7 @@ function CheckoutPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[12px] font-medium text-stone-500 ml-1">Asosiy manzil</label>
+                        <label className="text-[12px] font-normal text-stone-500 ml-1">Asosiy manzil</label>
                         <input
                           {...register('city')}
                           readOnly
@@ -468,7 +486,7 @@ function CheckoutPage() {
                   )}
 
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[12px] font-medium text-stone-500 ml-1">
+                    <label className="text-[12px] font-normal text-stone-500 ml-1">
                         {cartRegion === 'UZB' ? 'To\'liq manzil (ko\'cha, uy, kvartira)' : 'Batafsil manzil'}
                     </label>
                     <textarea 
@@ -509,7 +527,7 @@ function CheckoutPage() {
                     <div className="w-10 h-10 rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400">
                         <CreditCard className="w-5 h-5" />
                     </div>
-                    <h2 className="text-lg font-medium text-stone-600">To'lov usullari</h2>
+                    <h2 className="text-lg font-normal text-stone-600">To'lov usullari</h2>
                 </div>
                 <div className="space-y-4">
                   {!paymentInfo?.bank?.enabled && !paymentInfo?.e9pay?.enabled && (
@@ -526,12 +544,12 @@ function CheckoutPage() {
                         <div className="w-4 h-4 rounded-full border-2 border-[#4A1525] flex items-center justify-center">
                             <div className="w-2 h-2 rounded-full bg-[#4A1525]" />
                         </div>
-                        <span className="text-[14px] font-medium text-stone-700">💳 Bank kartasi orqali to'lash</span>
+                        <span className="text-[14px] font-normal text-stone-700">💳 Bank kartasi orqali to'lash</span>
                       </div>
                       <div className="pl-7 space-y-1 text-[13px] text-stone-600">
-                        <p><span className="text-stone-400 w-24 inline-block">Bank:</span> <span className="font-medium">{paymentInfo.bank.bankName}</span></p>
-                        <p><span className="text-stone-400 w-24 inline-block">Karta egasi:</span> <span className="font-medium">{paymentInfo.bank.holderName}</span></p>
-                        <p><span className="text-stone-400 w-24 inline-block">Karta raqami:</span> <span className="font-mono font-medium select-all">{paymentInfo.bank.accountNumber}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Bank:</span> <span className="font-normal">{paymentInfo.bank.bankName}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Karta egasi:</span> <span className="font-normal">{paymentInfo.bank.holderName}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Karta raqami:</span> <span className="font-mono font-normal select-all">{paymentInfo.bank.accountNumber}</span></p>
                       </div>
                     </div>
                   )}
@@ -542,11 +560,11 @@ function CheckoutPage() {
                         <div className="w-4 h-4 rounded-full border-2 border-[#4A1525] flex items-center justify-center">
                             <div className="w-2 h-2 rounded-full bg-[#4A1525]" />
                         </div>
-                        <span className="text-[14px] font-medium text-stone-700">📱 E9 Pay orqali to'lash</span>
+                        <span className="text-[14px] font-normal text-stone-700">📱 E9 Pay orqali to'lash</span>
                       </div>
                       <div className="pl-7 space-y-1 text-[13px] text-stone-600">
-                        <p><span className="text-stone-400 w-24 inline-block">Ism:</span> <span className="font-medium">{paymentInfo.e9pay.name}</span></p>
-                        <p><span className="text-stone-400 w-24 inline-block">Hisob:</span> <span className="font-mono font-medium select-all">{paymentInfo.e9pay.account}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Ism:</span> <span className="font-normal">{paymentInfo.e9pay.name}</span></p>
+                        <p><span className="text-stone-400 w-24 inline-block">Hisob:</span> <span className="font-mono font-normal select-all">{paymentInfo.e9pay.account}</span></p>
                       </div>
                     </div>
                   )}
@@ -559,7 +577,7 @@ function CheckoutPage() {
           {/* Right: Order Summary */}
           <div className="space-y-6">
             <section className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100">
-              <h2 className="text-lg font-medium text-[#4A1525] mb-6">Buyurtma tafsiloti</h2>
+              <h2 className="text-lg font-normal text-[#4A1525] mb-6">Buyurtma tafsiloti</h2>
               
               <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                 {cart.map((item) => (
@@ -568,11 +586,11 @@ function CheckoutPage() {
                       <img src={item.imageUrls[0]} alt={item.productName} className="w-full h-full object-contain" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-medium text-[#4A1525] truncate">{item.productName}</p>
+                      <p className="text-[12px] font-normal text-[#4A1525] truncate">{item.productName}</p>
                       <p className="text-[11px] text-stone-400 font-light flex items-center gap-1">
                         {item.quantity} ta × {displayPrice(item.price)}
                         {item.quantity >= (item.minWholesaleQty || 0) && (
-                          <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-bold italic">Ulgurji</span>
+                          <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter font-normal italic">Ulgurji</span>
                         )}
                       </p>
                     </div>
@@ -632,28 +650,39 @@ function CheckoutPage() {
                   )}
                 </div>
                 {appliedCoupon?.valid && Number(discountAmount) > 0 && (
-                    <div className="flex justify-between text-[13px] font-medium text-emerald-600">
+                    <div className="flex justify-between text-[13px] font-normal text-emerald-600">
                         <span>Chegirma</span>
                         <span>-{displayPrice(discountAmount)}</span>
                     </div>
                 )}
                 {totalSavings > 0 && (
-                    <div className="flex justify-between text-[13px] font-medium text-emerald-600">
+                    <div className="flex justify-between text-[13px] font-normal text-emerald-600">
                         <span>Ulgurji narxdan tejash</span>
                         <span>-{displayPrice(totalSavings)}</span>
                     </div>
                 )}
-                <div className="flex justify-between text-lg font-medium text-[#4A1525] pt-2 border-t border-stone-50">
+                <div className="flex justify-between text-lg font-normal text-[#4A1525] pt-2 border-t border-stone-50">
                   <span>Jami</span>
                   <span>{displayPrice(finalTotal)}</span>
                 </div>
               </div>
 
+              {isBelowMinOrder && (
+                <div className="mt-6 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                  <p className="text-sm text-red-600 font-normal text-center">
+                    {cartRegion === 'KOR'
+                      ? `Minimal buyurtma: ${minOrder.toLocaleString()} ₩. Kamida shu miqdorda xarid qiling.`
+                      : `Minimal buyurtma: ${minOrder.toLocaleString()} so'm. Kamida shu miqdorda xarid qiling.`
+                    }
+                  </p>
+                </div>
+              )}
+
               <button
                 type="submit"
                 form="checkout-form"
-                disabled={createOrder.isPending}
-                className="w-full h-14 bg-[#4A1525] text-white font-light text-[15px] tracking-wide rounded-3xl mt-8 hover:bg-[#6B2540] transition-all duration-300 shadow-lg shadow-[#4A1525]/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                disabled={createOrder.isPending || isBelowMinOrder}
+                className={`w-full h-14 bg-[#4A1525] text-white font-light text-[15px] tracking-wide rounded-3xl mt-8 hover:bg-[#6B2540] transition-all duration-300 shadow-lg shadow-[#4A1525]/10 flex items-center justify-center gap-2 ${isBelowMinOrder ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {createOrder.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingBag className="w-5 h-5" />}
                 Buyurtmani tasdiqlash

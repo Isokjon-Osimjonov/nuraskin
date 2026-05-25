@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -57,7 +58,7 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
   if (!timeLeft) return null;
 
   return (
-    <span className={`text-[11px] font-medium flex items-center gap-1 ${isExpired ? 'text-red-500' : 'text-amber-600'}`}>
+    <span className={`text-[11px] font-normal flex items-center gap-1 ${isExpired ? 'text-red-500' : 'text-amber-600'}`}>
       <Clock className="w-3 h-3" />
       {timeLeft}
     </span>
@@ -79,8 +80,8 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
   const needsReceipt = order.status === 'PENDING_PAYMENT' && !hasReceipt && !isExpired;
 
   const { data: paymentInfo } = useQuery({
-    queryKey: ['payment-info', order.regionCode],
-    queryFn: () => getPaymentInfo(order.regionCode || 'UZB'),
+    queryKey: ['payment-info', order.deliveryRegionCode],
+    queryFn: () => getPaymentInfo(order.deliveryRegionCode || 'UZB'),
     enabled: needsReceipt,
   });
 
@@ -155,7 +156,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
     <div className="bg-[#f8f7f5] rounded-2xl p-6 shadow-sm border border-stone-100">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[14px] font-medium text-stone-800">{order.orderNumber}</p>
+          <p className="text-[14px] font-normal text-stone-800">{order.orderNumber}</p>
           <p className="text-[12px] font-light text-stone-400">
             {new Date(order.createdAt).toLocaleDateString('uz-UZ')}
           </p>
@@ -195,9 +196,9 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       {/* Delivery Address */}
       {order.deliveryFullName && (
         <div className="mb-4 pt-4 border-t border-stone-100">
-          <h4 className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mb-2">Yetkazib berish manzili:</h4>
+          <h4 className="text-[11px] font-normal text-stone-400 uppercase tracking-wider mb-2">Yetkazib berish manzili:</h4>
           <div className="bg-white/50 rounded-xl p-3 space-y-0.5 border border-stone-50">
-            <p className="text-[13px] font-medium text-[#4A1525]">{order.deliveryFullName}</p>
+            <p className="text-[13px] font-normal text-[#4A1525]">{order.deliveryFullName}</p>
             <p className="text-[12px] text-stone-500 flex items-center gap-1.5">
               <Phone className="w-3 h-3" strokeWidth={1.5} />
               {order.deliveryPhone}
@@ -226,14 +227,14 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
           {/* Payment Info */}
           {paymentInfo && (paymentInfo.bank?.enabled || paymentInfo.e9pay?.enabled) && (
             <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 mb-4 space-y-3">
-              <h4 className="text-[12px] font-medium text-[#4A1525] mb-2">To'lov ma'lumotlari:</h4>
+              <h4 className="text-[12px] font-normal text-[#4A1525] mb-2">To'lov ma'lumotlari:</h4>
               
               {paymentInfo.bank?.enabled && (
                 <div className="space-y-1">
-                  <p className="text-[11px] font-medium text-stone-700 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Bank kartasi</p>
+                  <p className="text-[11px] font-normal text-stone-700 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Bank kartasi</p>
                   <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Bank:</span> {paymentInfo.bank.bankName}</p>
                   <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta egasi:</span> {paymentInfo.bank.holderName}</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta raqami:</span> <span className="font-mono select-all font-medium">{paymentInfo.bank.accountNumber}</span></p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta raqami:</span> <span className="font-mono select-all font-normal">{paymentInfo.bank.accountNumber}</span></p>
                 </div>
               )}
               
@@ -241,9 +242,9 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
               
               {paymentInfo.e9pay?.enabled && (
                 <div className="space-y-1">
-                  <p className="text-[11px] font-medium text-stone-700 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> E9 Pay</p>
+                  <p className="text-[11px] font-normal text-stone-700 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> E9 Pay</p>
                   <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Ism:</span> {paymentInfo.e9pay.name}</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Hisob:</span> <span className="font-mono select-all font-medium">{paymentInfo.e9pay.account}</span></p>
+                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Hisob:</span> <span className="font-mono select-all font-normal">{paymentInfo.e9pay.account}</span></p>
                 </div>
               )}
             </div>
@@ -344,7 +345,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
 
       {/* Footer */}
       <div className="border-t border-stone-200 pt-3 flex items-center justify-between mb-4">
-        <p className="text-[14px] font-medium text-[#4A1525]">
+        <p className="text-[14px] font-normal text-[#4A1525]">
           {displayPrice(order.totalAmount, order.currency)}
         </p>
         {order.cargoFee && Number(order.cargoFee) > 0 && (

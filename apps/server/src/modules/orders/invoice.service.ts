@@ -10,6 +10,9 @@ interface InvoiceData {
   cargoFee: string | bigint | number;
   deliveryFeeCharged: string | bigint | number;
   totalAmount: string | bigint | number;
+  couponCode?: string | null;
+  couponDiscount?: string | bigint | number;
+  wholesaleDiscount?: string | bigint | number;
   regionCode: 'UZB' | 'KOR';
   customerName: string;
   customerPhone: string;
@@ -194,16 +197,30 @@ export function generateInvoiceHtml(data: InvoiceData): string {
                 <span>Mahsulotlar jami</span>
                 <span>${formatPrice(data.subtotal, region)}</span>
             </div>
-            ${totalDelivery > 0 ? `
-            <div class="total-row">
-                <span>Yetkazib berish</span>
-                <span>${formatPrice(totalDelivery, region)}</span>
+            
+            ${data.couponCode && Number(data.couponDiscount) > 0 ? `
+            <div class="total-row savings">
+                <span>Kupon (${data.couponCode})</span>
+                <span>-${formatPrice(data.couponDiscount!, region)}</span>
             </div>` : ''}
-            ${data.savings && data.savings > 0 ? `
+
+            ${Number(data.wholesaleDiscount) > 0 ? `
             <div class="total-row savings">
                 <span>Ulgurji chegirma</span>
-                <span>-${formatPrice(data.savings, region)}</span>
+                <span>-${formatPrice(data.wholesaleDiscount!, region)}</span>
             </div>` : ''}
+
+            <div class="total-row">
+                <span>Kargo</span>
+                <span>${formatPrice(data.cargoFee, region)}</span>
+            </div>
+
+            ${Number(data.deliveryFeeCharged) > 0 ? `
+            <div class="total-row">
+                <span>Yetkazib berish (ichki)</span>
+                <span>${formatPrice(data.deliveryFeeCharged, region)}</span>
+            </div>` : ''}
+
             <div class="total-row main">
                 <span>JAMI</span>
                 <span>${formatPrice(data.totalAmount, region)}</span>

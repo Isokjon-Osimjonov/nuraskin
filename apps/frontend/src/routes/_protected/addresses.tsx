@@ -121,7 +121,7 @@ function Addresses() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-[14px] font-medium text-stone-800">{addr.label}</span>
+                    <span className="text-[14px] font-normal text-stone-800">{addr.label}</span>
                     {addr.isDefault && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#4A1525] text-[10px] font-normal text-white">
                         <Star className="w-3 h-3 fill-current" />

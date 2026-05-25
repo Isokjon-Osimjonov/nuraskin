@@ -1,6 +1,8 @@
 import { db, customers, orders, settings } from '@nuraskin/database';
-import { eq, and, like, or, sql, isNull, desc } from 'drizzle-orm';
+import { eq, and, like, or, sql, isNull, desc, inArray } from 'drizzle-orm';
 import type { CustomerListItem, CustomerFilters } from '@nuraskin/shared-types';
+
+const PAID_STATUSES = ['PAYMENT_VERIFIED', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
 
 export async function findAdminList(filters: CustomerFilters) {
   const { page, limit, region, status, debtStatus, search } = filters;
@@ -21,7 +23,9 @@ export async function findAdminList(filters: CustomerFilters) {
       createdAt: sql<string>`customers.created_at::text`.as('createdAt'),
       lastOrderAt: sql<string | null>`MAX(orders.created_at)::text`.as('lastOrderAt'),
       orderCount: sql<number>`COUNT(orders.id)::int`.as('orderCount'),
-      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'DELIVERED' THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
+      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(PAID_STATUSES.map(s => sql.raw(`'${s}'`)), sql`, `)}) THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
+      totalSpentKrw: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(PAID_STATUSES.map(s => sql.raw(`'${s}'`)), sql`, `)}) AND orders.region_code = 'KOR' THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpentKrw'),
+      totalSpentUzs: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(PAID_STATUSES.map(s => sql.raw(`'${s}'`)), sql`, `)}) AND orders.region_code = 'UZB' THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpentUzs'),
       outstandingDebt: sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'PENDING_PAYMENT' THEN orders.total_amount ELSE 0 END), 0)::text`.as('outstandingDebt'),
       debtLimit: sql<string>`COALESCE(customers.debt_limit_override, ${defaultLimit})::text`.as('debtLimit'),
     })
@@ -82,6 +86,8 @@ export async function findAdminList(filters: CustomerFilters) {
       lastOrderAt: row.lastOrderAt || row.last_order_at,
       orderCount: row.orderCount || row.order_count,
       totalSpent: row.totalSpent || row.total_spent,
+      totalSpentKrw: row.totalSpentKrw || row.total_spent_krw,
+      totalSpentUzs: row.totalSpentUzs || row.total_spent_uzs,
       outstandingDebt: row.outstandingDebt || row.outstanding_debt,
       debtLimit: row.debtLimit || row.debt_limit,
     })) as CustomerListItem[],

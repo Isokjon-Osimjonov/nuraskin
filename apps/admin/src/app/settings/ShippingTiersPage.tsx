@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Edit, Trash, Plus, X } from 'lucide-react';
+import { Edit, Trash,  X } from 'lucide-react';
 
 export function ShippingTiersPage() {
   const queryClient = useQueryClient();
@@ -39,7 +39,10 @@ export function ShippingTiersPage() {
       form.reset();
       toast.success("Yangi tarif qo'shildi");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const updateMutation = useMutation({
@@ -50,7 +53,10 @@ export function ShippingTiersPage() {
       setEditingId(null);
       toast.success("Tarif yangilandi");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const deleteMutation = useMutation({
@@ -59,7 +65,10 @@ export function ShippingTiersPage() {
       queryClient.invalidateQueries({ queryKey: ['shipping-tiers'] });
       toast.success("Tarif o'chirildi");
     },
-    onError: (err: any) => toast.error(err.message || "Xatolik yuz berdi"),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
+      toast.error(msg);
+    },
   });
 
   const onSubmit = (data: KorShippingTierInput) => {

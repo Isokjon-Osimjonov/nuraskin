@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Star, ChevronRight, Plus, Minus, ShoppingBag, ShieldCheck, Truck, Heart, Bell, BellOff, Info, CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 
@@ -27,6 +27,7 @@ function ProductPage() {
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'info' | 'use' | 'ingredients'>('info');
+  const [activeImage, setActiveImage] = useState(0);
 
   const isOnWaitlist = waitlistIds.includes(product?.id || '');
   const isInCart = cartData?.items?.some((i) => i.productId === product?.id);
@@ -67,23 +68,9 @@ function ProductPage() {
   const displayPrice = (val: string) =>
     formatPrice(val, regionCode as 'UZB' | 'KOR');
 
-  const productForStore = {
-    id: product.id,
-    name: product.name,
-    price: product.calculatedPrice,
-    image: product.imageUrls[0] || '',
-    slug: product.slug,
-    stock: product.availableStock,
-    availableStock: product.availableStock,
-    showStockCount: product.showStockCount,
-    currency: product.currency,
-    wholesalePrice: product.wholesalePrice,
-    minWholesaleQty: product.minWholesaleQty,
-  };
-
   return (
     <div className="bg-white min-h-screen pb-20">
-      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6 md:pt-10">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-8 md:px-16 py-6 sm:py-10">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-[12px] text-stone-400 font-light mb-8 overflow-x-auto whitespace-nowrap pb-2 md:pb-0">
           <Link to="/" className="hover:text-[#4A1525] transition-colors">Bosh sahifa</Link>
@@ -95,29 +82,39 @@ function ProductPage() {
           <span className="text-[#4A1525] truncate">{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
-          {/* Left: Images */}
-          <div className="space-y-4">
-            <div className="max-h-[350px] md:max-h-[500px] aspect-[4/5] bg-stone-50 rounded-2xl overflow-hidden flex items-center justify-center p-4 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-6">
+          {/* LEFT: Image */}
+          <div className="w-full">
+            <div className="w-full aspect-[4/5] sm:aspect-[3/4] rounded-2xl overflow-hidden bg-stone-100 flex items-center justify-center">
               <img
-                src={product.imageUrls[0] || ''}
+                src={product.imageUrls[activeImage] || ''}
                 alt={product.name}
-                className="w-full h-full object-contain object-center"
+                className="w-full h-full object-cover"
               />
             </div>
+            
             {product.imageUrls.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {product.imageUrls.slice(1, 5).map((url, i) => (
-                  <div key={i} className="aspect-square bg-stone-50 rounded-xl md:rounded-2xl overflow-hidden cursor-pointer hover:opacity-80 transition-opacity p-2">
-                    <img src={url} alt={`${product.name} ${i + 2}`} className="w-full h-full object-contain" />
-                  </div>
+              <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
+                {product.imageUrls.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImage(i)}
+                    className={cn(
+                      "shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
+                      activeImage === i
+                        ? "border-[#4A1525]"
+                        : "border-transparent"
+                    )}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt={`${product.name} thumbnail ${i}`} />
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Right: Details */}
-          <div className="flex flex-col">
+          {/* RIGHT: Product Details */}
+          <div className="w-full">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <p className="text-[14px] text-stone-400 font-light tracking-wide mb-1 uppercase">{product.brandName}</p>
@@ -127,16 +124,16 @@ function ProductPage() {
 
             <div className="flex flex-col gap-2 mb-8">
               <div className="flex items-baseline gap-4">
-                <span className="text-3xl font-medium text-[#4A1525]">
+                <span className="text-3xl font-normal text-[#4A1525]">
                   {quantity >= product.minWholesaleQty ? displayPrice(product.wholesalePrice) : displayPrice(product.calculatedPrice)}
                 </span>
                 {quantity >= product.minWholesaleQty && (
-                  <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                  <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
                     Ulgurji narx!
                   </span>
                 )}
                 {regionCode === 'UZB' && (
-                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium uppercase tracking-tight">Kargo ichida</span>
+                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-normal uppercase tracking-tight">Kargo ichida</span>
                 )}
               </div>
               <div className="flex flex-col gap-1 text-sm text-stone-500">
@@ -150,11 +147,11 @@ function ProductPage() {
             {/* Stock Badge */}
             <div className="mb-4">
               {product.availableStock > 10 ? (
-                <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">MAVJUD</span>
+                <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">MAVJUD</span>
               ) : product.availableStock > 0 ? (
-                <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">Kam qoldi: {product.availableStock} ta</span>
+                <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">Kam qoldi: {product.availableStock} ta</span>
               ) : (
-                <span className="text-[11px] font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">Tugadi</span>
+                <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">Tugadi</span>
               )}
             </div>
 
@@ -170,7 +167,7 @@ function ProductPage() {
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="font-medium text-lg w-8 text-center">{quantity}</span>
+                    <span className="font-normal text-lg w-8 text-center">{quantity}</span>
                     <button
                       onClick={() => {
                         const cartItem = cartData?.items?.find((i) => i.productId === product.id);
@@ -188,11 +185,7 @@ function ProductPage() {
                   </div>
 
                   <button
-                    className={`flex-1 w-full h-12 font-light text-[14px] tracking-wide rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
-                      isInCart
-                        ? 'bg-[#4A1525] text-white hover:bg-[#6B2540]'
-                        : 'bg-white border border-stone-200 text-[#4A1525] hover:border-[#4A1525]'
-                    }`}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-[#4A1525] text-white text-sm font-normal tracking-wide hover:opacity-90 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => {
                       if (!isAuthenticated) { navigate({ to: '/login' }); return; }
                       const cartItem = cartData?.items?.find((i) => i.productId === product.id);
@@ -292,7 +285,7 @@ function ProductPage() {
                   <ShieldCheck className="w-5 h-5 text-[#4A1525]" strokeWidth={1.2} />
                 </div>
                 <div>
-                  <h4 className="text-[12px] font-medium text-[#4A1525]">100% Original</h4>
+                  <h4 className="text-[12px] font-normal text-[#4A1525]">100% Original</h4>
                   <p className="text-[10px] text-stone-400 font-light">Sertifikatlangan mahsulotlar</p>
                 </div>
               </div>
@@ -301,7 +294,7 @@ function ProductPage() {
                   <Truck className="w-5 h-5 text-[#4A1525]" strokeWidth={1.2} />
                 </div>
                 <div>
-                  <h4 className="text-[12px] font-medium text-[#4A1525]">Koreyadan</h4>
+                  <h4 className="text-[12px] font-normal text-[#4A1525]">Koreyadan</h4>
                   <p className="text-[10px] text-stone-400 font-light">To'g'ridan-to'g'ri yetkazib berish</p>
                 </div>
               </div>

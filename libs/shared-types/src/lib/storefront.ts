@@ -73,6 +73,16 @@ export const createStorefrontOrderSchema = z.object({
 
 export type CreateStorefrontOrderInput = z.infer<typeof createStorefrontOrderSchema>;
 
+export const contactFormSchema = z.object({
+  name: z.string().min(2),
+  phone: z.string().min(7),
+  subject: z.string().min(3),
+  message: z.string().min(10),
+  region: z.string(),
+});
+
+export type ContactFormInput = z.infer<typeof contactFormSchema>;
+
 export interface StorefrontOrderItemResponse {
   productId: string;
   productName: string;
