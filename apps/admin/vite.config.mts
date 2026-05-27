@@ -41,7 +41,10 @@ export default defineConfig(() => ({
     nxCopyAssetsPlugin(['*.md']),
   ],
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: {
+      '@nuraskin/shared-utils': path.resolve(__dirname, '../../libs/shared-utils/src/index.ts'),
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   build: {
     outDir: '../../dist/apps/admin',

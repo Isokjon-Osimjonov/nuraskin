@@ -44,6 +44,7 @@ export default defineConfig(() => ({
   ],
   resolve: {
     alias: {
+      '@nuraskin/shared-utils': path.resolve(import.meta.dirname, '../../libs/shared-utils/src/index.ts'),
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },

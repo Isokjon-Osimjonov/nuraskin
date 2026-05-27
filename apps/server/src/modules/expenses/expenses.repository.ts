@@ -1,5 +1,6 @@
+import { PAID_STATUSES } from '@nuraskin/shared-utils';
 import { db, expenses, users, orderExpenses, orders, orderItems, customers, products, inventoryBatches, exchangeRateSnapshots, coupons, couponRedemptions } from '@nuraskin/database';
-import { eq, and, sql, desc, gte, lte } from 'drizzle-orm';
+import { eq, and, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import type { NewExpense } from '@nuraskin/database';
 
 export async function create(data: NewExpense) {
@@ -114,9 +115,9 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
-      eq(orders.status, 'DELIVERED'),
-      sql`${orders.deliveredAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
-      sql`${orders.deliveredAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
+      inArray(orders.status, PAID_STATUSES),
+      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
     ))
     .groupBy(orders.id, customers.fullName, exchangeRateSnapshots.krwToUzs);
 
@@ -229,9 +230,9 @@ export async function getCouponSummary(startDate: string, endDate: string) {
     .innerJoin(orders, eq(couponRedemptions.orderId, orders.id))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
-      eq(orders.status, 'DELIVERED'),
-      sql`${orders.deliveredAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
-      sql`${orders.deliveredAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
+      inArray(orders.status, PAID_STATUSES),
+      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
     ))
     .groupBy(coupons.id, coupons.code, coupons.name)
     .orderBy(sql`4 desc`);

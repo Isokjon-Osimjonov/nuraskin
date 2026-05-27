@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatUzs } from '@/lib/utils';
@@ -33,12 +34,12 @@ export function PostCreatePage() {
   });
 
   const { data: latestRate } = useQuery({
-    queryKey: ['exchange-rates', 'latest'],
+    queryKey: queryKeys.exchangeRates.latest(),
     queryFn: () => exchangeRatesApi.getLatest(),
   });
 
   const { data: settings } = useQuery({
-    queryKey: ['settings'],
+    queryKey: queryKeys.settings.all(),
     queryFn: () => settingsApi.get(),
   });
 
@@ -125,7 +126,7 @@ export function PostCreatePage() {
     mutationFn: (data: any) => settingsApi.update(data),
     onSuccess: () => {
        toast.success("Saqlandi", { duration: 2000, position: 'bottom-right' });
-       queryClient.invalidateQueries({ queryKey: ['settings'] });
+       queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
     }
   });
 

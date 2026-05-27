@@ -2275,7 +2275,7 @@
       "checkConstraints": {
         "orders_status_check": {
           "name": "orders_status_check",
-          "value": "\"orders\".\"status\" IN ('DRAFT', 'PENDING_PAYMENT', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED')"
+          "value": "\"orders\".\"status\" IN ('DRAFT', 'PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED')"
         }
       },
       "isRLSEnabled": false

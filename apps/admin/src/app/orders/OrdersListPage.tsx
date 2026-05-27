@@ -1,3 +1,4 @@
+import {  queryKeys , formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ordersApi } from './api/orders.api';
@@ -34,7 +35,7 @@ export function OrdersListPage() {
   const [search, setSearch] = React.useState('');
 
   const { data: orders = [], isLoading } = useQuery({
-    queryKey: ['orders'],
+    queryKey: queryKeys.orders.all(),
     queryFn: () => ordersApi.list(),
   });
 
@@ -169,7 +170,7 @@ export function OrdersListPage() {
                   )}
                 </DataTableCell>
                 <DataTableCell className="text-stone-500 text-xs">
-                  {format(new Date(order.createdAt), 'dd.MM.yyyy HH:mm')}
+                  {formatDateTime(order.createdAt)}
                 </DataTableCell>
                 <DataTableCell className="text-right">
                   <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-stone-600 transition-colors" />

@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,10 +28,10 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = React.useState(false);
 
   const confirmMutation = useMutation({
-    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAYMENT_VERIFIED' }),
+    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAYMENT_CONFIRMED' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       toast.success("To'lov tasdiqlandi");
     },
     onError: (err: unknown) => {
@@ -43,7 +44,7 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
     mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAYMENT_REJECTED', paymentNote: rejectNote }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       setIsRejectDialogOpen(false);
       toast.warning("To'lov rad etildi");
       setRejectNote('');

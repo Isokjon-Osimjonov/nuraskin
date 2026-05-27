@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -18,7 +19,7 @@ export function ShippingTiersPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null);
 
   const { data: tiers = [], isLoading } = useQuery({
-    queryKey: ['shipping-tiers'],
+    queryKey: queryKeys.shippingTiers.all(),
     queryFn: settingsApi.listShippingTiers,
   });
 
@@ -35,7 +36,7 @@ export function ShippingTiersPage() {
   const createMutation = useMutation({
     mutationFn: settingsApi.createShippingTier,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shipping-tiers'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shippingTiers.all() });
       form.reset();
       toast.success("Yangi tarif qo'shildi");
     },
@@ -49,7 +50,7 @@ export function ShippingTiersPage() {
     mutationFn: ({ id, data }: { id: string; data: Partial<KorShippingTierInput> }) =>
       settingsApi.updateShippingTier(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shipping-tiers'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shippingTiers.all() });
       setEditingId(null);
       toast.success("Tarif yangilandi");
     },
@@ -62,7 +63,7 @@ export function ShippingTiersPage() {
   const deleteMutation = useMutation({
     mutationFn: settingsApi.deleteShippingTier,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shipping-tiers'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shippingTiers.all() });
       toast.success("Tarif o'chirildi");
     },
     onError: (err: unknown) => {

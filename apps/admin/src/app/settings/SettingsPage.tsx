@@ -1,3 +1,4 @@
+import { queryKeys, tiyinToSom } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -18,7 +19,7 @@ export function SettingsPage() {
   const hasInitialized = React.useRef(false);
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: ['settings'],
+    queryKey: queryKeys.settings.all(),
     queryFn: () => settingsApi.get(),
   });
 
@@ -60,7 +61,7 @@ export function SettingsPage() {
         adminCardNumber: settings.adminCardNumber || '',
         adminCardHolder: settings.adminCardHolder || '',
         adminCardBank: settings.adminCardBank || '',
-        minOrderUzbUzs: Number(BigInt(settings.minOrderUzbUzs)) / 100,
+        minOrderUzbUzs: tiyinToSom(settings.minOrderUzbUzs as any),
         minOrderKorKrw: Number(BigInt(settings.minOrderKorKrw)),
         paymentTimeoutMinutes: settings.paymentTimeoutMinutes,
         korBankEnabled: settings.korBankEnabled ?? false,
@@ -86,7 +87,7 @@ export function SettingsPage() {
     mutationFn: settingsApi.update,
     onSuccess: () => {
       hasInitialized.current = false;
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
       toast.success(UZ.settings.saved);
     },
     onError: (err: unknown) => {

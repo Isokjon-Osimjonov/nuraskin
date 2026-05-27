@@ -1,29 +1,9 @@
-/**
- * Storefront API client
- * - Always uses relative /api
- * - No auth token (public storefront)
- * - Standardized error handling
- */
+import { STORAGE_KEYS } from '@nuraskin/shared-utils';
 
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public data?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-// Get customer token from auth store
 function getCustomerToken(): string {
   try {
-    const raw = localStorage.getItem('nuraskin-app-storage');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed?.state?.token ?? '';
-    }
+    const stored = localStorage.getItem(STORAGE_KEYS.APP_STORE);
+    if (stored) return JSON.parse(stored)?.state?.token ?? '';
   } catch { /* silent */ }
   return '';
 }
@@ -50,51 +30,42 @@ export async function storefrontApi<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(
-      res.status,
-      body.message ?? body.error ?? `HTTP ${res.status}`,
-      body
-    );
+    throw new Error(body.message ?? body.error ?? `HTTP ${res.status}`);
   }
-
   if (res.status === 204) return undefined as T;
   return res.json();
 }
 
 export const api = {
-  // Public endpoints
-  get:  <T>(path: string, opts?: RequestInit) =>
-          storefrontApi<T>(path, { method: 'GET', ...opts }),
-  post: <T>(path: string, body: unknown, opts?: RequestInit) =>
+  get:  <T>(path: string, o?: RequestInit) =>
+          storefrontApi<T>(path, { method: 'GET', ...o }),
+  post: <T>(path: string, body: unknown, o?: RequestInit) =>
           storefrontApi<T>(path, {
             method: 'POST',
-            body: JSON.stringify(body), ...opts }),
-  patch:  <T>(path: string, body: unknown, opts?: RequestInit) =>
+            body: JSON.stringify(body), ...o }),
+  patch: <T>(path: string, body: unknown, o?: RequestInit) =>
           storefrontApi<T>(path, {
             method: 'PATCH',
-            body: JSON.stringify(body), ...opts }),
-  put:    <T>(path: string, body: unknown, opts?: RequestInit) =>
+            body: JSON.stringify(body), ...o }),
+  put:   <T>(path: string, body: unknown, o?: RequestInit) =>
           storefrontApi<T>(path, {
             method: 'PUT',
-            body: JSON.stringify(body), ...opts }),
-  delete: <T>(path: string, opts?: RequestInit) =>
-          storefrontApi<T>(path, { method: 'DELETE', ...opts }),
+            body: JSON.stringify(body), ...o }),
+  delete: <T>(path: string, o?: RequestInit) =>
+          storefrontApi<T>(path, { method: 'DELETE', ...o }),
 
-  // Protected endpoints (requires customer login)
   auth: {
-    get:    <T>(path: string, opts?: RequestInit) =>
-              storefrontApi<T>(path, { method: 'GET', ...opts }, true),
-    post:   <T>(path: string, body: unknown, opts?: RequestInit) =>
+    get:    <T>(path: string, o?: RequestInit) =>
+              storefrontApi<T>(path, { method: 'GET', ...o }, true),
+    post:   <T>(path: string, body: unknown, o?: RequestInit) =>
               storefrontApi<T>(path, {
                 method: 'POST',
-                body: JSON.stringify(body), ...opts }, true),
-    patch:  <T>(path: string, body: unknown, opts?: RequestInit) =>
+                body: JSON.stringify(body), ...o }, true),
+    patch:  <T>(path: string, body: unknown, o?: RequestInit) =>
               storefrontApi<T>(path, {
                 method: 'PATCH',
-                body: JSON.stringify(body), ...opts }, true),
-    delete: <T>(path: string, opts?: RequestInit) =>
-              storefrontApi<T>(path, { method: 'DELETE', ...opts }, true),
+                body: JSON.stringify(body), ...o }, true),
+    delete: <T>(path: string, o?: RequestInit) =>
+              storefrontApi<T>(path, { method: 'DELETE', ...o }, true),
   },
 };
-
-export { ApiError };

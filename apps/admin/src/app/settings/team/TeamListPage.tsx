@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { useAuthStore } from '../../../stores/auth.store';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -22,7 +23,8 @@ import {
 } from '@/components/ui/select';
 import { UserPlus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import {  format  } from 'date-fns';
+import { formatDateTime } from '@nuraskin/shared-utils';
 import { Route } from '../../../routes/_app/settings/team';
 import { useNavigate } from '@tanstack/react-router';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,7 +46,7 @@ export function TeamListPage() {
   const currentUser = useAuthStore((s: any) => s.user);
 
   const { data: rawTeam = [], isLoading } = useQuery({
-    queryKey: ['team'],
+    queryKey: queryKeys.team.all(),
     queryFn: () => teamApi.getAll(),
   });
 
@@ -82,7 +84,7 @@ export function TeamListPage() {
   const inviteMutation = useMutation({
     mutationFn: () => teamApi.invite(newMember as any),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.all() });
       setIsInviteOpen(false);
       setNewMember({
         fullName: '',
@@ -102,7 +104,7 @@ export function TeamListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => teamApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.all() });
       toast.success("Foydalanuvchi o'chirildi");
     },
     onError: (err: unknown) => {
@@ -220,10 +222,8 @@ export function TeamListPage() {
                     </DataTableCell>
                     <DataTableCell className="text-stone-500 text-sm">
                       {member.lastLoginAt
-                        ? format(
-                            new Date(member.lastLoginAt),
-                            'dd.MM.yyyy HH:mm',
-                          )
+                        ? formatDateTime(
+                            new Date(member.lastLoginAt))
                         : 'Hech qachon'}
                     </DataTableCell>
                     <DataTableCell className="text-right">

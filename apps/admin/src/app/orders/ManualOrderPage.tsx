@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -122,7 +123,7 @@ export function ManualOrderPage() {
   const createMutation = useMutation({
     mutationFn: ordersApi.createManual,
     onSuccess: (order) => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       toast.success('Buyurtma yaratildi! Mijozga xabar yuborildi.');
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
     },

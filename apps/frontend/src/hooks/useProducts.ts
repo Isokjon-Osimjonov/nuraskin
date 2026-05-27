@@ -8,7 +8,7 @@ export function useProducts(params?: Record<string, unknown>) {
   return useQuery({
     queryKey: ['products', regionCode, params],
     queryFn: async () => {
-      const res = await getProducts(params);
+      const res = await getProducts({ ...params, region: regionCode as string });
       return res;
     },
   });
@@ -21,7 +21,7 @@ export function useProductBySlug(slug?: string) {
     queryKey: ['product', slug, regionCode],
     queryFn: async () => {
       if (!slug) return { data: null };
-      const res = await getProductBySlug(slug);
+      const res = await getProductBySlug(slug, regionCode as string);
       return res;
     },
     enabled: !!slug,

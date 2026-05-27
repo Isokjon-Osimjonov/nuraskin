@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
     mutationFn: (data: any) => ordersApi.confirmPayment(order.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       toast.success("To'lov tasdiqlandi!");
     },
     onError: (err: unknown) => {

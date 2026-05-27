@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { useAuthStore } from '../../stores/auth.store';
 import { api } from '@/lib/api';
 import * as React from 'react';
@@ -15,7 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { tiyinToSom, somToTiyin } from '@/lib/currency';
+import { tiyinToSom, somToTiyin } from '@nuraskin/shared-utils';
 
 export function CouponFormPage() {
   const { id } = useParams({ strict: false }) as { id?: string };
@@ -247,7 +248,7 @@ export function CouponFormPage() {
         return isEdit ? couponsApi.update(id!, payload) : couponsApi.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.all() });
       toast.success(isEdit ? "Kupon yangilandi" : "Kupon yaratildi");
       navigate({ to: '/coupons' } as any);
     },

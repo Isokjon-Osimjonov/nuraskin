@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as waitlistApi from '@/api/waitlist';
 import { useAppStore } from '@/stores/app.store';
@@ -39,7 +40,7 @@ export function useToggleWaitlist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       toast.success('Kutish ro\'yxatiga qo\'shildi');
     },
     onError: (err, productId, context) => {
@@ -62,7 +63,7 @@ export function useToggleWaitlist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       toast.success('Kutish ro\'yxatidan olib tashlandi');
     },
     onError: (err, productId, context) => {

@@ -111,7 +111,7 @@ export async function submitPayment(req: Request, res: Response) {
 
 export async function verifyPayment(req: Request, res: Response) {
   const adminId = req.user?.sub;
-  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_VERIFIED', req.body, adminId);
+  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_CONFIRMED', req.body, adminId);
   res.json(result);
 }
 

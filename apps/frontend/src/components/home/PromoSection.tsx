@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { usePromotions } from '@/hooks/usePromotions';
 import { cn } from '@/lib/utils';
@@ -80,7 +81,7 @@ export function PromoSection() {
 
                 {promo.expiresAt && (
                   <p className="text-white/40 text-[10px] md:text-xs mt-3 text-center uppercase tracking-wider">
-                    Muddati: {format(new Date(promo.expiresAt), 'dd.MM.yyyy')}
+                    Muddati: {formatDate(promo.expiresAt)}
                   </p>
                 )}
               </div>

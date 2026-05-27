@@ -1,3 +1,4 @@
+import {  queryKeys , formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -33,12 +34,12 @@ export function RatesPage() {
   const queryClient = useQueryClient();
 
   const { data: latestRate, isLoading: isLatestLoading } = useQuery({
-    queryKey: ['exchange-rates', 'latest'],
+    queryKey: queryKeys.exchangeRates.latest(),
     queryFn: () => exchangeRatesApi.getLatest(),
   });
 
   const { data: history, isLoading: isHistoryLoading } = useQuery({
-    queryKey: ['exchange-rates'],
+    queryKey: queryKeys.exchangeRates.all(),
     queryFn: () => exchangeRatesApi.list(),
   });
 
@@ -54,7 +55,7 @@ export function RatesPage() {
   const createMutation = useMutation({
     mutationFn: exchangeRatesApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exchange-rates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.exchangeRates.all() });
       form.reset();
       toast.success("Yangi kurs o'rnatildi");
     },
@@ -103,7 +104,7 @@ export function RatesPage() {
                 </div>
                 <div className="text-xs text-muted-foreground pt-2">
                   O'rnatildi:{' '}
-                  {format(new Date(latestRate.createdAt), 'dd.MM.yyyy HH:mm')}
+                  {formatDateTime(latestRate.createdAt)}
                 </div>
               </>
             ) : (
@@ -223,7 +224,7 @@ export function RatesPage() {
                   history?.map((rate: any) => (
                     <TableRow key={rate.id}>
                       <TableCell className="whitespace-nowrap">
-                        {format(new Date(rate.createdAt), 'dd.MM.yyyy HH:mm')}
+                        {formatDateTime(rate.createdAt)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {rate.krwToUzs.toLocaleString()}

@@ -1,10 +1,11 @@
+import { PAID_STATUSES } from '@nuraskin/shared-utils';
 import * as repository from './customers.repository';
 import { db, productWaitlist, orders, stockReservations, products } from '@nuraskin/database';
 import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import { ConflictError, NotFoundError } from '../../common/errors/AppError';
 import type { CustomerFilters, UpdateCustomerInput } from '@nuraskin/shared-types';
 
-const PAID_STATUSES = ['PAYMENT_VERIFIED', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
+
 
 export async function listCustomersAdmin(filters: CustomerFilters) {
   return await repository.findAdminList(filters);

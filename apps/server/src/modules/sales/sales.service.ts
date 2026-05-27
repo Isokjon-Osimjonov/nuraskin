@@ -1,5 +1,6 @@
+import { PAID_STATUSES } from '@nuraskin/shared-utils';
 import { db, orders, orderItems, products, customers, exchangeRateSnapshots } from '@nuraskin/database';
-import { eq, sql, and, gte, lte, desc, count } from 'drizzle-orm';
+import { eq, sql, and, gte, lte, desc, count, inArray } from 'drizzle-orm';
 
 export async function listSalesOrders(from: string, to: string, regionCode?: string, page = 1, limit = 10) {
   const offset = (page - 1) * limit;
@@ -9,9 +10,9 @@ export async function listSalesOrders(from: string, to: string, regionCode?: str
   }
 
   const whereClauses = and(
-    eq(orders.status, 'DELIVERED'),
-    sql`${orders.deliveredAt} >= (${from}::text || ' 00:00:00+09')::timestamptz`,
-    sql`${orders.deliveredAt} <= (${to}::text || ' 23:59:59.999+09')::timestamptz`,
+    inArray(orders.status, PAID_STATUSES),
+    sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${from}::text || ' 00:00:00+09')::timestamptz`,
+    sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${to}::text || ' 23:59:59.999+09')::timestamptz`,
     regionFilter
   );
 
@@ -71,7 +72,7 @@ export async function getLiveSales(from: string, to: string, regionCode?: string
 
   const rawData = await db.execute(sql`
     SELECT
-      DATE(o.delivered_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as sale_date,
+      DATE(COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as sale_date,
       o.region_code,
       o.cargo_fee,
       o.total_weight_grams,
@@ -97,10 +98,9 @@ export async function getLiveSales(from: string, to: string, regionCode?: string
     JOIN order_items oi ON o.id = oi.order_id
     JOIN products p ON oi.product_id = p.id
     LEFT JOIN exchange_rate_snapshots ers ON o.rate_snapshot_id = ers.id
-    WHERE o.status = 'DELIVERED'
-      AND o.delivered_at IS NOT NULL
-      AND o.delivered_at >= (${from}::text || ' 00:00:00+09')::timestamptz
-      AND o.delivered_at <= (${to}::text || ' 23:59:59.999+09')::timestamptz
+    WHERE o.status IN ('PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED')
+      AND COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) >= (${from}::text || ' 00:00:00+09')::timestamptz
+      AND COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) <= (${to}::text || ' 23:59:59.999+09')::timestamptz
       AND ${regionFilter}
   `);
 

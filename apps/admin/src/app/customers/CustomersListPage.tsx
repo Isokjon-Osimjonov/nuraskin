@@ -1,3 +1,4 @@
+import {  queryKeys, displayUzs  } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customersApi } from './api/customers.api';
@@ -11,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, User, Eye, UserMinus, UserCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { UZ, translateServerError } from '@/lib/uz';
-import { formatPrice } from '@/lib/currency';
+import {  formatPrice  } from '@nuraskin/shared-utils';
 import {
   DataTable,
   DataTableHeader,
@@ -53,7 +54,7 @@ export function CustomersListPage() {
     mutationFn: ({ id, isActive }: { id: string, isActive: boolean }) => 
         customersApi.update(id, { isActive }),
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
         toast.success(UZ.common.success);
     },
     onError: (err: unknown) => {
@@ -65,7 +66,7 @@ export function CustomersListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => customersApi.delete(id),
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
         toast.success(UZ.common.success);
     },
     onError: (err: unknown) => {
@@ -199,7 +200,7 @@ export function CustomersListPage() {
                         <span className="text-[13px]">{Number((customer as any).totalSpentKrw).toLocaleString()} ₩</span>
                       )}
                       {(Number((customer as any).totalSpentUzs) ?? 0) > 0 && (
-                        <span className="text-[13px]">{Math.round(Number((customer as any).totalSpentUzs) / 100).toLocaleString()} so&apos;m</span>
+                        <span className="text-[13px]">{displayUzs((customer as any).totalSpentUzs).toLocaleString()} so&apos;m</span>
                       )}
                       {(! (customer as any).totalSpentKrw || Number((customer as any).totalSpentKrw) === 0) &&
                        (! (customer as any).totalSpentUzs || Number((customer as any).totalSpentUzs) === 0) && (

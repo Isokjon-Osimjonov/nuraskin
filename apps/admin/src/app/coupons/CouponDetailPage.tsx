@@ -1,3 +1,4 @@
+import {  queryKeys , formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { formatUzs } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,7 +25,7 @@ export function CouponDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => couponsApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.all() });
       toast.success("Kupon o'chirildi");
       navigate({ to: '/coupons' } as any);
     },
@@ -124,7 +125,7 @@ export function CouponDetailPage() {
                         -{formatUzs(r.discountAmount)}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground text-sm">
-                        {format(new Date(r.createdAt), 'dd.MM.yyyy HH:mm')}
+                        {formatDateTime(r.createdAt)}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { useAuthStore } from '../../stores/auth.store';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -84,8 +85,8 @@ export function OrderDetailPage() {
     mutationFn: (to: string) => ordersApi.updateStatus(orderId, { to: to as any }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       if (variables === 'CANCELED') {
         toast.success("Buyurtma bekor qilindi");
       } else {
@@ -102,8 +103,8 @@ export function OrderDetailPage() {
     mutationFn: () => ordersApi.completePacking(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       toast.success("Buyurtma tayyorlandi");
     },
     onError: (err: unknown) => {
@@ -338,7 +339,7 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {(order.status === 'PAID' || order.status === 'PAYMENT_VERIFIED') && (
+              {(order.status === 'PAYMENT_CONFIRMED' || order.status === 'PAYMENT_CONFIRMED') && (
                 <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => statusMutation.mutate('PACKING')}>
                   <PackageCheck className="mr-2 h-4 w-4" />
                   Tayyorlashni boshlash
@@ -370,7 +371,7 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAID', 'PACKING'].includes(order.status) && (
+              {['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'].includes(order.status) && (
                 <Button variant="ghost" className="w-full text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => statusMutation.mutate('CANCELED')}>
                   <XCircle className="mr-2 h-4 w-4" />
                   Bekor qilish

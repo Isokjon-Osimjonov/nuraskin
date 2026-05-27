@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { telegramApi } from './api/telegram.api';
@@ -153,9 +154,9 @@ export function TelegramDashboard() {
                   <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">{post.postType}</DataTableCell>
                   <DataTableCell>{getStatusBadge(post.status)}</DataTableCell>
                   <DataTableCell className="text-sm text-stone-500">
-                    {post.sentAt ? format(new Date(post.sentAt), 'dd.MM.yyyy HH:mm') : 
-                     post.scheduledAt ? format(new Date(post.scheduledAt), 'dd.MM.yyyy HH:mm') : 
-                     format(new Date(post.createdAt), 'dd.MM.yyyy HH:mm')}
+                    {post.sentAt ? formatDateTime(post.sentAt) : 
+                     post.scheduledAt ? formatDateTime(post.scheduledAt) : 
+                     formatDateTime(post.createdAt)}
                   </DataTableCell>
                   <DataTableCell className="text-right">
                     <Button variant="ghost" size="icon" className="text-stone-400 hover:text-stone-900" asChild>

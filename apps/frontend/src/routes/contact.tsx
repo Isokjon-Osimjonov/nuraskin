@@ -1,3 +1,4 @@
+import { REGION_PHONE_PREFIX } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
@@ -24,7 +25,7 @@ async function getPublicSettings() {
 
 function Contact() {
   const regionCode = useAppStore((s) => s.regionCode);
-  const phonePrefix = regionCode === 'KOR' ? '+82' : '+998';
+  const phonePrefix = regionCode === 'KOR' ? REGION_PHONE_PREFIX.KOR : REGION_PHONE_PREFIX.UZB;
   const phonePlaceholder = regionCode === 'KOR' ? '10 0000 0000' : '00 000 00 00';
 
   const { data: s } = useQuery({

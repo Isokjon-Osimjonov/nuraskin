@@ -1,9 +1,9 @@
+import { queryKeys, formatPrice, tiyinToSom } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
-import { formatPrice } from '@/lib/utils';
 import type { KorShippingTierResponse, StorefrontSettings } from '@nuraskin/shared-types';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
@@ -25,12 +25,12 @@ function CartPage() {
   const cartRegion = cartData?.regionCode || regionCode;
 
   const { data: settings } = useQuery({
-    queryKey: ['storefront-settings'],
+    queryKey: queryKeys.settings.public(),
     queryFn: () => api.get<any>('/storefront/settings'),
   });
 
   const { data: shippingTiers = [] } = useQuery({
-    queryKey: ['shipping-tiers'],
+    queryKey: queryKeys.shippingTiers.all(),
     queryFn: () => api.get<any[]>('/storefront/shipping-tiers'),
     enabled: cartRegion === 'KOR',
   });
@@ -49,7 +49,7 @@ function CartPage() {
     ? (settings?.minOrderAmountKrw ?? 0)
     : (settings?.minOrderAmountUzs ?? 0);
 
-  const subtotalSom = cartRegion === 'UZB' ? subtotal / 100 : subtotal;
+  const subtotalSom = cartRegion === 'UZB' ? tiyinToSom(subtotal) : subtotal;
   const isBelowMinOrder = minOrder > 0 && subtotalSom < minOrder;
 
   const hasStockError = cart.some(item => item.quantity > (item.availableStock ?? 999));

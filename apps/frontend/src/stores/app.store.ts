@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '@nuraskin/shared-utils';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -113,6 +114,6 @@ export const useAppStore = create<AppState>()(
         };
       }),
     }),
-    { name: 'nuraskin-app-storage' }
+    { name: STORAGE_KEYS.APP_STORE }
   )
 );

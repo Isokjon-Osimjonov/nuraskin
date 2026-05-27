@@ -1,41 +1,11 @@
-/**
- * Admin API client
- * - Always uses relative /api (Vite proxy in dev,
- *   Nginx in prod — transparent to this code)
- * - Auto-injects auth token from auth store
- * - Standardized error handling
- */
-
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public data?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
+import { STORAGE_KEYS } from '@nuraskin/shared-utils';
 
 function getToken(): string {
   try {
-    const keys = Object.keys(localStorage);
-    console.log('[ADMIN TOKEN DEBUG] keys:', keys);
-    // Try each key
-    for (const key of keys) {
-      const val = localStorage.getItem(key);
-      if (val?.includes('"token"')) {
-        const parsed = JSON.parse(val);
-        const token = parsed?.state?.token
-          ?? parsed?.token;
-        if (token) {
-          console.log('[ADMIN TOKEN DEBUG] found in:', key);
-          return token;
-        }
-      }
-    }
-    return '';
-  } catch { return ''; }
+    const stored = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH);
+    if (stored) return JSON.parse(stored)?.state?.token ?? '';
+  } catch { /* silent */ }
+  return '';
 }
 
 export async function adminApi<T>(
@@ -43,7 +13,6 @@ export async function adminApi<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = getToken();
-
   const res = await fetch(`/api${path}`, {
     ...options,
     headers: {
@@ -52,39 +21,29 @@ export async function adminApi<T>(
       ...options.headers,
     },
   });
-
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(
-      res.status,
-      body.message ?? body.error ?? `HTTP ${res.status}`,
-      body
-    );
+    throw new Error(body.message ?? body.error ?? `HTTP ${res.status}`);
   }
-
-  // Handle 204 No Content
   if (res.status === 204) return undefined as T;
   return res.json();
 }
 
-// Convenience methods
 export const api = {
-  get:    <T>(path: string, opts?: RequestInit) =>
-            adminApi<T>(path, { method: 'GET', ...opts }),
-  post:   <T>(path: string, body: unknown, opts?: RequestInit) =>
+  get:    <T>(path: string, o?: RequestInit) =>
+            adminApi<T>(path, { method: 'GET', ...o }),
+  post:   <T>(path: string, body: unknown, o?: RequestInit) =>
             adminApi<T>(path, {
               method: 'POST',
-              body: JSON.stringify(body), ...opts }),
-  patch:  <T>(path: string, body: unknown, opts?: RequestInit) =>
+              body: JSON.stringify(body), ...o }),
+  patch:  <T>(path: string, body: unknown, o?: RequestInit) =>
             adminApi<T>(path, {
               method: 'PATCH',
-              body: JSON.stringify(body), ...opts }),
-  put:    <T>(path: string, body: unknown, opts?: RequestInit) =>
+              body: JSON.stringify(body), ...o }),
+  put:    <T>(path: string, body: unknown, o?: RequestInit) =>
             adminApi<T>(path, {
               method: 'PUT',
-              body: JSON.stringify(body), ...opts }),
-  delete: <T>(path: string, opts?: RequestInit) =>
-            adminApi<T>(path, { method: 'DELETE', ...opts }),
+              body: JSON.stringify(body), ...o }),
+  delete: <T>(path: string, o?: RequestInit) =>
+            adminApi<T>(path, { method: 'DELETE', ...o }),
 };
-
-export { ApiError };

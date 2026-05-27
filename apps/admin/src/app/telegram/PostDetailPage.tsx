@@ -1,3 +1,4 @@
+import {  queryKeys , formatDate } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { telegramApi } from './api/telegram.api';
@@ -31,12 +32,12 @@ export function PostDetailPage() {
   });
 
   const { data: latestRate } = useQuery({
-    queryKey: ['exchange-rates', 'latest'],
+    queryKey: queryKeys.exchangeRates.latest(),
     queryFn: () => exchangeRatesApi.getLatest(),
   });
 
   const { data: settings } = useQuery({
-    queryKey: ['settings'],
+    queryKey: queryKeys.settings.all(),
     queryFn: () => settingsApi.get(),
   });
 
@@ -186,7 +187,7 @@ export function PostDetailPage() {
                     </div>
                     <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">Yaratildi:</span>
-                        <span className="font-medium">{format(new Date(post.createdAt), 'dd.MM.yyyy')}</span>
+                        <span className="font-medium">{formatDate(post.createdAt)}</span>
                     </div>
                     {post.scheduledAt && (
                         <div className="flex justify-between border-b pb-2">

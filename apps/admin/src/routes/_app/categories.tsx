@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
@@ -52,7 +53,7 @@ function CategoriesPage() {
   const createMutation = useMutation({
     mutationFn: categoriesApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all() });
       handleClose();
       toast.success('Kategoriya yaratildi');
     },
@@ -65,7 +66,7 @@ function CategoriesPage() {
   const updateMutation = useMutation({
     mutationFn: categoriesApi.update,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all() });
       handleClose();
       toast.success('Kategoriya yangilandi');
     },
@@ -78,7 +79,7 @@ function CategoriesPage() {
   const deleteMutation = useMutation({
     mutationFn: categoriesApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all() });
       toast.success('Kategoriya o\'chirildi');
       setCategoryToDelete(undefined);
     },

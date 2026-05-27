@@ -1,5 +1,6 @@
+import { PAID_STATUSES } from '@nuraskin/shared-utils';
 import { db, orders, orderItems, products, inventoryBatches, settings, exchangeRateSnapshots } from '@nuraskin/database';
-import { eq, sql, and, gte, lte, desc, sum, count, countDistinct } from 'drizzle-orm';
+import { eq, sql, and, gte, lte, desc, sum, count, countDistinct, inArray } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
 
 export async function getKPIs(region: string) {
@@ -31,8 +32,8 @@ export async function getKPIs(region: string) {
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
-      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
-      eq(orders.status, 'DELIVERED'),
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
+      inArray(orders.status, PAID_STATUSES),
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
     .then(res => res[0]);
@@ -75,7 +76,7 @@ export async function getKPIs(region: string) {
   const readyToPack = await db
     .select({ count: count(orders.id) })
     .from(orders)
-    .where(sql`${orders.status} IN ('PAID', 'PAYMENT_VERIFIED')`)
+    .where(sql`${orders.status} IN ('PAYMENT_CONFIRMED')`)
     .then(res => res[0]?.count || 0);
 
   const expiringSoon = await db
@@ -135,7 +136,7 @@ export async function getTrend(region: string) {
   // 2. Fetch last 7 days directly from orders table
   const summaryDays = await db
     .select({
-      date: sql<string>`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::text`,
+      date: sql<string>`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::text`,
       kor_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'KOR' then ${orders.totalAmount} else 0 end)::bigint`,
       uzb_revenue_krw: uzbRevenueKrwSql,
       total_orders: count(orders.id),
@@ -143,13 +144,12 @@ export async function getTrend(region: string) {
     .from(orders)
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
-      eq(orders.status, 'DELIVERED'),
-      sql`${orders.deliveredAt} IS NOT NULL`,
-      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+      inArray(orders.status, PAID_STATUSES),
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
-    .groupBy(sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`)
-    .orderBy(sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`);
+    .groupBy(sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`)
+    .orderBy(sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`);
 
   const revenueMap = new Map(summaryDays.map(d => [d.date, d]));
 
@@ -182,9 +182,8 @@ export async function getTrend(region: string) {
     .innerJoin(products, eq(orderItems.productId, products.id))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(and(
-      eq(orders.status, 'DELIVERED'),
-      sql`${orders.deliveredAt} IS NOT NULL`,
-      sql`DATE(${orders.deliveredAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+      inArray(orders.status, PAID_STATUSES),
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
       isAll ? sql`1=1` : eq(orders.regionCode, region)
     ))
     .groupBy(orderItems.productId, products.name, exchangeRateSnapshots.krwToUzs)

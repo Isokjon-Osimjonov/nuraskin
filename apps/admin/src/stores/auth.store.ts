@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '@nuraskin/shared-utils';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -23,6 +24,6 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (token, user) => set({ token, user }),
       logout: () => set({ token: null, user: null }),
     }),
-    { name: 'nuraskin-auth' }
+    { name: STORAGE_KEYS.ADMIN_AUTH }
   )
 );

@@ -148,7 +148,7 @@ CREATE TABLE "orders" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "orders_order_number_unique" UNIQUE("order_number"),
-	CONSTRAINT "orders_status_check" CHECK ("orders"."status" IN ('DRAFT', 'PENDING_PAYMENT', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED'))
+	CONSTRAINT "orders_status_check" CHECK ("orders"."status" IN ('DRAFT', 'PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELED', 'REFUNDED'))
 );
 --> statement-breakpoint
 CREATE TABLE "pick_pack_audit" (

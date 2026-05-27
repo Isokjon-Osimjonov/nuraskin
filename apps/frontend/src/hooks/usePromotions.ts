@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
@@ -11,7 +12,7 @@ export function usePromotions() {
   const region = useAppStore(s => s.regionCode); // KOR | UZB | null
 
   const { data = [] } = useQuery({
-    queryKey: ['promotions'],
+    queryKey: queryKeys.promotions.active(),
     queryFn: fetchPromotions,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

@@ -1,6 +1,7 @@
+import {  queryKeys , formatDate } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatUzs, formatKrw } from '@/lib/currency';
+import { formatUzs, formatKrw } from '@nuraskin/shared-utils';
 import { couponsApi } from './api/coupons.api';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '../../routes/_app/coupons/index';
@@ -49,7 +50,7 @@ export function CouponsListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => couponsApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.all() });
       toast.success("Kupon o'chirildi");
     },
     onError: (err: unknown) => {
@@ -61,7 +62,7 @@ export function CouponsListPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string, status: 'ACTIVE' | 'PAUSED' }) => couponsApi.updateStatus(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.all() });
       toast.success("Kupon holati yangilandi");
     },
   });
@@ -178,7 +179,7 @@ export function CouponsListPage() {
                     {coupon.regionCode === 'ALL' ? 'Barchasi' : coupon.regionCode === 'UZB' ? "O'zbekiston" : 'Koreya'}
                   </DataTableCell>
                   <DataTableCell className="text-center text-sm font-medium text-stone-700">
-                    {coupon.expiresAt ? format(new Date(coupon.expiresAt), 'dd.MM.yyyy') : 'Limitsiz'}
+                    {coupon.expiresAt ? formatDate(coupon.expiresAt) : 'Limitsiz'}
                   </DataTableCell>
                   <DataTableCell className="text-right">
                     <div className="flex justify-end gap-1">

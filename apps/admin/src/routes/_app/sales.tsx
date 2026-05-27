@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import { createFileRoute } from '@tanstack/react-router';
 import * as React from 'react';
@@ -17,7 +18,6 @@ import {
   DataTableEmpty 
 } from '@/components/ui/DataTable';
 import { TablePagination } from '@/components/ui/TablePagination';
-import { format as formatDate } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
 
 
@@ -358,7 +358,7 @@ function SalesPage() {
                           {Number(order.discountAmountKrw) > 0 ? `-${formatKrw(order.discountAmountKrw)}` : '—'}
                         </DataTableCell>
                         <DataTableCell className="text-xs text-muted-foreground">
-                          {order.deliveredAt ? formatDate(new Date(order.deliveredAt), 'dd.MM.yyyy HH:mm') : '—'}
+                          {order.deliveredAt ? formatDateTime(new Date(order.deliveredAt)) : '—'}
                         </DataTableCell>
                         <DataTableCell className="text-right">
                           <Button variant="ghost" size="icon" className="h-7 w-7" asChild>

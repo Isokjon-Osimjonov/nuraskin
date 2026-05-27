@@ -1,3 +1,4 @@
+import { queryKeys, displayKrw, formatDateTime } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -75,12 +76,12 @@ export function ProductsPage() {
   const totalPages = Math.ceil(totalItems / limit);
 
   const { data: latestRate } = useQuery({
-    queryKey: ['exchange-rates', 'latest'],
+    queryKey: queryKeys.exchangeRates.latest(),
     queryFn: () => exchangeRatesApi.getLatest(),
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
+    queryKey: queryKeys.categories.all(),
     queryFn: () =>
       api.get<CategoryResponse[]>('/categories'),
   });
@@ -88,7 +89,7 @@ export function ProductsPage() {
   const createMutation = useMutation({
     mutationFn: productsApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       handleClose();
       toast.success('Mahsulot yaratildi');
     },
@@ -107,9 +108,9 @@ export function ProductsPage() {
       data: Parameters<typeof productsApi.update>[1];
     }) => productsApi.update(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       queryClient.invalidateQueries({ queryKey: ['products', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       handleClose();
       toast.success('Mahsulot yangilandi');
     },
@@ -122,9 +123,9 @@ export function ProductsPage() {
   const deleteMutation = useMutation({
     mutationFn: productsApi.delete,
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       queryClient.invalidateQueries({ queryKey: ['products', id] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       setProductToDelete(undefined);
       toast.success("Mahsulot o'chirildi");
     },
@@ -137,8 +138,8 @@ export function ProductsPage() {
   const restoreMutation = useMutation({
     mutationFn: productsApi.restore,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       toast.success('Mahsulot tiklandi');
     },
     onError: (err: unknown) => {
@@ -186,7 +187,7 @@ export function ProductsPage() {
   const formatKRW = (krw: string | null) => {
     if (!krw) return '—';
     const krwWhole = Number(BigInt(krw));
-    const rounded = Math.round(krwWhole / 100) * 100;
+    const rounded = displayKrw(krwWhole);
     return rounded.toLocaleString() + ' ₩';
   };
 
@@ -366,10 +367,8 @@ export function ProductsPage() {
                         {activeTab === 'deleted' && (
                           <DataTableCell className="text-xs text-muted-foreground">
                             {p.deletedAt
-                              ? format(
-                                  new Date(p.deletedAt),
-                                  'dd.MM.yyyy HH:mm',
-                                )
+                              ? formatDateTime(
+                                  new Date(p.deletedAt))
                               : '—'}
                           </DataTableCell>
                         )}

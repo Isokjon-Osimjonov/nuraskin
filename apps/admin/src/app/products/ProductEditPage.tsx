@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -22,7 +23,7 @@ export function ProductEditPage({ productId }: ProductEditPageProps) {
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
+    queryKey: queryKeys.categories.all(),
     queryFn: () =>
       api.get<CategoryResponse[]>('/categories'),
   });
@@ -30,9 +31,9 @@ export function ProductEditPage({ productId }: ProductEditPageProps) {
   const updateMutation = useMutation({
     mutationFn: (data: any) => productsApi.update(productId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       queryClient.invalidateQueries({ queryKey: ['products', productId] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       toast.success('Mahsulot yangilandi');
       navigate({ to: '/inventory' });
     },

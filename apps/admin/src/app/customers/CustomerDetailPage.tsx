@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime, displayUzs } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customersApi } from './api/customers.api';
@@ -12,7 +13,7 @@ import { ArrowLeft, Save, ShoppingBag, Clock, Bell, AlertTriangle } from 'lucide
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { UZ, translateServerError } from '@/lib/uz';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatUzs } from '@/lib/utils';
 
 export function CustomerDetailPage() {
   const { id } = useParams({ from: '/_app/customers/$id' as any });
@@ -87,7 +88,7 @@ export function CustomerDetailPage() {
                 <CardDescription className="flex gap-4 mt-1">
                   <span>ID: {customer.telegramId || '—'}</span>
                   <span>Tel: {customer.phone || '—'}</span>
-                  <span>A'zo bo'ldi: {format(new Date(customer.createdAt), 'dd.MM.yyyy')}</span>
+                  <span>A'zo bo'ldi: {formatDate(customer.createdAt)}</span>
                 </CardDescription>
               </div>
             </CardHeader>
@@ -111,7 +112,7 @@ export function CustomerDetailPage() {
                   )}
                   {(Number(customer.totalSpentUzs) ?? 0) > 0 && (
                     <p className="text-2xl font-normal">
-                      {Math.round(Number(customer.totalSpentUzs) / 100).toLocaleString()} so&apos;m
+                      {displayUzs(customer.totalSpentUzs).toLocaleString()} so&apos;m
                     </p>
                   )}
                   {(!customer.totalSpentKrw || Number(customer.totalSpentKrw) === 0) &&
@@ -125,7 +126,7 @@ export function CustomerDetailPage() {
               <CardContent className="pt-6">
                 <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.accounting.outstandingDebt}</p>
                 <p className="text-2xl font-bold text-red-600">
-                    {formatPrice(customer.stats.outstandingDebt, customer.regionCode as 'UZB' | 'KOR')}
+                    {formatUzs(customer.stats.outstandingDebt)}
                 </p>
               </CardContent>
             </Card>
@@ -154,10 +155,10 @@ export function CustomerDetailPage() {
                   {customer.orders.map((o: any) => (
                     <TableRow key={o.id}>
                       <TableCell className="font-medium">{o.orderNumber}</TableCell>
-                      <TableCell>{format(new Date(o.createdAt), 'dd.MM.yyyy HH:mm')}</TableCell>
+                      <TableCell>{formatDateTime(o.createdAt)}</TableCell>
                       <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
                       <TableCell className="text-right">
-                        {formatPrice(o.totalAmount, o.currency === 'UZS' ? 'UZB' : 'KOR')}
+                        {formatUzs(o.totalAmount)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/orders/${o.id}` } as any)}>{UZ.common.view}</Button>
@@ -246,7 +247,7 @@ export function CustomerDetailPage() {
                      <TableRow key={w.id}>
                         <TableCell className="py-3">
                           <p className="text-sm font-medium">{w.productName}</p>
-                          <p className="text-[10px] text-muted-foreground">Qo'shildi: {format(new Date(w.createdAt), 'dd.MM.yyyy')}</p>
+                          <p className="text-[10px] text-muted-foreground">Qo'shildi: {formatDate(w.createdAt)}</p>
                         </TableCell>
                      </TableRow>
                    ))}

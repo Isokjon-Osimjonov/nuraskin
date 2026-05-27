@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { useAuthStore } from '../../../stores/auth.store';
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
@@ -34,7 +35,7 @@ function ProfilePage() {
     onSuccess: () => {
       toast.success("Profil yangilandi");
       // Note: Ideally we'd update the auth store here too if we want immediate name change in sidebar
-      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.all() });
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';

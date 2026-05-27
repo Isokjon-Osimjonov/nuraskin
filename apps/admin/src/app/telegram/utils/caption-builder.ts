@@ -1,3 +1,5 @@
+import { tiyinToSom } from '@nuraskin/shared-utils';
+
 export function buildCaptionPreview(
   form: any,
   product: any,
@@ -56,7 +58,7 @@ export function buildCaptionPreview(
           round1000UZS(retailProductUzsMinor) +
           round1000UZS(retailCargoUzsMinor);
         const formattedUzsRetail = new Intl.NumberFormat('en-US').format(
-          Number(retailUzs) / 100,
+          tiyinToSom(retailUzs),
         );
         uzsBlock.push(`🇺🇿 Narx: ${formattedUzsRetail} so'm / dona`);
       }
@@ -71,7 +73,7 @@ export function buildCaptionPreview(
           round1000UZS(wholesaleProductUzsMinor) +
           round1000UZS(wholesaleCargoUzsMinor);
         const formattedUzsWholesale = new Intl.NumberFormat('en-US').format(
-          Number(wholesaleUzs) / 100,
+          tiyinToSom(wholesaleUzs),
         );
         uzsBlock.push(
           `🇺🇿 Narx: ${formattedUzsWholesale} so'm dan — ${uzbConfig.minWholesaleQty || 5} tadan`,

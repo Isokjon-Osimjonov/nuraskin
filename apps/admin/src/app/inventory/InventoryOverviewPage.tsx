@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -79,7 +80,7 @@ export function InventoryOverviewPage() {
     mutationFn: (id: string) => productsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', 'overview'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       toast.success("Mahsulot o'chirildi");
       setIsDeleteDialogOpen(false);
       setProductToDelete(null);
@@ -94,7 +95,7 @@ export function InventoryOverviewPage() {
     mutationFn: productsApi.restore,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', 'overview'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       toast.success('Mahsulot tiklandi');
     },
     onError: (err: unknown) => {

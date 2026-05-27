@@ -1,3 +1,4 @@
+import { queryKeys, displayKrw } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +42,7 @@ export function OrderCreatePage() {
 
   // 1. Data Fetching
   const { data: customersResponse } = useQuery({
-    queryKey: ['customers'],
+    queryKey: queryKeys.customers.all(),
     queryFn: () => customersApi.getAll({ page: 1, limit: 100, region: 'ALL', status: 'all', debtStatus: 'ALL' }),
   });
   const customers = customersResponse?.data ?? [];
@@ -53,7 +54,7 @@ export function OrderCreatePage() {
   });
 
   const { data: latestRate } = useQuery({
-    queryKey: ['exchange-rates', 'latest'],
+    queryKey: queryKeys.exchangeRates.latest(),
     queryFn: () => exchangeRatesApi.getLatest(),
   });
 
@@ -97,7 +98,7 @@ export function OrderCreatePage() {
     }
     
     // KOR region direct KRW (rounded to 100)
-    return Math.round(baseKrw / 100) * 100;
+    return displayKrw(baseKrw);
   }, [latestRate, regionCode]);
 
   // Recalculate all items when region changes
@@ -168,7 +169,7 @@ export function OrderCreatePage() {
   const createMutation = useMutation({
     mutationFn: ordersApi.create,
     onSuccess: (order) => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       toast.success('Buyurtma yaratildi');
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
     },

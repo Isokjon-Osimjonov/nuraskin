@@ -165,7 +165,7 @@ export async function confirmManualPayment(orderId: string, input: ConfirmManual
   const result = await db.transaction(async (tx) => {
     const now = new Date();
     await tx.update(orders).set({
-      status: 'PAYMENT_VERIFIED',
+      status: 'PAYMENT_CONFIRMED',
       paymentAmount: BigInt(input.paymentAmount),
       paymentMethod: input.paymentMethod,
       paymentReference: input.paymentReference || null,
@@ -180,7 +180,7 @@ export async function confirmManualPayment(orderId: string, input: ConfirmManual
     await tx.insert(orderStatusHistory).values({
       orderId,
       fromStatus: order.status,
-      toStatus: 'PAYMENT_VERIFIED',
+      toStatus: 'PAYMENT_CONFIRMED',
       changedBy: adminId,
       note: `Manual payment confirmed: ${input.paymentMethod}`,
     });
@@ -517,7 +517,7 @@ async function notifyStatusChange(orderId: string, to: string) {
           await NotificationService.sendToCustomer(customerTelegramId, `✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n📦 #${orderNumber}\n💰 Jami: ${formatPrice(totalAmount, region)}\n\nTo'lovni amalga oshiring va kvitansiya yuboring.\n🔗 Buyurtmani ko'rish: https://nuraskin.uz/orders/${orderId}`);
         } else if (to === 'PAYMENT_SUBMITTED') {
           await NotificationService.sendPaymentSubmitted(orderId, orderNumber, customerTelegramId);
-        } else if (to === 'PAYMENT_VERIFIED' || to === 'PAID') {
+        } else if (to === 'PAYMENT_CONFIRMED' || to === 'PAYMENT_CONFIRMED') {
           await NotificationService.sendPaymentVerified(orderId, orderNumber, totalAmount, region, customerTelegramId);
         } else if (to === 'PACKING' || to === 'SHIPPED') {
           await NotificationService.sendOrderShipped(orderId, orderNumber, customerTelegramId);
@@ -594,12 +594,12 @@ interface TransitionInput {
 
 const VALID_TRANSITIONS: Partial<Record<string, string[]>> = {
   'PAYMENT_SUBMITTED': ['PENDING_PAYMENT'],
-  'PAYMENT_VERIFIED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAID'],
-  'PAYMENT_REJECTED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAID'],
-  'PACKING': ['PAID', 'PAYMENT_VERIFIED'],
-  'SHIPPED': ['PACKING', 'PAID', 'PAYMENT_VERIFIED'],
+  'PAYMENT_CONFIRMED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
+  'PAYMENT_REJECTED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
+  'PACKING': ['PAYMENT_CONFIRMED'],
+  'SHIPPED': ['PACKING', 'PAYMENT_CONFIRMED'],
   'DELIVERED': ['SHIPPED'],
-  'CANCELED': ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAID', 'PACKING'],
+  'CANCELED': ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'],
 };
 
 export async function transitionOrderStatus(
@@ -634,7 +634,7 @@ export async function transitionOrderStatus(
     if (input.trackingNumber) updates.trackingNumber = input.trackingNumber;
 
     if (to === 'PAYMENT_SUBMITTED') updates.paymentSubmittedAt = now;
-    if (to === 'PAYMENT_VERIFIED') {
+    if (to === 'PAYMENT_CONFIRMED') {
       updates.paymentVerifiedAt = now;
       updates.paymentVerifiedBy = adminId || null;
       updates.paymentConfirmedAt = now;
@@ -654,20 +654,20 @@ export async function transitionOrderStatus(
     }
     if (to === 'DELIVERED') updates.deliveredAt = now;
 
-    if ((to === 'PAYMENT_VERIFIED' || to === 'PAID') && order.status === 'DRAFT') {
+    if ((to === 'PAYMENT_CONFIRMED' || to === 'PAYMENT_CONFIRMED') && order.status === 'DRAFT') {
       const [settingsRow] = await tx.select().from(settings).limit(1);
       const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
       await reserveStock(orderId, timeoutMinutes, tx);
     }
 
     if (to === 'CANCELED') {
-      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'PAID', 'PACKING'].includes(order.status)) {
+      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'].includes(order.status)) {
         await repository.releaseOrderReservations(orderId, tx);
       }
     }
 
     if (to === 'PAYMENT_REJECTED') {
-      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAID'].includes(order.status)) {
+      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'].includes(order.status)) {
         await repository.releaseOrderReservations(orderId, tx);
       }
     }
@@ -837,7 +837,7 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
 export async function completePacking(orderId: string, adminId?: string) {
   const order = await repository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
-  if (order.status !== 'PACKING' && order.status !== 'PAID' && order.status !== 'PAYMENT_VERIFIED') {
+  if (order.status !== 'PACKING' && order.status !== 'PAYMENT_CONFIRMED' && order.status !== 'PAYMENT_CONFIRMED') {
     throw new BadRequestError('Order is not in correct status for packing');
   }
 

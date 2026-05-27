@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,7 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
   const queryClient = useQueryClient();
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
+    queryKey: queryKeys.categories.all(),
     queryFn: () =>
       api.get<CategoryResponse[]>('/categories'),
   });
@@ -24,8 +25,8 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
   const createMutation = useMutation({
     mutationFn: productsApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       toast.success('Mahsulot yaratildi');
       navigate({ to: '/inventory/scan' });
     },

@@ -2,7 +2,7 @@ import { db, customers, orders, settings } from '@nuraskin/database';
 import { eq, and, like, or, sql, isNull, desc, inArray } from 'drizzle-orm';
 import type { CustomerListItem, CustomerFilters } from '@nuraskin/shared-types';
 
-const PAID_STATUSES = ['PAYMENT_VERIFIED', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
+import { PAID_STATUSES } from '@nuraskin/shared-utils';
 
 export async function findAdminList(filters: CustomerFilters) {
   const { page, limit, region, status, debtStatus, search } = filters;

@@ -1,3 +1,4 @@
+import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { BarcodeScanner } from '@nuraskin/ui';
 import { AddBatchSheet } from './components/AddBatchSheet';
@@ -42,8 +43,8 @@ export function ScanPage() {
     setScanCount(prev => prev + 1);
     setScannedProduct(null);
     setScannerActive(true);
-    queryClient.invalidateQueries({ queryKey: ['inventory'] });
-    queryClient.invalidateQueries({ queryKey: ['products'] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
   };
 
   const handleOpenChange = (open: boolean) => {
