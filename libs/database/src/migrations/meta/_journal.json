@@ -246,6 +246,13 @@
       "when": 1779241491737,
       "tag": "0034_awesome_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1780057867334,
+      "tag": "0035_complete_loa",
+      "breakpoints": true
     }
   ]
 }

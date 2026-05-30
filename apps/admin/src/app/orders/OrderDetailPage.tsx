@@ -339,7 +339,7 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {(order.status === 'PAYMENT_CONFIRMED' || order.status === 'PAYMENT_CONFIRMED') && (
+              {(order.status === 'PAYMENT_CONFIRMED') && (
                 <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => statusMutation.mutate('PACKING')}>
                   <PackageCheck className="mr-2 h-4 w-4" />
                   Tayyorlashni boshlash

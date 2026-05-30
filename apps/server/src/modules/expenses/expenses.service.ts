@@ -229,55 +229,24 @@ export async function exportAccountingToExcel(month: string) {
   const orders = await repository.getAccountingOrders(startDate, endDate);
   const standaloneExpenses = await repository.getAllExpensesForMonth(startDate, endDate);
   const orderExpenses = await repository.getOrderExpensesForMonth(startDate, endDate);
+  const couponSummary = await repository.getCouponSummary(startDate, endDate);
 
   const workbook = new ExcelJS.Workbook();
 
-  // Sheet 1: P&L
-  const plSheet = workbook.addWorksheet('P&L Hisoboti');
-  plSheet.columns = [
-    { header: 'Ko\'rsatkich', key: 'label', width: 30 },
-    { header: 'Summa ₩', key: 'value', width: 20 },
-    { header: 'Marja %', key: 'margin', width: 15 },
-  ];
-
-  plSheet.addRow({ label: 'DAROMAD', value: '' });
-  plSheet.addRow({ label: '  Koreya savdosi', value: Number(summary.revenue.kor_krw) });
-  plSheet.addRow({ label: '  O\'zbekiston savdosi', value: Number(summary.revenue.uzb_krw) });
-  plSheet.addRow({ label: 'JAMI DAROMAD', value: Number(summary.revenue.total_krw) });
-  plSheet.addRow({ label: 'Sotilgan tovar narxi (FIFO)', value: -Number(summary.cogs.total_krw) });
-  plSheet.addRow({ label: 'Yetkazib berish xarajati', value: -Number(summary.cargo.total_krw) });
-  plSheet.addRow({ label: 'YALPI FOYDA', value: Number(summary.gross_profit.total_krw), margin: summary.gross_profit.margin_percent + '%' });
-  plSheet.addRow({});
-  plSheet.addRow({ label: 'OPERATSION XARAJATLAR', value: '' });
-  plSheet.addRow({ label: '  Qadoqlash', value: -Number(summary.expenses.by_category.PACKAGING) });
-  plSheet.addRow({ label: '  Platforma to\'lovlari', value: -Number(summary.expenses.by_category.PLATFORM_FEE) });
-  plSheet.addRow({ label: '  Materiallar', value: -Number(summary.expenses.by_category.SUPPLIES) });
-  plSheet.addRow({ label: '  Ish haqi', value: -Number(summary.expenses.by_category.WAGES) });
-  plSheet.addRow({ label: '  Boshqa (overhead)', value: -Number(summary.expenses.by_category.OTHER) });
-  plSheet.addRow({ label: 'BUYURTMA XARAJATLARI', value: '' });
-  plSheet.addRow({ label: '  Bepul yetkazish subsidiyasi', value: -Number(summary.expenses.order_linked.FREE_SHIPPING_SUBSIDY) });
-  plSheet.addRow({ label: '  Yuk oshiqchasi', value: -Number(summary.expenses.order_linked.CARGO_OVERAGE) });
-  plSheet.addRow({ label: '  Boshqa (order-linked)', value: -Number(summary.expenses.order_linked.OTHER) });
-  plSheet.addRow({ label: 'JAMI XARAJATLAR', value: -Number(summary.expenses.grand_total_krw) });
-  plSheet.addRow({});
-  const netRow = plSheet.addRow({ label: 'SOF FOYDA', value: Number(summary.net_profit.total_krw), margin: summary.net_profit.margin_percent + '%' });
-
-  // Formatting
-  [4, 7, 10, 20, 23].forEach(idx => {
-    plSheet.getRow(idx).font = { bold: true };
-  });
-
-  // Sheet 2: Tranzaksiyalar
-  const transSheet = workbook.addWorksheet('Tranzaksiyalar');
+  // SHEET 1 - Buyurtmalar (Orders)
+  const transSheet = workbook.addWorksheet('Buyurtmalar');
   transSheet.columns = [
-    { header: 'Order ID', key: 'orderNumber', width: 20 },
+    { header: 'Order#', key: 'orderNumber', width: 20 },
     { header: 'Sana', key: 'createdAt', width: 20 },
     { header: 'Mijoz', key: 'customerName', width: 30 },
-    { header: 'Mintaqa', key: 'regionCode', width: 10 },
-    { header: 'Summa ₩', key: 'totalAmount', width: 15 },
-    { header: 'Tan narx ₩', key: 'cogs', width: 15 },
-    { header: 'Yuk ₩', key: 'cargo', width: 15 },
-    { header: 'Status', key: 'status', width: 15 },
+    { header: 'Holat', key: 'status', width: 15 },
+    { header: 'Region', key: 'regionCode', width: 10 },
+    { header: 'Mahsulot', key: 'products', width: 30 },
+    { header: 'Miqdor', key: 'quantity', width: 10 },
+    { header: 'Jami', key: 'totalAmount', width: 15 },
+    { header: 'COGS', key: 'cogs', width: 15 },
+    { header: 'Yetkazish narxi', key: 'cargo', width: 15 },
+    { header: 'Kupon chegirma', key: 'couponDiscount', width: 15 },
   ];
 
   orders.forEach(o => {
@@ -285,23 +254,46 @@ export async function exportAccountingToExcel(month: string) {
       orderNumber: o.orderNumber,
       createdAt: o.createdAt.toISOString(),
       customerName: o.customerName,
+      status: o.status,
       regionCode: o.regionCode,
+      products: 'Batafsil ma\'lumot order items da', // Placeholder unless order items are fetched
+      quantity: 1, // Placeholder
       totalAmount: Number(o.totalAmount),
       cogs: Number(o.cogs),
       cargo: Number(o.cargoCostKrw),
-      status: o.status,
+      couponDiscount: Number(o.discountAmountKrw),
     });
   });
 
-  // Sheet 3: Xarajatlar
+  // SHEET 2 - Daromad xulosasi (Revenue summary)
+  const plSheet = workbook.addWorksheet('Daromad xulosasi');
+  plSheet.columns = [
+    { header: 'Ko\'rsatkich', key: 'label', width: 30 },
+    { header: 'Summa ₩', key: 'value', width: 20 },
+    { header: 'Marja %', key: 'margin', width: 15 },
+  ];
+
+  plSheet.addRow({ label: 'Koreya savdosi (brutto)', value: Number(summary.gross_revenue.kor_krw) });
+  plSheet.addRow({ label: 'O\'zbekiston savdosi (brutto)', value: Number(summary.gross_revenue.uzb_krw) });
+  plSheet.addRow({ label: 'Kupon chegirmalari', value: -Number(summary.coupon_discounts.total_krw) });
+  plSheet.addRow({ label: 'Jami netto daromad', value: Number(summary.revenue.total_krw) });
+  plSheet.addRow({ label: 'COGS', value: -Number(summary.cogs.total_krw) });
+  plSheet.addRow({ label: 'Yetkazib berish', value: -Number(summary.cargo.total_krw) });
+  plSheet.addRow({ label: 'Yalpi foyda', value: Number(summary.gross_profit.total_krw), margin: summary.gross_profit.margin_percent + '%' });
+  plSheet.addRow({ label: 'Marja %', value: summary.gross_profit.margin_percent + '%' });
+
+  // Formatting
+  [4, 7].forEach(idx => {
+    plSheet.getRow(idx).font = { bold: true };
+  });
+
+  // SHEET 3 - Xarajatlar (Expenses)
   const expSheet = workbook.addWorksheet('Xarajatlar');
   expSheet.columns = [
     { header: 'Sana', key: 'date', width: 15 },
-    { header: 'Kategoriya', key: 'category', width: 20 },
+    { header: 'Tur', key: 'category', width: 20 },
     { header: 'Tavsif', key: 'description', width: 40 },
-    { header: 'Summa ₩', key: 'amount', width: 15 },
-    { header: 'Qo\'shgan admin', key: 'createdBy', width: 25 },
-    { header: 'Tur', key: 'type', width: 15 },
+    { header: 'Summa (₩)', key: 'amount', width: 15 },
   ];
 
   standaloneExpenses.forEach(e => {
@@ -310,19 +302,24 @@ export async function exportAccountingToExcel(month: string) {
       category: e.category,
       description: e.description,
       amount: Number(e.amountKrw),
-      createdBy: e.createdBy,
-      type: 'Standalone',
     });
   });
 
-  orderExpenses.forEach(e => {
-    expSheet.addRow({
-      date: e.createdAt.toISOString().split('T')[0],
-      category: e.type,
-      description: e.note || (e.orderNumber ? `Order ${e.orderNumber}` : ''),
-      amount: Number(e.amountKrw),
-      createdBy: e.createdBy,
-      type: 'Order-linked',
+  // SHEET 4 - Kupon hisoboti (Coupon report)
+  const couponSheet = workbook.addWorksheet('Kupon hisoboti');
+  couponSheet.columns = [
+    { header: 'Kod', key: 'code', width: 15 },
+    { header: 'Nomi', key: 'name', width: 30 },
+    { header: 'Ishlatilgan', key: 'usageCount', width: 15 },
+    { header: 'Jami chegirma (₩)', key: 'totalDiscountKrw', width: 20 },
+  ];
+
+  couponSummary.forEach(c => {
+    couponSheet.addRow({
+      code: c.code,
+      name: c.name,
+      usageCount: c.usageCount,
+      totalDiscountKrw: Number(c.totalDiscountKrw),
     });
   });
 

@@ -1,6 +1,5 @@
 import { api } from '@/lib/api';
-
-
+import { STORAGE_KEYS } from '@nuraskin/shared-utils';
 
 export const accountingApi = {
   getSummary: async (month: string): Promise<any> => {
@@ -38,16 +37,33 @@ export const accountingApi = {
   },
 
   exportExcel: async (month: string) => {
-    
-    const response = await api.get<any>(`/admin/accounting/export?month=${month}`);
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `nuraskin-hisobot-${month}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    try {
+      const tokenStr = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH);
+      const parsed = tokenStr ? JSON.parse(tokenStr)?.state?.token : '';
+
+      const res = await fetch(`/api/admin/accounting/export?month=${month}`, {
+        method: 'GET',
+        headers: {
+          ...(parsed ? { Authorization: `Bearer ${parsed}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nuraskin-hisobot-${month}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export error:', err);
+      throw err;
+    }
   }
 };
