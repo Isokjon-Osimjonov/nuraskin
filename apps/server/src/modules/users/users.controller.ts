@@ -10,23 +10,30 @@ export async function listTeam(req: Request, res: Response) {
 
 export async function inviteUser(req: Request, res: Response) {
   const input = inviteUserSchema.parse(req.body);
-  const result = await service.inviteAdminUser(input);
+  const currentUserRole = req.user!.role;
+  const result = await service.inviteAdminUser(input, currentUserRole);
   res.status(201).json(result);
 }
 
 export async function updateUser(req: Request, res: Response) {
   const input = updateUserSchema.parse(req.body);
   const currentUserId = req.user!.sub;
-  const result = await service.updateAdminUser(req.params.id, input, currentUserId);
+  const currentUserRole = req.user!.role;
+  const result = await service.updateAdminUser(
+    req.params.id,
+    input,
+    currentUserId,
+    currentUserRole
+  );
   res.json(result);
 }
 
 export async function changePassword(req: Request, res: Response) {
   const input = changePasswordSchema.parse(req.body);
   const currentUserId = req.user!.sub;
-  
+
   if (currentUserId !== req.params.id) {
-    throw new ForbiddenError('Faqat o\'z parolingizni o\'zgartira olasiz');
+    throw new ForbiddenError("Faqat o'z parolingizni o'zgartira olasiz");
   }
 
   await service.changePassword(req.params.id, input);
