@@ -20,10 +20,14 @@ export const createOrderSchema = z.object({
   regionCode: z.enum(['UZB', 'KOR']),
   currency: z.enum(['USD', 'UZS', 'KRW']),
   adminNote: z.string().optional(),
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      })
+    )
+    .min(1),
   isFreeShipping: z.boolean().optional(),
 });
 
@@ -45,12 +49,14 @@ export const updateOrderStatusSchema = z.object({
 
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 
-export const scanItemSchema = z.object({
-  barcode: z.string().optional(),
-  skuSuffix: z.string().optional(), // last 6 digits
-}).refine(data => data.barcode || data.skuSuffix, {
-  message: "Either barcode or skuSuffix must be provided",
-});
+export const scanItemSchema = z
+  .object({
+    barcode: z.string().optional(),
+    skuSuffix: z.string().optional(), // last 6 digits
+  })
+  .refine(data => data.barcode || data.skuSuffix, {
+    message: 'Either barcode or skuSuffix must be provided',
+  });
 
 export type ScanItemInput = z.infer<typeof scanItemSchema>;
 
@@ -65,7 +71,7 @@ export interface OrderItemResponse {
   imageUrls: string[];
   quantity: number;
   unitPriceSnapshot: string; // Serialized BigInt
-  subtotalSnapshot: string;   // Serialized BigInt
+  subtotalSnapshot: string; // Serialized BigInt
   currencySnapshot: string;
   isScanned: boolean;
   scannedAt: string | null;
@@ -119,11 +125,7 @@ export interface OrderResponse {
   items: OrderItemResponse[];
 }
 
-export const orderExpenseTypeSchema = z.enum([
-  'FREE_SHIPPING_SUBSIDY',
-  'CARGO_OVERAGE',
-  'OTHER',
-]);
+export const orderExpenseTypeSchema = z.enum(['FREE_SHIPPING_SUBSIDY', 'CARGO_OVERAGE', 'OTHER']);
 
 export type OrderExpenseType = z.infer<typeof orderExpenseTypeSchema>;
 
@@ -137,11 +139,15 @@ export type CreateOrderExpenseInput = z.infer<typeof createOrderExpenseSchema>;
 
 export const createManualOrderSchema = z.object({
   customerId: z.string().uuid(),
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-    negotiatedPriceKrw: z.number().nonnegative(),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+        negotiatedPriceKrw: z.number().nonnegative(),
+      })
+    )
+    .min(1),
   deliveryAddress: z.string().min(1),
   deliveryFeeCoveredBy: z.enum(['CUSTOMER', 'BUSINESS']),
   deliveryFeeCharged: z.number().nonnegative(),
@@ -161,4 +167,3 @@ export const confirmManualPaymentSchema = z.object({
 });
 
 export type ConfirmManualPaymentInput = z.infer<typeof confirmManualPaymentSchema>;
-

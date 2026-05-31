@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { BrowserMultiFormatReader, Result } from '@zxing/library';
+import type { Result } from '@zxing/library';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { Flashlight, FlashlightOff, Keyboard } from 'lucide-react';
 
 interface BarcodeScannerProps {
@@ -39,41 +40,45 @@ export function BarcodeScanner({ onScan, onError, isActive }: BarcodeScannerProp
 
         // Prefer back camera
         const constraints: MediaStreamConstraints = {
-          video: { facingMode: 'environment' }
+          video: { facingMode: 'environment' },
         };
 
-        await reader.decodeFromConstraints(constraints, videoRef.current!, (result: Result | null, error: Error | undefined) => {
-          if (result) {
-            const barcode = result.getText();
-            const now = Date.now();
+        await reader.decodeFromConstraints(
+          constraints,
+          videoRef.current!,
+          (result: Result | null, error: Error | undefined) => {
+            if (result) {
+              const barcode = result.getText();
+              const now = Date.now();
 
-            if (
-              lastScanRef.current &&
-              lastScanRef.current.barcode === barcode &&
-              now - lastScanRef.current.time < DEBOUNCE_MS
-            ) {
-              return;
+              if (
+                lastScanRef.current &&
+                lastScanRef.current.barcode === barcode &&
+                now - lastScanRef.current.time < DEBOUNCE_MS
+              ) {
+                return;
+              }
+
+              lastScanRef.current = { barcode, time: now };
+
+              if ('vibrate' in navigator) {
+                navigator.vibrate(200);
+              }
+
+              try {
+                onScan(barcode);
+              } catch (scanErr) {
+                console.error('BarcodeScanner onScan error:', scanErr);
+                if (onError) onError(scanErr as Error);
+              }
             }
 
-            lastScanRef.current = { barcode, time: now };
-            
-            if ('vibrate' in navigator) {
-              navigator.vibrate(200);
-            }
-
-            try {
-              onScan(barcode);
-            } catch (scanErr) {
-              console.error('BarcodeScanner onScan error:', scanErr);
-              if (onError) onError(scanErr as Error);
+            if (error && !(error.name === 'NotFoundException')) {
+              // NotFoundException is normal when no barcode is in view
+              console.error('BarcodeScanner decode error:', error);
             }
           }
-
-          if (error && !(error.name === 'NotFoundException')) {
-            // NotFoundException is normal when no barcode is in view
-            console.error('BarcodeScanner decode error:', error);
-          }
-        });
+        );
 
         // Check for torch support
         const stream = videoRef.current?.srcObject as MediaStream;
@@ -84,7 +89,6 @@ export function BarcodeScanner({ onScan, onError, isActive }: BarcodeScannerProp
             setHasTorch(true);
           }
         }
-
       } catch (err) {
         console.error('Scanner error:', err);
         if (onError) onError(err as Error);
@@ -100,13 +104,13 @@ export function BarcodeScanner({ onScan, onError, isActive }: BarcodeScannerProp
 
   const toggleTorch = async () => {
     if (!readerRef.current || !hasTorch) return;
-    
+
     try {
       const stream = videoRef.current?.srcObject as MediaStream;
       if (stream) {
         const track = stream.getVideoTracks()[0];
         await track.applyConstraints({
-          advanced: [{ torch: !isTorchOn }]
+          advanced: [{ torch: !isTorchOn }],
         } as any);
         setIsTorchOn(!isTorchOn);
       }
@@ -130,11 +134,8 @@ export function BarcodeScanner({ onScan, onError, isActive }: BarcodeScannerProp
     <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
       {!manualMode ? (
         <>
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-          />
-          
+          <video ref={videoRef} className="w-full h-full object-cover" />
+
           {/* Scanning overlay */}
           <div className="absolute inset-0 border-2 border-white/20 pointer-events-none">
             <div className="absolute inset-0 flex items-center justify-center">
@@ -175,7 +176,7 @@ export function BarcodeScanner({ onScan, onError, isActive }: BarcodeScannerProp
               <input
                 type="text"
                 value={manualInput}
-                onChange={(e) => setManualInput(e.target.value)}
+                onChange={e => setManualInput(e.target.value)}
                 autoFocus
                 className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-lg text-center ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 placeholder="123456"

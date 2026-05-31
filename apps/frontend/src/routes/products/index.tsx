@@ -19,7 +19,7 @@ function CategoryPage() {
   const { data: waitlistIds = [] } = useMyWaitlistIds();
   const { add: addWaitlist, remove: removeWaitlist } = useToggleWaitlist();
   const navigate = useNavigate();
-  
+
   const { data: cartData } = useCart();
   const addToCart = useAddToCart();
 
@@ -48,23 +48,30 @@ function CategoryPage() {
   // Extract unique brands from loaded products for filter options
   const availableBrands = useMemo(() => {
     const brands = new Set<string>();
-    allProducts.forEach((p) => { if (p.brandName) brands.add(p.brandName); });
+    allProducts.forEach(p => {
+      if (p.brandName) brands.add(p.brandName);
+    });
     return Array.from(brands).sort();
   }, [allProducts]);
 
   // Client-side filtering for brands
   const filteredProducts = useMemo(() => {
-    return allProducts.filter((product) => {
-      if (selectedBrands.length > 0 && (!product.brandName || !selectedBrands.includes(product.brandName))) return false;
+    return allProducts.filter(product => {
+      if (
+        selectedBrands.length > 0 &&
+        (!product.brandName || !selectedBrands.includes(product.brandName))
+      )
+        return false;
       return true;
     });
   }, [allProducts, selectedBrands]);
 
-  const displayPrice = (val: string) =>
-    formatPrice(val, regionCode as 'UZB' | 'KOR');
+  const displayPrice = (val: string) => formatPrice(val, regionCode as 'UZB' | 'KOR');
 
   const toggleBrand = (brand: string) => {
-    setSelectedBrands((prev) => prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]);
+    setSelectedBrands(prev =>
+      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+    );
   };
 
   const categoryName = 'Barcha mahsulotlar';
@@ -73,7 +80,7 @@ function CategoryPage() {
     <div className="space-y-8">
       {/* Category list */}
       <div>
-        <h3 className={cn(typography.cardTitle, "mb-4")}>Kategoriyalar</h3>
+        <h3 className={cn(typography.cardTitle, 'mb-4')}>Kategoriyalar</h3>
         <div className="space-y-2">
           <Link
             to="/products"
@@ -81,24 +88,26 @@ function CategoryPage() {
           >
             Barchasi
           </Link>
-          {((categories as any)?.data || categories || []).filter((c: any) => c.isActive).map((cat: any) => (
-            <Link
-              key={cat.id}
-              to="/products"
-              search={{ category: cat.slug }}
-              className="block text-[13px] font-light text-stone-500 hover:text-[#4A1525] transition-colors"
-            >
-              {cat.name}
-            </Link>
-          ))}
+          {((categories as any)?.data || categories || [])
+            .filter((c: any) => c.isActive)
+            .map((cat: any) => (
+              <Link
+                key={cat.id}
+                to="/products"
+                search={{ category: cat.slug }}
+                className="block text-[13px] font-light text-stone-500 hover:text-[#4A1525] transition-colors"
+              >
+                {cat.name}
+              </Link>
+            ))}
         </div>
       </div>
 
       {availableBrands.length > 0 && (
         <div>
-          <h3 className={cn(typography.cardTitle, "mb-4")}>Brend</h3>
+          <h3 className={cn(typography.cardTitle, 'mb-4')}>Brend</h3>
           <div className="space-y-2">
-            {availableBrands.map((brand) => (
+            {availableBrands.map(brand => (
               <label key={brand} className="flex items-center gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -121,16 +130,12 @@ function CategoryPage() {
     <div className="bg-white min-h-screen pb-24 pt-8">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 border-b border-stone-100 pb-8 mb-8">
         <h1 className={typography.sectionTitle}>{categoryName}</h1>
-        <p className={typography.sectionSub}>
-          {filteredProducts.length} mahsulot topildi
-        </p>
+        <p className={typography.sectionSub}>{filteredProducts.length} mahsulot topildi</p>
       </div>
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 flex flex-col md:flex-row gap-8">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-1/4 shrink-0">
-          {renderFilterSidebar()}
-        </aside>
+        <aside className="hidden md:block w-1/4 shrink-0">{renderFilterSidebar()}</aside>
 
         {/* Mobile Filters trigger */}
         <div className="md:hidden w-full flex justify-between items-center mb-4">
@@ -153,16 +158,18 @@ function CategoryPage() {
                 placeholder="Qidirish..."
                 className="w-full h-10 pl-10 pr-4 rounded-full bg-stone-50 border border-stone-200 text-[13px] font-light outline-none focus:border-[#4A1525] transition-colors placeholder:text-stone-400"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-[12px] font-light text-stone-400 whitespace-nowrap hidden sm:inline-block">Saralash:</span>
+              <span className="text-[12px] font-light text-stone-400 whitespace-nowrap hidden sm:inline-block">
+                Saralash:
+              </span>
               <select
                 className="w-full sm:w-auto h-10 rounded-full border border-stone-200 bg-stone-50 px-4 py-1 text-[13px] font-light focus:outline-none focus:border-[#4A1525]"
                 value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'arzon' | 'qimmat' | 'yangi')}
+                onChange={e => setSortOrder(e.target.value as 'arzon' | 'qimmat' | 'yangi')}
               >
                 <option value="yangi">Eng yangilari</option>
                 <option value="arzon">Arzon → Qimmat</option>
@@ -175,7 +182,10 @@ function CategoryPage() {
           {isLoading && (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-stone-50 rounded-2xl overflow-hidden animate-pulse h-80" />
+                <div
+                  key={i}
+                  className="bg-stone-50 rounded-2xl overflow-hidden animate-pulse h-80"
+                />
               ))}
             </div>
           )}
@@ -189,7 +199,10 @@ function CategoryPage() {
               />
               <div className="flex justify-center">
                 <button
-                  onClick={() => { setSearchQuery(''); setSelectedBrands([]); }}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedBrands([]);
+                  }}
                   className="border border-stone-300 text-stone-700 text-[13px] font-light px-6 py-2.5 rounded-full hover:border-[#4A1525] hover:text-[#4A1525] transition-colors"
                 >
                   Filtrlarni tozalash
@@ -201,94 +214,121 @@ function CategoryPage() {
           {/* Product Grid */}
           {!isLoading && filteredProducts.length > 0 && (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-              {filteredProducts.map((product) => {
+              {filteredProducts.map(product => {
                 const isOnWaitlist = waitlistIds.includes(product.id);
                 const isInCart = cartData?.items?.some((i: any) => i.productId === product.id);
                 return (
-                <div key={product.id} className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition-all duration-300">
-                  <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative h-[200px] w-full overflow-hidden bg-stone-100 p-2">
-                    <img
-                      src={product.imageUrls[0] || ''}
-                      alt={product.name}
-                      className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                    />
-                    
-                    {product.availableStock === 0 && (
-                      <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center backdrop-blur-[2px] transition-all duration-500">
-                        <span className="text-white text-[10px] font-normal tracking-widest uppercase">Tez orada keladi</span>
-                      </div>
-                    )}
-                    {product.showStockCount && product.availableStock > 0 && product.availableStock <= 5 && (
-                      <div className="absolute bottom-3 left-3 bg-orange-500/90 text-white px-2 py-0.5 rounded-md text-[9px] font-normal uppercase tracking-wider">
-                        Faqat {product.availableStock} ta
-                      </div>
-                    )}
-                  </Link>
+                  <div
+                    key={product.id}
+                    className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition-all duration-300"
+                  >
+                    <Link
+                      to="/products/$slug"
+                      params={{ slug: product.slug }}
+                      className="block relative h-[200px] w-full overflow-hidden bg-stone-100 p-2"
+                    >
+                      <img
+                        src={product.imageUrls[0] || ''}
+                        alt={product.name}
+                        className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                      />
 
-                  <div className="flex flex-col flex-1 p-3">
-                    <div className="flex flex-col mb-2">
-                       <span className={typography.cardMeta}>{product.categoryName}</span>
-                       {product.brandName && (
-                        <span className={cn(typography.cardMeta, "font-light opacity-70")}>{product.brandName}</span>
-                       )}
-                    </div>
-                    
-                    <Link to="/products/$slug" params={{ slug: product.slug }}>
-                      <h3 className={cn(typography.cardTitle, "mb-3 group-hover:text-[#4A1525] transition-colors truncate")}>
-                        {product.name}
-                      </h3>
+                      {product.availableStock === 0 && (
+                        <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center backdrop-blur-[2px] transition-all duration-500">
+                          <span className="text-white text-[10px] font-normal tracking-widest uppercase">
+                            Tez orada keladi
+                          </span>
+                        </div>
+                      )}
+                      {product.showStockCount &&
+                        product.availableStock > 0 &&
+                        product.availableStock <= 5 && (
+                          <div className="absolute bottom-3 left-3 bg-orange-500/90 text-white px-2 py-0.5 rounded-md text-[9px] font-normal uppercase tracking-wider">
+                            Faqat {product.availableStock} ta
+                          </div>
+                        )}
                     </Link>
 
-                    <div className="mt-auto flex items-center justify-between">
-                      <span className={typography.cardPrice}>
-                        {displayPrice(product.calculatedPrice)}
-                      </span>
-                      {product.availableStock === 0 ? (
-                        <button
-                          aria-label="Xabardor qiling"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (!isAuthenticated) { navigate({ to: '/login' }); return; }
-                            if (isOnWaitlist) {
-                              removeWaitlist.mutate(product.id);
-                            } else {
-                              addWaitlist.mutate(product.id);
-                            }
-                          }}
-                          disabled={addWaitlist.isPending || removeWaitlist.isPending}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border ${
-                            isOnWaitlist
-                              ? 'bg-[#4A1525] text-white border-[#4A1525]'
-                              : 'bg-white text-stone-400 border-stone-200 hover:border-[#4A1525] hover:text-[#4A1525]'
-                          }`}
+                    <div className="flex flex-col flex-1 p-3">
+                      <div className="flex flex-col mb-2">
+                        <span className={typography.cardMeta}>{product.categoryName}</span>
+                        {product.brandName && (
+                          <span className={cn(typography.cardMeta, 'font-light opacity-70')}>
+                            {product.brandName}
+                          </span>
+                        )}
+                      </div>
+
+                      <Link to="/products/$slug" params={{ slug: product.slug }}>
+                        <h3
+                          className={cn(
+                            typography.cardTitle,
+                            'mb-3 group-hover:text-[#4A1525] transition-colors truncate'
+                          )}
                         >
-                          <Bell className={`w-3.5 h-3.5 ${isOnWaitlist ? 'fill-current' : ''}`} strokeWidth={1.5} />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (!isAuthenticated) { navigate({ to: '/login' }); return; }
-                            addToCart.mutate({
-                              productId: product.id,
-                              quantity: 1,
-                            });
-                          }}
-                          disabled={addToCart.isPending}
-                          className={`w-8 h-8 rounded-full transition-colors flex items-center justify-center border ${
-                            isInCart
-                              ? 'bg-[#4A1525] border-[#4A1525] text-white'
-                              : 'bg-white border-stone-200 text-[#4A1525] hover:border-[#4A1525] hover:text-[#4A1525]'
-                          }`}
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5" strokeWidth={1.5} />
-                        </button>
-                      )}
+                          {product.name}
+                        </h3>
+                      </Link>
+
+                      <div className="mt-auto flex items-center justify-between">
+                        <span className={typography.cardPrice}>
+                          {displayPrice(product.calculatedPrice)}
+                        </span>
+                        {product.availableStock === 0 ? (
+                          <button
+                            aria-label="Xabardor qiling"
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!isAuthenticated) {
+                                navigate({ to: '/login' });
+                                return;
+                              }
+                              if (isOnWaitlist) {
+                                removeWaitlist.mutate(product.id);
+                              } else {
+                                addWaitlist.mutate(product.id);
+                              }
+                            }}
+                            disabled={addWaitlist.isPending || removeWaitlist.isPending}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 border ${
+                              isOnWaitlist
+                                ? 'bg-[#4A1525] text-white border-[#4A1525]'
+                                : 'bg-white text-stone-400 border-stone-200 hover:border-[#4A1525] hover:text-[#4A1525]'
+                            }`}
+                          >
+                            <Bell
+                              className={`w-3.5 h-3.5 ${isOnWaitlist ? 'fill-current' : ''}`}
+                              strokeWidth={1.5}
+                            />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!isAuthenticated) {
+                                navigate({ to: '/login' });
+                                return;
+                              }
+                              addToCart.mutate({
+                                productId: product.id,
+                                quantity: 1,
+                              });
+                            }}
+                            disabled={addToCart.isPending}
+                            className={`w-8 h-8 rounded-full transition-colors flex items-center justify-center border ${
+                              isInCart
+                                ? 'bg-[#4A1525] border-[#4A1525] text-white'
+                                : 'bg-white border-stone-200 text-[#4A1525] hover:border-[#4A1525] hover:text-[#4A1525]'
+                            }`}
+                          >
+                            <ShoppingBag className="w-3.5 h-3.5" strokeWidth={1.5} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
                 );
               })}
             </div>
@@ -302,17 +342,20 @@ function CategoryPage() {
           <div className="w-[85%] max-sm h-full bg-white flex flex-col">
             <div className="p-5 border-b border-stone-100 flex justify-between items-center">
               <h2 className="text-[16px] font-normal text-stone-900">Filtrlar</h2>
-              <button className="text-stone-400 hover:text-stone-700 transition-colors" onClick={() => setIsMobileFiltersOpen(false)}>
+              <button
+                className="text-stone-400 hover:text-stone-700 transition-colors"
+                onClick={() => setIsMobileFiltersOpen(false)}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-5 flex-1 overflow-y-auto">
-              {renderFilterSidebar()}
-            </div>
+            <div className="p-5 flex-1 overflow-y-auto">{renderFilterSidebar()}</div>
             <div className="p-5 border-t border-stone-100 flex gap-3">
               <button
                 className="flex-1 border border-stone-300 text-stone-700 text-[13px] font-light py-2.5 rounded-full hover:border-[#4A1525] hover:text-[#4A1525] transition-colors"
-                onClick={() => { setSelectedBrands([]); }}
+                onClick={() => {
+                  setSelectedBrands([]);
+                }}
               >
                 Tozalash
               </button>

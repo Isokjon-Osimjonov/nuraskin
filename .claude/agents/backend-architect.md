@@ -35,6 +35,7 @@ apps/server/src/modules/{domain}/
 ## Standard patterns
 
 ### Route
+
 ```ts
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware';
@@ -43,11 +44,12 @@ import * as ctrl from './{domain}.controller';
 import { asyncHandler } from '../../common/utils/async-handler';
 
 export const router = Router();
-router.get('/',  requireAuth, requirePermission('{domain}:read'),   asyncHandler(ctrl.list));
+router.get('/', requireAuth, requirePermission('{domain}:read'), asyncHandler(ctrl.list));
 router.post('/', requireAuth, requirePermission('{domain}:create'), asyncHandler(ctrl.create));
 ```
 
 ### Controller
+
 ```ts
 export async function create(req: Request, res: Response) {
   const input = CreateSchema.parse(req.body);
@@ -57,6 +59,7 @@ export async function create(req: Request, res: Response) {
 ```
 
 ### Service
+
 ```ts
 export async function create({ actor, input }: { actor: Actor; input: CreateInput }) {
   // business logic only
@@ -65,6 +68,7 @@ export async function create({ actor, input }: { actor: Actor; input: CreateInpu
 ```
 
 ### Repository
+
 ```ts
 import { db } from '../../infrastructure/database/client';
 export async function insert(values: NewEntity) {

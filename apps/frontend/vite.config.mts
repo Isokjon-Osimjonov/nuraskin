@@ -15,7 +15,7 @@ export default defineConfig(() => ({
   server: {
     port: 4300,
     host: true,
-    allowedHosts: ["salon-cofounder-shawl.ngrok-free.dev"],
+    allowedHosts: ['salon-cofounder-shawl.ngrok-free.dev'],
     strictPort: true,
     proxy: {
       '/api': {
@@ -29,7 +29,7 @@ export default defineConfig(() => ({
   preview: {
     port: 4300,
     host: true,
-    allowedHosts: ["salon-cofounder-shawl.ngrok-free.dev"],
+    allowedHosts: ['salon-cofounder-shawl.ngrok-free.dev'],
   },
   plugins: [
     ...(process.env.NODE_ENV !== 'production' ? [basicSsl()] : []),
@@ -44,7 +44,10 @@ export default defineConfig(() => ({
   ],
   resolve: {
     alias: {
-      '@nuraskin/shared-utils': path.resolve(import.meta.dirname, '../../libs/shared-utils/src/index.ts'),
+      '@nuraskin/shared-utils': path.resolve(
+        import.meta.dirname,
+        '../../libs/shared-utils/src/index.ts'
+      ),
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },

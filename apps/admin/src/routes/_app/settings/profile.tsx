@@ -6,8 +6,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { teamApi } from '@/app/settings/team/api/team.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { User, Lock, Save, Eye, EyeOff, Loader2 } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import { User, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_app/settings/profile')({
@@ -19,13 +26,13 @@ function ProfilePage() {
   const queryClient = useQueryClient();
 
   const [fullName, setFullName] = React.useState(user?.fullName || '');
-  
+
   const [passForm, setPassForm] = React.useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
-  
+
   const [showCurrent, setShowCurrent] = React.useState(false);
   const [showNew, setShowNew] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
@@ -33,14 +40,14 @@ function ProfilePage() {
   const profileMutation = useMutation({
     mutationFn: (data: { fullName: string }) => teamApi.update(user?.id || '', data),
     onSuccess: () => {
-      toast.success("Profil yangilandi");
+      toast.success('Profil yangilandi');
       // Note: Ideally we'd update the auth store here too if we want immediate name change in sidebar
       queryClient.invalidateQueries({ queryKey: queryKeys.team.all() });
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
       toast.error(msg);
-    }
+    },
   });
 
   const passMutation = useMutation({
@@ -52,7 +59,7 @@ function ProfilePage() {
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
       toast.error(msg);
-    }
+    },
   });
 
   const handleProfileSubmit = (e: React.FormEvent) => {
@@ -63,7 +70,7 @@ function ProfilePage() {
   const handlePassSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (passForm.newPassword !== passForm.confirmPassword) {
-      toast.error("Yangi parollar mos kelmadi");
+      toast.error('Yangi parollar mos kelmadi');
       return;
     }
     passMutation.mutate();
@@ -85,11 +92,7 @@ function ProfilePage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">To'liq ism</label>
-              <Input 
-                value={fullName} 
-                onChange={e => setFullName(e.target.value)} 
-                required
-              />
+              <Input value={fullName} onChange={e => setFullName(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Email (o'zgartirib bo'lmaydi)</label>
@@ -119,7 +122,7 @@ function ProfilePage() {
               <label className="text-sm font-medium">Joriy parol</label>
               <div className="relative">
                 <Input
-                  type={showCurrent ? "text" : "password"}
+                  type={showCurrent ? 'text' : 'password'}
                   value={passForm.currentPassword}
                   onChange={e => setPassForm(p => ({ ...p, currentPassword: e.target.value }))}
                   required
@@ -140,7 +143,7 @@ function ProfilePage() {
               <label className="text-sm font-medium">Yangi parol</label>
               <div className="relative">
                 <Input
-                  type={showNew ? "text" : "password"}
+                  type={showNew ? 'text' : 'password'}
                   value={passForm.newPassword}
                   onChange={e => setPassForm(p => ({ ...p, newPassword: e.target.value }))}
                   required
@@ -162,7 +165,7 @@ function ProfilePage() {
               <label className="text-sm font-medium">Tasdiqlash</label>
               <div className="relative">
                 <Input
-                  type={showConfirm ? "text" : "password"}
+                  type={showConfirm ? 'text' : 'password'}
                   value={passForm.confirmPassword}
                   onChange={e => setPassForm(p => ({ ...p, confirmPassword: e.target.value }))}
                   required

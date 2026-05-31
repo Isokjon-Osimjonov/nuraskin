@@ -24,8 +24,7 @@ export function ProductEditPage({ productId }: ProductEditPageProps) {
 
   const { data: categories = [] } = useQuery({
     queryKey: queryKeys.categories.all(),
-    queryFn: () =>
-      api.get<CategoryResponse[]>('/categories'),
+    queryFn: () => api.get<CategoryResponse[]>('/categories'),
   });
 
   const updateMutation = useMutation({
@@ -68,12 +67,12 @@ export function ProductEditPage({ productId }: ProductEditPageProps) {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
       </div>
-      
+
       <div className="bg-card rounded-lg border p-6">
         <ProductFormPage
           initialData={product as any}
           categories={categories}
-          onSubmit={(data) => updateMutation.mutate(data)}
+          onSubmit={data => updateMutation.mutate(data)}
           isSubmitting={updateMutation.isPending}
         />
       </div>

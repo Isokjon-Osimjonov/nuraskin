@@ -5,8 +5,6 @@ import type {
   AnalyzeImageResponse,
 } from '@nuraskin/shared-types';
 
-
-
 export interface ProductListItem {
   id: string;
   barcode: string;
@@ -67,14 +65,16 @@ export const productsApi = {
   getById: (id: string): Promise<ProductDetail> => api.get<any>(`/products/${id}`),
   getByBarcode: (barcode: string): Promise<ProductDetail> =>
     api.get<any>(`/products/barcode/${barcode}`),
-  create: (data: CreateProductInput) =>
-    api.post<any>('/products', data),
-  update: (id: string, data: UpdateProductInput) =>
-    api.patch<any>(`/products/${id}`, data),
+  create: (data: CreateProductInput) => api.post<any>('/products', data),
+  update: (id: string, data: UpdateProductInput) => api.patch<any>(`/products/${id}`, data),
   restore: (id: string) => api.patch<any>(`/products/${id}/restore`, {}),
   delete: (id: string) => api.delete<any>(`/products/${id}`),
   analyzeImage: (imageUrl: string): Promise<AnalyzeImageResponse> =>
     api.post<any>('/products/analyze-image', { imageUrl }),
-  getUploadUrl: (): Promise<{ url: string; timestamp: number; signature: string; apiKey: string }> =>
-    api.post<any>('/categories/upload-url', {}),
+  getUploadUrl: (): Promise<{
+    url: string;
+    timestamp: number;
+    signature: string;
+    apiKey: string;
+  }> => api.post<any>('/categories/upload-url', {}),
 };

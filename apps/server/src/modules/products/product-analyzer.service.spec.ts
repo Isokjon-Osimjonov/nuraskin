@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import OpenAI from 'openai';
 
 vi.mock('openai', () => {
   const mockCreate = vi.fn();
@@ -35,7 +34,7 @@ describe('product-analyzer.service', () => {
   });
 
   it('throws AI_PARSE_FAILED when JSON is unparseable', async () => {
-    const { mockCreate } = await import('openai') as any;
+    const { mockCreate } = (await import('openai')) as any;
     mockCreate.mockResolvedValue({
       choices: [{ message: { content: 'not valid json' } }],
     });
@@ -44,7 +43,7 @@ describe('product-analyzer.service', () => {
   });
 
   it('throws AI_PARSE_FAILED when required fields are missing', async () => {
-    const { mockCreate } = await import('openai') as any;
+    const { mockCreate } = (await import('openai')) as any;
     mockCreate.mockResolvedValue({
       choices: [{ message: { content: '{"name": "Only Name"}' } }],
     });

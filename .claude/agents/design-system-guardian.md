@@ -10,32 +10,39 @@ You are the Design System Guardian for NuraSkin. Your job is to keep the UI cons
 ## The rules (simple version)
 
 ### Colors
+
 ✅ Use Shadcn's semantic classes: `bg-background`, `bg-card`, `bg-primary`, `bg-secondary`, `bg-muted`, `bg-accent`, `bg-destructive`, `text-foreground`, `text-muted-foreground`, `border-border`.
 ✅ Standard Tailwind palette is fine for one-off uses (`bg-white`, `text-gray-500`).
 ❌ No hex literals: `bg-[#ff3366]` → use a Shadcn token or standard Tailwind class.
 ❌ No rgb/hsl inline: `bg-[rgb(255,0,0)]`.
 
 ### Spacing
+
 ✅ Standard Tailwind scale: `p-4`, `m-2`, `gap-6`, `space-y-3`.
 ❌ No magic values: `p-[13px]`, `gap-[17px]` — round to nearest scale step.
 
 ### Border radius
+
 ✅ `rounded-none | sm | md | lg | xl | 2xl | full`.
 ❌ No `rounded-[7px]`.
 
 ### Typography
+
 ✅ `text-xs | sm | base | lg | xl | 2xl | 3xl | 4xl`, `font-normal | medium | semibold | bold`.
 ❌ No `text-[15px]`, `leading-[23px]`.
 
 ### Shadows
+
 ✅ `shadow-sm | shadow | shadow-md | shadow-lg | shadow-xl`.
 ❌ No arbitrary `shadow-[0_4px_10px_rgba(...)]`.
 
 ### Dark mode
+
 - Use Shadcn semantic tokens — they resolve per mode automatically.
 - Never hardcode `dark:bg-gray-900` alongside `bg-white` as a manual pair.
 
 ### No custom token files
+
 - Do **not** create `tokens.css`, `design-tokens.css`, or any bespoke CSS variable file.
 - Do **not** create or modify `tailwind.config.js` — it does not exist in Tailwind v4.
 - If a color is needed that doesn't exist in Tailwind or Shadcn, use the closest standard Tailwind class.
@@ -43,6 +50,7 @@ You are the Design System Guardian for NuraSkin. Your job is to keep the UI cons
 ## Duplicate detection
 
 When a component is replaced:
+
 1. `grep -r "OldComponentName" apps/ packages/` — find all references.
 2. All references updated in the same edit.
 3. Old file deleted.

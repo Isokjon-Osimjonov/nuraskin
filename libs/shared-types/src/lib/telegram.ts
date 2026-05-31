@@ -3,7 +3,12 @@ import { z } from 'zod';
 export const telegramChatTypeSchema = z.enum(['CHANNEL', 'GROUP']);
 export type TelegramChatType = z.infer<typeof telegramChatTypeSchema>;
 
-export const telegramPostTypeSchema = z.enum(['PRODUCT_SHOWCASE', 'FLASH_SALE', 'NEW_ARRIVAL', 'RESTOCK']);
+export const telegramPostTypeSchema = z.enum([
+  'PRODUCT_SHOWCASE',
+  'FLASH_SALE',
+  'NEW_ARRIVAL',
+  'RESTOCK',
+]);
 export type TelegramPostType = z.infer<typeof telegramPostTypeSchema>;
 
 export const telegramCtaTypeSchema = z.enum(['BUY_NOW', 'DM_US', 'VISIT_WEB', 'CUSTOM']);
@@ -72,22 +77,26 @@ export const telegramPostSchema = z.object({
 
 export type TelegramPostResponse = z.infer<typeof telegramPostSchema>;
 
-export const createTelegramPostSchema = telegramPostSchema.omit({
-  id: true,
-  status: true,
-  sentAt: true,
-  errorMessage: true,
-  createdBy: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  channelIds: z.array(z.string().uuid()).min(1),
-  scheduledAt: z.string().datetime().optional(),
-});
+export const createTelegramPostSchema = telegramPostSchema
+  .omit({
+    id: true,
+    status: true,
+    sentAt: true,
+    errorMessage: true,
+    createdBy: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    channelIds: z.array(z.string().uuid()).min(1),
+    scheduledAt: z.string().datetime().optional(),
+  });
 
 export type CreateTelegramPostInput = z.infer<typeof createTelegramPostSchema>;
 
-export const updateTelegramPostSchema = createTelegramPostSchema.partial().omit({ channelIds: true });
+export const updateTelegramPostSchema = createTelegramPostSchema
+  .partial()
+  .omit({ channelIds: true });
 export type UpdateTelegramPostInput = z.infer<typeof updateTelegramPostSchema>;
 
 export const telegramPostChannelSchema = z.object({

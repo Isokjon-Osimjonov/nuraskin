@@ -20,8 +20,8 @@ export async function findAll() {
     .leftJoin(users, eq(exchangeRateSnapshots.createdBy, users.id))
     .orderBy(desc(exchangeRateSnapshots.createdAt))
     .limit(10);
-    
-  return rows.map((row) => ({
+
+  return rows.map(row => ({
     ...row.snapshot,
     krwToUzs: Number(row.snapshot.krwToUzs),
     createdByName: row.userFullName,

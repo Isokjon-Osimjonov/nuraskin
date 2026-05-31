@@ -53,7 +53,7 @@ export function useDeleteAddress() {
     mutationFn: addressApi.deleteAddress,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses'] });
-      toast.success('Manzil o\'chirildi');
+      toast.success("Manzil o'chirildi");
     },
   });
 }

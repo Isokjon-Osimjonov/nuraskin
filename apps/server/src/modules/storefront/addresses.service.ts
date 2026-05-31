@@ -21,7 +21,7 @@ export async function create(customerId: string, input: CreateAddressInput) {
     throw new BadRequestError("Maksimal 5 ta manzil saqlash mumkin. Eskisini o'chiring.");
   }
 
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const isFirst = existingCount === 0;
     const shouldBeDefault = input.isDefault || isFirst;
 
@@ -52,12 +52,14 @@ export async function update(customerId: string, addressId: string, input: Updat
 
   if (!address) throw new NotFoundError('Manzil topilmadi');
 
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     if (input.isDefault) {
       await tx
         .update(customerAddresses)
         .set({ isDefault: false })
-        .where(and(eq(customerAddresses.customerId, customerId), ne(customerAddresses.id, addressId)));
+        .where(
+          and(eq(customerAddresses.customerId, customerId), ne(customerAddresses.id, addressId))
+        );
     }
 
     const [updated] = await tx
@@ -80,7 +82,7 @@ export async function remove(customerId: string, addressId: string) {
 
   if (!address) throw new NotFoundError('Manzil topilmadi');
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     await tx.delete(customerAddresses).where(eq(customerAddresses.id, addressId));
 
     if (address.isDefault) {
@@ -108,7 +110,7 @@ export async function setDefault(customerId: string, addressId: string) {
 
   if (!address) throw new NotFoundError('Manzil topilmadi');
 
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     await tx
       .update(customerAddresses)
       .set({ isDefault: false })

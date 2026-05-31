@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express';
 import * as service from './settings.service';
-import { updateSettingsSchema, korShippingTierSchema, updatePaymentInfoSchema } from '@nuraskin/shared-types';
+import {
+  updateSettingsSchema,
+  korShippingTierSchema,
+  updatePaymentInfoSchema,
+} from '@nuraskin/shared-types';
 
 export async function get(req: Request, res: Response) {
   const result = await service.getSettings();

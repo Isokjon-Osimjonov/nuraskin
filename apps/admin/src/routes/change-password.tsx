@@ -5,7 +5,14 @@ import { useMutation } from '@tanstack/react-query';
 import { teamApi } from '@/app/settings/team/api/team.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Eye, EyeOff, Lock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,7 +23,7 @@ export const Route = createFileRoute('/change-password')({
 function ChangePasswordPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s: any) => s.user);
-  
+
   const [showCurrent, setShowCurrent] = React.useState(false);
   const [showNew, setShowNew] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
@@ -24,7 +31,7 @@ function ChangePasswordPage() {
   const [form, setForm] = React.useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
   const mutation = useMutation({
@@ -36,13 +43,13 @@ function ChangePasswordPage() {
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
       toast.error(msg);
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (form.newPassword !== form.confirmPassword) {
-      toast.error("Yangi parollar mos kelmadi");
+      toast.error('Yangi parollar mos kelmadi');
       return;
     }
     if (form.newPassword.length < 8) {
@@ -70,7 +77,7 @@ function ChangePasswordPage() {
               <label className="text-sm font-medium">Joriy parol</label>
               <div className="relative">
                 <Input
-                  type={showCurrent ? "text" : "password"}
+                  type={showCurrent ? 'text' : 'password'}
                   value={form.currentPassword}
                   onChange={e => setForm(p => ({ ...p, currentPassword: e.target.value }))}
                   required
@@ -91,7 +98,7 @@ function ChangePasswordPage() {
               <label className="text-sm font-medium">Yangi parol</label>
               <div className="relative">
                 <Input
-                  type={showNew ? "text" : "password"}
+                  type={showNew ? 'text' : 'password'}
                   value={form.newPassword}
                   onChange={e => setForm(p => ({ ...p, newPassword: e.target.value }))}
                   required
@@ -113,7 +120,7 @@ function ChangePasswordPage() {
               <label className="text-sm font-medium">Tasdiqlash</label>
               <div className="relative">
                 <Input
-                  type={showConfirm ? "text" : "password"}
+                  type={showConfirm ? 'text' : 'password'}
                   value={form.confirmPassword}
                   onChange={e => setForm(p => ({ ...p, confirmPassword: e.target.value }))}
                   required

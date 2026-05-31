@@ -1,7 +1,5 @@
-import { api } from '@/lib/api';
 import * as React from 'react';
 import { UploadCloudIcon, X, LinkIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -43,7 +41,7 @@ export function ImageUpload({ urls, onChange }: ImageUploadProps) {
       onChange([...urls, ...newUrls].slice(0, 8));
     } catch {
       // fallback: create object URL for local preview
-      const localUrls = files.map((f) => URL.createObjectURL(f));
+      const localUrls = files.map(f => URL.createObjectURL(f));
       onChange([...urls, ...localUrls].slice(0, 8));
     } finally {
       setUploading(false);
@@ -95,7 +93,7 @@ export function ImageUpload({ urls, onChange }: ImageUploadProps) {
               className={cn(
                 'flex flex-col items-center justify-center border-2 border-dashed rounded-md p-4 cursor-pointer transition-colors',
                 'hover:border-blue-400 hover:bg-blue-50/50',
-                uploading && 'opacity-50 pointer-events-none',
+                uploading && 'opacity-50 pointer-events-none'
               )}
               onClick={() => fileInputRef.current?.click()}
             >
@@ -126,7 +124,7 @@ export function ImageUpload({ urls, onChange }: ImageUploadProps) {
             <Label>Image URL</Label>
             <Input
               placeholder="https://example.com/image.jpg"
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   const val = (e.target as HTMLInputElement).value;

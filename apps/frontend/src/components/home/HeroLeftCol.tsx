@@ -5,8 +5,8 @@ export function HeroLeftCol() {
   return (
     <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-sm md:max-w-md">
       <p className="text-white text-xs md:text-sm lg:text-base leading-relaxed">
-        Zamonaviy formulalar bilan mukammallashtirilgan kundalik ishonch uchun
-        yuqori darajali parvarishlash.
+        Zamonaviy formulalar bilan mukammallashtirilgan kundalik ishonch uchun yuqori darajali
+        parvarishlash.
       </p>
 
       {/* NORD-style: pill label + separate round arrow button */}

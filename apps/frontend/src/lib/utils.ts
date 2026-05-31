@@ -5,4 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export { formatUzs, formatKrw, formatPrice, displayUzs, displayKrw, somToTiyin, tiyinToSom } from '@nuraskin/shared-utils';
+export {
+  formatUzs,
+  formatKrw,
+  formatPrice,
+  displayUzs,
+  displayKrw,
+  somToTiyin,
+  tiyinToSom,
+} from '@nuraskin/shared-utils';

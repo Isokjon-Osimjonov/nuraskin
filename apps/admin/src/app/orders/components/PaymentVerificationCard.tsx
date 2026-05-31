@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose
+  DialogClose,
 } from '@/components/ui/dialog';
 import { formatPrice } from '@/lib/utils';
 
@@ -41,7 +41,8 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
   });
 
   const rejectMutation = useMutation({
-    mutationFn: () => ordersApi.updateStatus(order.id, { to: 'PAYMENT_REJECTED', paymentNote: rejectNote }),
+    mutationFn: () =>
+      ordersApi.updateStatus(order.id, { to: 'PAYMENT_REJECTED', paymentNote: rejectNote }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
@@ -60,7 +61,9 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
   const isRejected = !!(order.paymentRejectedAt && !order.paymentVerifiedAt);
 
   return (
-    <Card className={isRejected ? "border-red-200 bg-red-50/30" : "border-yellow-200 bg-yellow-50/30"}>
+    <Card
+      className={isRejected ? 'border-red-200 bg-red-50/30' : 'border-yellow-200 bg-yellow-50/30'}
+    >
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <CreditCard className={`h-5 w-5 ${isRejected ? 'text-red-600' : 'text-yellow-600'}`} />
@@ -75,7 +78,9 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
               <div className="w-full h-full flex flex-col items-center justify-center bg-red-100 rounded-lg border-2 border-red-300 text-red-700 p-4 text-center">
                 <X className="h-10 w-10 mb-2 opacity-60" />
                 <span className="text-sm font-bold uppercase mb-2">To'lov rad etildi</span>
-                <span className="text-xs mb-2 break-words line-clamp-3 font-medium">Sabab: {order.paymentNote}</span>
+                <span className="text-xs mb-2 break-words line-clamp-3 font-medium">
+                  Sabab: {order.paymentNote}
+                </span>
                 <span className="text-[10px] opacity-70">
                   Rad etilgan vaqt: {new Date(order.paymentRejectedAt).toLocaleString()}
                 </span>
@@ -84,9 +89,9 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
               <Dialog>
                 <DialogTrigger asChild>
                   <div className="w-full h-full border-2 border-dashed border-yellow-300 rounded-lg overflow-hidden cursor-zoom-in">
-                    <img 
-                      src={order.paymentReceiptUrl} 
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                    <img
+                      src={order.paymentReceiptUrl}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       alt="Payment Receipt"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -110,41 +115,50 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
           <div className="flex-1 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Umumiy summa</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
+                  Umumiy summa
+                </p>
                 <p className="text-2xl font-black text-yellow-700">
                   {formatPrice(order.totalAmount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Yuborilgan vaqti</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
+                  Yuborilgan vaqti
+                </p>
                 <p className="text-sm font-medium">
-                  {order.paymentSubmittedAt 
-                    ? new Date(order.paymentSubmittedAt).toLocaleString() 
+                  {order.paymentSubmittedAt
+                    ? new Date(order.paymentSubmittedAt).toLocaleString()
                     : '—'}
                 </p>
               </div>
             </div>
-            
+
             <div className="p-3 bg-white/50 rounded-lg border border-yellow-100 text-sm">
-              <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Karta ma'lumotlari (Mijozga ko'rsatilgan)</p>
+              <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">
+                Karta ma'lumotlari (Mijozga ko'rsatilgan)
+              </p>
               <p className="font-mono text-yellow-800">9860 **** **** 9012 (Kapital Bank)</p>
             </div>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex gap-3 pt-2 bg-yellow-100/50 rounded-b-lg">
-        <Button 
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white" 
+        <Button
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
           onClick={() => confirmMutation.mutate()}
           disabled={confirmMutation.isPending || !order.paymentReceiptUrl}
         >
           <Check className="mr-2 h-4 w-4" />
           Tasdiqlash
         </Button>
-        
+
         <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex-1 border-red-200 text-red-600 hover:bg-red-50">
+            <Button
+              variant="outline"
+              className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+            >
               <X className="mr-2 h-4 w-4" />
               Rad etish
             </Button>
@@ -154,11 +168,15 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
               <DialogTitle>To'lovni rad etish</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <p className="text-sm text-muted-foreground mb-3">Mijozga ko'rsatiladigan rad etish sababini kiriting:</p>
-              <Textarea 
-                placeholder="Rasm tushunarli emas, summa kam..." 
+              <p className="text-sm text-muted-foreground mb-3">
+                Mijozga ko'rsatiladigan rad etish sababini kiriting:
+              </p>
+              <Textarea
+                placeholder="Rasm tushunarli emas, summa kam..."
                 value={rejectNote}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectNote(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setRejectNote(e.target.value)
+                }
                 rows={4}
               />
             </div>
@@ -166,8 +184,8 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
               <DialogClose asChild>
                 <Button variant="ghost">Bekor qilish</Button>
               </DialogClose>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={() => rejectMutation.mutate()}
                 disabled={rejectMutation.isPending || !rejectNote.trim()}
               >
@@ -200,5 +218,5 @@ function ReceiptText(props: any) {
       <path d="M16 12h-6" />
       <path d="M16 16h-6" />
     </svg>
-  )
+  );
 }

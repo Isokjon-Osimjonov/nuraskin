@@ -1,5 +1,5 @@
 import { db, customers, orders, settings } from '@nuraskin/database';
-import { eq, and, like, or, sql, isNull, desc, inArray } from 'drizzle-orm';
+import { eq, and, like, or, sql, isNull, desc } from 'drizzle-orm';
 import type { CustomerListItem, CustomerFilters } from '@nuraskin/shared-types';
 
 import { PAID_STATUSES } from '@nuraskin/shared-utils';
@@ -23,11 +23,29 @@ export async function findAdminList(filters: CustomerFilters) {
       createdAt: sql<string>`customers.created_at::text`.as('createdAt'),
       lastOrderAt: sql<string | null>`MAX(orders.created_at)::text`.as('lastOrderAt'),
       orderCount: sql<number>`COUNT(orders.id)::int`.as('orderCount'),
-      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(PAID_STATUSES.map(s => sql.raw(`'${s}'`)), sql`, `)}) THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
-      totalSpentKrw: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(PAID_STATUSES.map(s => sql.raw(`'${s}'`)), sql`, `)}) AND orders.region_code = 'KOR' THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpentKrw'),
-      totalSpentUzs: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(PAID_STATUSES.map(s => sql.raw(`'${s}'`)), sql`, `)}) AND orders.region_code = 'UZB' THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpentUzs'),
-      outstandingDebt: sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'PENDING_PAYMENT' THEN orders.total_amount ELSE 0 END), 0)::text`.as('outstandingDebt'),
-      debtLimit: sql<string>`COALESCE(customers.debt_limit_override, ${defaultLimit})::text`.as('debtLimit'),
+      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(
+        PAID_STATUSES.map(s => sql.raw(`'${s}'`)),
+        sql`, `
+      )}) THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
+      totalSpentKrw: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(
+        PAID_STATUSES.map(s => sql.raw(`'${s}'`)),
+        sql`, `
+      )}) AND orders.region_code = 'KOR' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
+        'totalSpentKrw'
+      ),
+      totalSpentUzs: sql<string>`COALESCE(SUM(CASE WHEN orders.status IN (${sql.join(
+        PAID_STATUSES.map(s => sql.raw(`'${s}'`)),
+        sql`, `
+      )}) AND orders.region_code = 'UZB' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
+        'totalSpentUzs'
+      ),
+      outstandingDebt:
+        sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'PENDING_PAYMENT' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
+          'outstandingDebt'
+        ),
+      debtLimit: sql<string>`COALESCE(customers.debt_limit_override, ${defaultLimit})::text`.as(
+        'debtLimit'
+      ),
     })
     .from(customers)
     .leftJoin(orders, eq(customers.id, orders.customerId))
@@ -36,32 +54,40 @@ export async function findAdminList(filters: CustomerFilters) {
 
   // Apply filters
   const conditions = [isNull(customers.deletedAt)];
-  
+
   if (region !== 'ALL') conditions.push(eq(customers.regionCode, region));
   if (status === 'active') conditions.push(eq(customers.isActive, true));
   if (status === 'inactive') conditions.push(eq(customers.isActive, false));
-  
+
   if (search) {
-    conditions.push(or(
-      like(customers.fullName, `%${search}%`),
-      like(customers.phone, `%${search}%`),
-      sql`customers.telegram_id::text LIKE ${'%' + search + '%'}`
-    ) as any);
+    conditions.push(
+      or(
+        like(customers.fullName, `%${search}%`),
+        like(customers.phone, `%${search}%`),
+        sql`customers.telegram_id::text LIKE ${'%' + search + '%'}`
+      ) as any
+    );
   }
 
   // Unfortunately groupBy + having for debtStatus is complex in Drizzle with subqueries.
   // We'll wrap the base query as a subquery.
-  
+
   const subquery = baseQuery.as('stats');
   let finalQuery = db.select().from(subquery);
 
   if (debtStatus !== 'ALL') {
     if (debtStatus === 'BLOCKED') {
-      finalQuery = finalQuery.where(sql`stats.outstanding_debt::bigint >= stats.debt_limit::bigint`) as any;
+      finalQuery = finalQuery.where(
+        sql`stats.outstanding_debt::bigint >= stats.debt_limit::bigint`
+      ) as any;
     } else if (debtStatus === 'WARNING') {
-      finalQuery = finalQuery.where(sql`stats.outstanding_debt::bigint >= (stats.debt_limit::bigint * 80 / 100) AND stats.outstanding_debt::bigint < stats.debt_limit::bigint`) as any;
+      finalQuery = finalQuery.where(
+        sql`stats.outstanding_debt::bigint >= (stats.debt_limit::bigint * 80 / 100) AND stats.outstanding_debt::bigint < stats.debt_limit::bigint`
+      ) as any;
     } else if (debtStatus === 'GOOD') {
-      finalQuery = finalQuery.where(sql`stats.outstanding_debt::bigint < (stats.debt_limit::bigint * 80 / 100)`) as any;
+      finalQuery = finalQuery.where(
+        sql`stats.outstanding_debt::bigint < (stats.debt_limit::bigint * 80 / 100)`
+      ) as any;
     }
   }
 
@@ -96,7 +122,11 @@ export async function findAdminList(filters: CustomerFilters) {
 }
 
 export async function findById(id: string) {
-  const [customer] = await db.select().from(customers).where(and(eq(customers.id, id), isNull(customers.deletedAt))).limit(1);
+  const [customer] = await db
+    .select()
+    .from(customers)
+    .where(and(eq(customers.id, id), isNull(customers.deletedAt)))
+    .limit(1);
   return customer || null;
 }
 
@@ -120,10 +150,9 @@ export async function getActiveOrderCount(customerId: string) {
   const [row] = await db
     .select({ count: sql`count(*)::int` })
     .from(orders)
-    .where(and(
-      eq(orders.customerId, customerId),
-      sql`orders.status NOT IN ('CANCELED', 'DELIVERED')`
-    ));
+    .where(
+      and(eq(orders.customerId, customerId), sql`orders.status NOT IN ('CANCELED', 'DELIVERED')`)
+    );
   return row.count;
 }
 
@@ -131,10 +160,9 @@ export async function getTotalOrderCount(customerId: string) {
   const [row] = await db
     .select({ count: sql`count(*)::int` })
     .from(orders)
-    .where(and(
-      eq(orders.customerId, customerId),
-      sql`orders.status NOT IN ('CANCELED', 'REFUNDED')`
-    ));
+    .where(
+      and(eq(orders.customerId, customerId), sql`orders.status NOT IN ('CANCELED', 'REFUNDED')`)
+    );
   return row.count;
 }
 
@@ -142,9 +170,6 @@ export async function getOutstandingDebt(customerId: string) {
   const [row] = await db
     .select({ total: sql`coalesce(sum(total_amount), 0)::bigint` })
     .from(orders)
-    .where(and(
-      eq(orders.customerId, customerId),
-      eq(orders.status, 'PENDING_PAYMENT')
-    ));
+    .where(and(eq(orders.customerId, customerId), eq(orders.status, 'PENDING_PAYMENT')));
   return row.total;
 }

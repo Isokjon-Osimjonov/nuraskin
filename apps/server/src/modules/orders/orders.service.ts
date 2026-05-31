@@ -2,21 +2,32 @@ import * as repository from './orders.repository';
 import * as orderExpensesRepository from './order-expenses.repository';
 import * as productsRepository from '../products/products.repository';
 import * as usersRepository from '../users/users.repository';
-import { db, settings, inventoryBatches, customers, orderItems, orders, stockReservations, stockMovements, products, orderStatusHistory, coupons, orderExpenses, users } from '@nuraskin/database';
-import { eq, sql, and, asc, inArray, gt, or, like, desc, count } from 'drizzle-orm';
+import {
+  db,
+  settings,
+  inventoryBatches,
+  customers,
+  orderItems,
+  orders,
+  stockReservations,
+  products,
+  orderStatusHistory,
+  coupons,
+  orderExpenses,
+} from '@nuraskin/database';
+import { eq, sql, and, asc, gt, or, like } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
 import { formatPrice } from '@nuraskin/shared-types';
 import { NotificationService } from '../notifications/notification.service';
-import { checkAndNotifyStock } from '../inventory/inventory.service';
-import { calculateUzbPrice, calculateKorPrice, calculateKorCargo } from '../../common/utils/pricing';
-import { reservationTimeoutQueue } from '../queues';
+import {
+  calculateUzbPrice,
+  calculateKorPrice,
+  calculateKorCargo,
+} from '../../common/utils/pricing';
 import {
   NotFoundError,
   BadRequestError,
-  DebtLimitSoftError,
-  DebtLimitHardError,
   InsufficientStockError,
-  CannotCancelShippedOrderError,
 } from '../../common/errors/AppError';
 import type {
   CreateOrderInput,
@@ -25,16 +36,13 @@ import type {
   CreateManualOrderInput,
   ConfirmManualPaymentInput,
 } from '@nuraskin/shared-types';
-import type {
-  NewOrder,
-  NewOrderItem,
-  NewStockReservation,
-  NewStockMovement,
-} from '@nuraskin/database';
+import type { NewOrder, NewStockReservation } from '@nuraskin/database';
 
 export async function createManualOrder(input: CreateManualOrderInput, adminId: string) {
   try {
-    const customer = await db.query.customers.findFirst({ where: eq(customers.id, input.customerId) });
+    const customer = await db.query.customers.findFirst({
+      where: eq(customers.id, input.customerId),
+    });
     if (!customer) throw new NotFoundError('Mijoz topilmadi');
 
     const admin = await usersRepository.findById(adminId);
@@ -43,7 +51,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
     const finalOrder = await db.transaction(async (tx: any) => {
       const orderNumber = await generateManualOrderNumber();
       const rateSnapshot = await repository.getLatestRateSnapshot();
-      
+
       // Check stock for all items
       for (const item of input.items) {
         const available = await repository.getAvailableStock(item.productId, tx);
@@ -53,7 +61,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
             productId: item.productId,
             productName: product?.name,
             available,
-            requested: item.quantity
+            requested: item.quantity,
           });
         }
       }
@@ -108,17 +116,21 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         itemsForNotification.push({
           name: product.name,
           qty: itemInput.quantity,
-          subtotal: subtotal
+          subtotal: subtotal,
         });
       }
 
       await recalculateOrderTotals(order.id, tx);
-      
+
       // Trigger stock reservation
       const [settingsRow] = await tx.select().from(settings).limit(1);
       await reserveStock(order.id, settingsRow?.paymentTimeoutMinutes || 30, tx);
 
-      const [orderRefreshed] = await tx.select().from(orders).where(eq(orders.id, order.id)).limit(1);
+      const [orderRefreshed] = await tx
+        .select()
+        .from(orders)
+        .where(eq(orders.id, order.id))
+        .limit(1);
 
       // Notifications
       if (customer.telegramId) {
@@ -130,7 +142,10 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
           adminName,
           customer.telegramId
         ).catch(err => {
-          logger.error({ err, orderId: orderRefreshed.id }, 'Failed to send manual order notification to customer');
+          logger.error(
+            { err, orderId: orderRefreshed.id },
+            'Failed to send manual order notification to customer'
+          );
         });
       }
 
@@ -142,7 +157,10 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         customer.fullName,
         adminName
       ).catch(err => {
-        logger.error({ err, orderId: orderRefreshed.id }, 'Failed to send manual order notification to admin');
+        logger.error(
+          { err, orderId: orderRefreshed.id },
+          'Failed to send manual order notification to admin'
+        );
       });
 
       return orderRefreshed;
@@ -155,27 +173,34 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
   }
 }
 
-export async function confirmManualPayment(orderId: string, input: ConfirmManualPaymentInput, adminId: string) {
+export async function confirmManualPayment(
+  orderId: string,
+  input: ConfirmManualPaymentInput,
+  adminId: string
+) {
   const order = await repository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
   if (!['PENDING_PAYMENT', 'PAYMENT_SUBMITTED'].includes(order.status)) {
     throw new BadRequestError(`Cannot confirm payment for order in ${order.status} status`);
   }
 
-  const result = await db.transaction(async (tx) => {
+  const result = await db.transaction(async tx => {
     const now = new Date();
-    await tx.update(orders).set({
-      status: 'PAYMENT_CONFIRMED',
-      paymentAmount: BigInt(input.paymentAmount),
-      paymentMethod: input.paymentMethod,
-      paymentReference: input.paymentReference || null,
-      paymentNote: input.paymentNote || null,
-      paymentConfirmedBy: adminId,
-      paymentConfirmedAt: now,
-      paymentVerifiedAt: now,
-      paymentVerifiedBy: adminId,
-      updatedAt: now,
-    }).where(eq(orders.id, orderId));
+    await tx
+      .update(orders)
+      .set({
+        status: 'PAYMENT_CONFIRMED',
+        paymentAmount: BigInt(input.paymentAmount),
+        paymentMethod: input.paymentMethod,
+        paymentReference: input.paymentReference || null,
+        paymentNote: input.paymentNote || null,
+        paymentConfirmedBy: adminId,
+        paymentConfirmedAt: now,
+        paymentVerifiedAt: now,
+        paymentVerifiedBy: adminId,
+        updatedAt: now,
+      })
+      .where(eq(orders.id, orderId));
 
     await tx.insert(orderStatusHistory).values({
       orderId,
@@ -191,7 +216,9 @@ export async function confirmManualPayment(orderId: string, input: ConfirmManual
   // Notification
   process.nextTick(async () => {
     try {
-      const customer = await db.query.customers.findFirst({ where: eq(customers.id, order.customerId) });
+      const customer = await db.query.customers.findFirst({
+        where: eq(customers.id, order.customerId),
+      });
       if (customer?.telegramId) {
         await NotificationService.sendPaymentVerified(
           order.id,
@@ -222,11 +249,13 @@ export async function searchCustomersForManualOrder(q: string) {
       totalOrders: sql<number>`(SELECT count(*)::int FROM orders WHERE orders.customer_id = customers.id)`,
     })
     .from(customers)
-    .where(or(
-      like(customers.fullName, term),
-      like(sql`${customers.telegramId}::text`, term),
-      like(customers.phone, term)
-    ))
+    .where(
+      or(
+        like(customers.fullName, term),
+        like(sql`${customers.telegramId}::text`, term),
+        like(customers.phone, term)
+      )
+    )
     .limit(10);
 
   return results;
@@ -236,20 +265,31 @@ async function generateManualOrderNumber() {
   const date = new Date();
   const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
   const prefix = `NSM-${dateStr}-`;
-  
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(db.select().from(orders).where(sql`order_number LIKE ${prefix + '%'}`).as('sub'));
-    
+
+  const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(
+    db
+      .select()
+      .from(orders)
+      .where(sql`order_number LIKE ${prefix + '%'}`)
+      .as('sub')
+  );
+
   const seq = (row?.count || 0) + 1;
   return `${prefix}${seq.toString().padStart(4, '0')}`;
 }
 
-export async function createOrder(input: CreateOrderInput & { couponId?: string | null, couponCode?: string | null, discountAmount?: bigint }, txIn?: any) {
+export async function createOrder(
+  input: CreateOrderInput & {
+    couponId?: string | null;
+    couponCode?: string | null;
+    discountAmount?: bigint;
+  },
+  txIn?: any
+) {
   const runner = txIn || db;
   const orderId = await runner.transaction(async (tx: any) => {
     const orderNumber = await generateOrderNumber();
-    
+
     const rateSnapshot = await repository.getLatestRateSnapshot();
     if (!rateSnapshot && input.regionCode === 'UZB') {
       throw new BadRequestError('No active rate snapshot found for UZB pricing');
@@ -263,7 +303,10 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
           if (product.weightGrams) {
             totalWeightGrams += product.weightGrams * itemInput.quantity;
           } else {
-            logger.warn({ productId: product.id }, 'Product missing weight_grams. Using 0 for cargo calculation.');
+            logger.warn(
+              { productId: product.id },
+              'Product missing weight_grams. Using 0 for cargo calculation.'
+            );
           }
         }
       }
@@ -304,18 +347,22 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
       if (!product) throw new NotFoundError(`Product ${itemInput.productId} not found`);
 
       if (itemInput.quantity > product.totalStock) {
-        throw new BadRequestError(`INSUFFICIENT_STOCK: ${product.name} mahsulotidan faqat ${product.totalStock} ta mavjud`);
+        throw new BadRequestError(
+          `INSUFFICIENT_STOCK: ${product.name} mahsulotidan faqat ${product.totalStock} ta mavjud`
+        );
       }
 
       const regionalConfig = product.regionalConfigs.find(c => c.regionCode === input.regionCode);
-      if (!regionalConfig) throw new BadRequestError(`Product not available in region ${input.regionCode}`);
+      if (!regionalConfig)
+        throw new BadRequestError(`Product not available in region ${input.regionCode}`);
 
       let unitPrice = 0n;
       let itemCargo = 0n;
 
-      const baseKrw = itemInput.quantity >= (regionalConfig.minWholesaleQty || 5)
-        ? BigInt(regionalConfig.wholesalePrice) 
-        : BigInt(regionalConfig.retailPrice);
+      const baseKrw =
+        itemInput.quantity >= (regionalConfig.minWholesaleQty || 5)
+          ? BigInt(regionalConfig.wholesalePrice)
+          : BigInt(regionalConfig.retailPrice);
 
       if (input.regionCode === 'UZB' && rateSnapshot) {
         const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateSnapshot);
@@ -326,7 +373,8 @@ export async function createOrder(input: CreateOrderInput & { couponId?: string 
         itemCargo = 0n;
       }
 
-      const [batch] = await tx.select({ costPrice: inventoryBatches.costPrice })
+      const [batch] = await tx
+        .select({ costPrice: inventoryBatches.costPrice })
         .from(inventoryBatches)
         .where(eq(inventoryBatches.productId, product.id))
         .orderBy(sql`${inventoryBatches.createdAt} DESC`)
@@ -357,11 +405,15 @@ async function generateOrderNumber() {
   const date = new Date();
   const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
   const prefix = `NS-${dateStr}-`;
-  
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(db.select().from(orders).where(sql`order_number LIKE ${prefix + '%'}`).as('sub'));
-    
+
+  const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(
+    db
+      .select()
+      .from(orders)
+      .where(sql`order_number LIKE ${prefix + '%'}`)
+      .as('sub')
+  );
+
   const seq = (row?.count || 0) + 1;
   return `${prefix}${seq.toString().padStart(4, '0')}`;
 }
@@ -385,7 +437,8 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
   if (!product) throw new NotFoundError('Product not found');
 
   const regionalConfig = product.regionalConfigs.find(c => c.regionCode === order.regionCode);
-  if (!regionalConfig) throw new BadRequestError(`Product not available in region ${order.regionCode}`);
+  if (!regionalConfig)
+    throw new BadRequestError(`Product not available in region ${order.regionCode}`);
 
   const rateSnapshot = await repository.getLatestRateSnapshot();
   if (!rateSnapshot && order.regionCode === 'UZB') {
@@ -395,9 +448,10 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
   let unitPrice = 0n;
   let itemCargo = 0n;
 
-  const baseKrw = input.quantity >= (regionalConfig.minWholesaleQty || 5)
-    ? BigInt(regionalConfig.wholesalePrice) 
-    : BigInt(regionalConfig.retailPrice);
+  const baseKrw =
+    input.quantity >= (regionalConfig.minWholesaleQty || 5)
+      ? BigInt(regionalConfig.wholesalePrice)
+      : BigInt(regionalConfig.retailPrice);
 
   if (order.regionCode === 'UZB' && rateSnapshot) {
     const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateSnapshot);
@@ -408,7 +462,8 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
     itemCargo = 0n;
   }
 
-  const [batch] = await db.select({ costPrice: inventoryBatches.costPrice })
+  const [batch] = await db
+    .select({ costPrice: inventoryBatches.costPrice })
     .from(inventoryBatches)
     .where(eq(inventoryBatches.productId, product.id))
     .orderBy(sql`${inventoryBatches.createdAt} DESC`)
@@ -416,7 +471,7 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
 
   const costAtSaleKrw = batch ? batch.costPrice : 0n;
 
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     await tx.insert(orderItems).values({
       orderId,
       productId: input.productId,
@@ -436,10 +491,13 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
 export async function removeOrderItem(orderId: string, itemId: string) {
   const order = await repository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
-  if (order.status !== 'DRAFT') throw new BadRequestError('Can only remove items from DRAFT orders');
+  if (order.status !== 'DRAFT')
+    throw new BadRequestError('Can only remove items from DRAFT orders');
 
-  return await db.transaction(async (tx) => {
-    await tx.delete(orderItems).where(and(eq(orderItems.id, itemId), eq(orderItems.orderId, orderId)));
+  return await db.transaction(async tx => {
+    await tx
+      .delete(orderItems)
+      .where(and(eq(orderItems.id, itemId), eq(orderItems.orderId, orderId)));
     await recalculateOrderTotals(orderId, tx);
     return await repository.findById(orderId);
   });
@@ -447,7 +505,12 @@ export async function removeOrderItem(orderId: string, itemId: string) {
 
 async function recalculateOrderTotals(orderId: string, tx: any) {
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-  const order = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).then((rows: any[]) => rows[0]);
+  const order = await tx
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1)
+    .then((rows: any[]) => rows[0]);
 
   let subtotal = 0n;
   let totalCargo = 0n;
@@ -467,7 +530,7 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
   }
 
   let discount = BigInt(order.discountAmount || 0n);
-  
+
   if (order.couponId) {
     const [coupon] = await tx.select().from(coupons).where(eq(coupons.id, order.couponId)).limit(1);
     if (coupon && coupon.type === 'FREE_SHIPPING') {
@@ -497,8 +560,8 @@ async function notifyStatusChange(orderId: string, to: string) {
       const order = await db.query.orders.findFirst({
         where: eq(orders.id, orderId),
         with: {
-          customer: true
-        }
+          customer: true,
+        },
       });
       if (!order) return;
 
@@ -514,25 +577,52 @@ async function notifyStatusChange(orderId: string, to: string) {
         if (to === 'PENDING_PAYMENT') {
           // Manual orders call specialized method in createManualOrder
           // This catch-all handles other transitions
-          await NotificationService.sendToCustomer(customerTelegramId, `✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n📦 #${orderNumber}\n💰 Jami: ${formatPrice(totalAmount, region)}\n\nTo'lovni amalga oshiring va kvitansiya yuboring.\n🔗 Buyurtmani ko'rish: https://nuraskin.uz/orders/${orderId}`);
+          await NotificationService.sendToCustomer(
+            customerTelegramId,
+            `✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n📦 #${orderNumber}\n💰 Jami: ${formatPrice(totalAmount, region)}\n\nTo'lovni amalga oshiring va kvitansiya yuboring.\n🔗 Buyurtmani ko'rish: https://nuraskin.uz/orders/${orderId}`
+          );
         } else if (to === 'PAYMENT_SUBMITTED') {
           await NotificationService.sendPaymentSubmitted(orderId, orderNumber, customerTelegramId);
         } else if (to === 'PAYMENT_CONFIRMED' || to === 'PAYMENT_CONFIRMED') {
-          await NotificationService.sendPaymentVerified(orderId, orderNumber, totalAmount, region, customerTelegramId);
+          await NotificationService.sendPaymentVerified(
+            orderId,
+            orderNumber,
+            totalAmount,
+            region,
+            customerTelegramId
+          );
         } else if (to === 'PACKING' || to === 'SHIPPED') {
           await NotificationService.sendOrderShipped(orderId, orderNumber, customerTelegramId);
         } else if (to === 'DELIVERED') {
           await NotificationService.sendOrderDelivered(orderId, orderNumber, customerTelegramId);
         } else if (to === 'CANCELED') {
-          await NotificationService.sendOrderCancelled(orderId, orderNumber, totalAmount, region, customerTelegramId);
+          await NotificationService.sendOrderCancelled(
+            orderId,
+            orderNumber,
+            totalAmount,
+            region,
+            customerTelegramId
+          );
         }
       }
 
       // Admin notifications
       if (to === 'PAYMENT_SUBMITTED') {
-        await NotificationService.sendAdminPaymentSubmitted(orderId, orderNumber, totalAmount, customerName, region);
+        await NotificationService.sendAdminPaymentSubmitted(
+          orderId,
+          orderNumber,
+          totalAmount,
+          customerName,
+          region
+        );
       } else if (to === 'CANCELED') {
-        await NotificationService.sendAdminCancelled(orderId, orderNumber, totalAmount, customerName, region);
+        await NotificationService.sendAdminCancelled(
+          orderId,
+          orderNumber,
+          totalAmount,
+          customerName,
+          region
+        );
       }
     } catch (e) {
       logger.error({ e, orderId, to }, 'Failed to send status transition notification');
@@ -540,7 +630,12 @@ async function notifyStatusChange(orderId: string, to: string) {
   });
 }
 
-export async function updateOrderStatus(orderId: string, input: UpdateOrderStatusInput, adminId?: string, txIn?: any) {
+export async function updateOrderStatus(
+  orderId: string,
+  input: UpdateOrderStatusInput,
+  adminId?: string,
+  txIn?: any
+) {
   const runner = txIn || db;
   const order = await repository.findById(orderId, runner);
   if (!order) throw new NotFoundError('Order not found');
@@ -554,10 +649,13 @@ export async function updateOrderStatus(orderId: string, input: UpdateOrderStatu
       const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
       await reserveStock(orderId, timeoutMinutes, tx);
 
-      await tx.update(orders).set({
-        status: toStatus,
-        updatedAt: new Date(),
-      }).where(eq(orders.id, orderId));
+      await tx
+        .update(orders)
+        .set({
+          status: toStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, orderId));
 
       await tx.insert(orderStatusHistory).values({
         orderId,
@@ -575,11 +673,16 @@ export async function updateOrderStatus(orderId: string, input: UpdateOrderStatu
   }
 
   // All other transitions go through transitionOrderStatus()
-  const result = await transitionOrderStatus(orderId, toStatus, {
-    paymentNote: input.paymentNote,
-    trackingNumber: input.trackingNumber,
-    note: input.note,
-  }, adminId);
+  const result = await transitionOrderStatus(
+    orderId,
+    toStatus,
+    {
+      paymentNote: input.paymentNote,
+      trackingNumber: input.trackingNumber,
+      note: input.note,
+    },
+    adminId
+  );
 
   await notifyStatusChange(orderId, toStatus);
   return result;
@@ -593,20 +696,20 @@ interface TransitionInput {
 }
 
 const VALID_TRANSITIONS: Partial<Record<string, string[]>> = {
-  'PAYMENT_SUBMITTED': ['PENDING_PAYMENT'],
-  'PAYMENT_CONFIRMED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
-  'PAYMENT_REJECTED': ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
-  'PACKING': ['PAYMENT_CONFIRMED'],
-  'SHIPPED': ['PACKING', 'PAYMENT_CONFIRMED'],
-  'DELIVERED': ['SHIPPED'],
-  'CANCELED': ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'],
+  PAYMENT_SUBMITTED: ['PENDING_PAYMENT'],
+  PAYMENT_CONFIRMED: ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
+  PAYMENT_REJECTED: ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
+  PACKING: ['PAYMENT_CONFIRMED'],
+  SHIPPED: ['PACKING', 'PAYMENT_CONFIRMED'],
+  DELIVERED: ['SHIPPED'],
+  CANCELED: ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'],
 };
 
 export async function transitionOrderStatus(
   orderId: string,
   to: string,
   input: TransitionInput,
-  adminId?: string,
+  adminId?: string
 ): Promise<any> {
   const order = await repository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
@@ -661,7 +764,11 @@ export async function transitionOrderStatus(
     }
 
     if (to === 'CANCELED') {
-      if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'].includes(order.status)) {
+      if (
+        ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'].includes(
+          order.status
+        )
+      ) {
         await repository.releaseOrderReservations(orderId, tx);
       }
     }
@@ -699,37 +806,24 @@ export async function scanOrderItem(
   const productResult = await db
     .select()
     .from(products)
-    .where(
-      input.barcode
-        ? eq(products.barcode, input.barcode)
-        : eq(products.sku, input.sku!)
-    )
+    .where(input.barcode ? eq(products.barcode, input.barcode) : eq(products.sku, input.sku!))
     .limit(1);
 
   const product = productResult[0];
   if (!product) {
-    throw new NotFoundError(
-      `Mahsulot topilmadi: ${input.barcode || input.sku}`
-    );
+    throw new NotFoundError(`Mahsulot topilmadi: ${input.barcode || input.sku}`);
   }
 
   // 3. Find matching order item
   const itemResult = await db
     .select()
     .from(orderItems)
-    .where(
-      and(
-        eq(orderItems.orderId, orderId),
-        eq(orderItems.productId, product.id)
-      )
-    )
+    .where(and(eq(orderItems.orderId, orderId), eq(orderItems.productId, product.id)))
     .limit(1);
 
   const item = itemResult[0];
   if (!item) {
-    throw new NotFoundError(
-      `Bu mahsulot bu buyurtmada yo'q: ${product.name}`
-    );
+    throw new NotFoundError(`Bu mahsulot bu buyurtmada yo'q: ${product.name}`);
   }
 
   // 4. Check if already scanned
@@ -741,8 +835,8 @@ export async function scanOrderItem(
       product: {
         name: product.name,
         barcode: product.barcode,
-        sku: product.sku
-      }
+        sku: product.sku,
+      },
     };
   }
 
@@ -753,19 +847,14 @@ export async function scanOrderItem(
       isScanned: true,
       scannedAt: new Date(),
       scannedBy: adminId,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     .where(eq(orderItems.id, item.id));
 
   // 6. Check if ALL items scanned
-  const allItems = await db
-    .select()
-    .from(orderItems)
-    .where(eq(orderItems.orderId, orderId));
+  const allItems = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
 
-  const allScanned = allItems.every(i => 
-    i.id === item.id ? true : i.isScanned
-  );
+  const allScanned = allItems.every(i => (i.id === item.id ? true : i.isScanned));
 
   // 7. Return result
   return {
@@ -777,25 +866,30 @@ export async function scanOrderItem(
       id: product.id,
       name: product.name,
       barcode: product.barcode,
-      sku: product.sku
+      sku: product.sku,
     },
-    scannedCount: allItems.filter(i => 
-      i.isScanned || i.id === item.id
-    ).length,
-    totalCount: allItems.length
+    scannedCount: allItems.filter(i => i.isScanned || i.id === item.id).length,
+    totalCount: allItems.length,
   };
 }
 
 async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-  const order = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1).then((rows: any[]) => rows[0]);
+  const order = await tx
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1)
+    .then((rows: any[]) => rows[0]);
 
   for (const item of items) {
     let remainingToReserve = item.quantity;
     const batches = await tx
       .select()
       .from(inventoryBatches)
-      .where(and(eq(inventoryBatches.productId, item.productId), gt(inventoryBatches.currentQty, 0)))
+      .where(
+        and(eq(inventoryBatches.productId, item.productId), gt(inventoryBatches.currentQty, 0))
+      )
       .orderBy(asc(inventoryBatches.expiryDate), asc(inventoryBatches.createdAt))
       .for('update');
 
@@ -814,7 +908,7 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
         productId: item.productId,
         quantity: reserveFromThisBatch,
         status: 'ACTIVE',
-        expiresAt: new Date(Date.now() + (timeoutMinutes * 60 * 1000)),
+        expiresAt: new Date(Date.now() + timeoutMinutes * 60 * 1000),
       });
       await tx
         .update(inventoryBatches)
@@ -829,7 +923,7 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
     }
 
     if (reservations.length > 0) {
-        await tx.insert(stockReservations).values(reservations);
+      await tx.insert(stockReservations).values(reservations);
     }
   }
 }
@@ -837,11 +931,15 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
 export async function completePacking(orderId: string, adminId?: string) {
   const order = await repository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
-  if (order.status !== 'PACKING' && order.status !== 'PAYMENT_CONFIRMED' && order.status !== 'PAYMENT_CONFIRMED') {
+  if (
+    order.status !== 'PACKING' &&
+    order.status !== 'PAYMENT_CONFIRMED' &&
+    order.status !== 'PAYMENT_CONFIRMED'
+  ) {
     throw new BadRequestError('Order is not in correct status for packing');
   }
 
-  const result = await db.transaction(async (tx) => {
+  const result = await db.transaction(async tx => {
     const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
 
     for (const item of items) {
@@ -850,15 +948,12 @@ export async function completePacking(orderId: string, adminId?: string) {
           id: stockReservations.id,
           quantity: stockReservations.quantity,
           batchId: stockReservations.batchId,
-          costPrice: inventoryBatches.costPrice
+          costPrice: inventoryBatches.costPrice,
         })
         .from(stockReservations)
         .innerJoin(inventoryBatches, eq(stockReservations.batchId, inventoryBatches.id))
         .where(
-          and(
-            eq(stockReservations.orderItemId, item.id),
-            eq(stockReservations.status, 'ACTIVE')
-          )
+          and(eq(stockReservations.orderItemId, item.id), eq(stockReservations.status, 'ACTIVE'))
         );
 
       let totalCostSum = 0n;
@@ -872,21 +967,24 @@ export async function completePacking(orderId: string, adminId?: string) {
         totalCostSum += costPriceKrw * BigInt(res.quantity);
         totalUnits += res.quantity;
 
-        await tx.update(stockReservations)
+        await tx
+          .update(stockReservations)
           .set({ status: 'CONVERTED', updatedAt: new Date() })
           .where(eq(stockReservations.id, res.id));
       }
 
       if (totalUnits > 0) {
         const costAtSaleKrw = totalCostSum / BigInt(totalUnits);
-        await tx.update(orderItems)
+        await tx
+          .update(orderItems)
           .set({ costAtSaleKrw, updatedAt: new Date() })
           .where(eq(orderItems.id, item.id));
       }
     }
 
     const now = new Date();
-    await tx.update(orders)
+    await tx
+      .update(orders)
       .set({
         status: 'SHIPPED',
         packedBy: adminId,
@@ -918,13 +1016,20 @@ async function tryAddFreeShippingSubsidy(orderId: string) {
     if (!order || order.regionCode !== 'KOR') return;
 
     const [settingsRow] = await db.select().from(settings).limit(1);
-    if (!settingsRow || !settingsRow.freeShippingThresholdKrw || !settingsRow.standardShippingFeeKrw) return;
+    if (
+      !settingsRow ||
+      !settingsRow.freeShippingThresholdKrw ||
+      !settingsRow.standardShippingFeeKrw
+    )
+      return;
 
     if (BigInt(order.totalAmount) >= BigInt(settingsRow.freeShippingThresholdKrw)) {
       const existing = await db
         .select()
         .from(orderExpenses)
-        .where(and(eq(orderExpenses.orderId, orderId), eq(orderExpenses.type, 'FREE_SHIPPING_SUBSIDY')))
+        .where(
+          and(eq(orderExpenses.orderId, orderId), eq(orderExpenses.type, 'FREE_SHIPPING_SUBSIDY'))
+        )
         .limit(1);
 
       if (existing.length === 0) {

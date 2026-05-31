@@ -1,17 +1,14 @@
-import { api } from '@/lib/api';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createExpenseSchema, updateExpenseSchema, type CreateExpenseInput, type UpdateExpenseInput } from '@nuraskin/shared-types';
+import {
+  createExpenseSchema,
+  updateExpenseSchema,
+  type CreateExpenseInput,
+} from '@nuraskin/shared-types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { accountingApi } from '../api/accounting.api';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import {
   Form,
   FormControl,
@@ -31,9 +28,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { UploadCloudIcon, X, Loader2 } from 'lucide-react';
+import { UploadCloudIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { UZ, translateServerError } from '@/lib/uz';
 
 interface AddExpenseSheetProps {
   open: boolean;
@@ -42,14 +38,19 @@ interface AddExpenseSheetProps {
   expense?: any; // If provided, we are in EDIT mode
 }
 
-export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }: AddExpenseSheetProps) {
+export function AddExpenseSheet({
+  open,
+  onOpenChange,
+  defaultCategory,
+  expense,
+}: AddExpenseSheetProps) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const isEdit = !!expense;
 
   const form = useForm<CreateExpenseInput>({
-    resolver: zodResolver(isEdit ? updateExpenseSchema : createExpenseSchema as any),
+    resolver: zodResolver(isEdit ? updateExpenseSchema : (createExpenseSchema as any)),
     defaultValues: {
       category: (defaultCategory as any) || 'OTHER',
       amountKrw: 0,
@@ -86,7 +87,7 @@ export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }
       if (isEdit) {
         // Only send changed fields
         const changedFields: any = {};
-        Object.keys(data).forEach((key) => {
+        Object.keys(data).forEach(key => {
           if ((data as any)[key] !== (expense as any)[key]) {
             changedFields[key] = (data as any)[key];
           }
@@ -96,9 +97,9 @@ export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }
       return accountingApi.createExpense(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounting-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success(isEdit ? 'Xarajat yangilandi' : 'Xarajat muvaffaqiyatli qo\'shildi');
+      void queryClient.invalidateQueries({ queryKey: ['accounting-summary'] });
+      void queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success(isEdit ? 'Xarajat yangilandi' : "Xarajat muvaffaqiyatli qo'shildi");
       onOpenChange(false);
       form.reset();
     },
@@ -138,11 +139,14 @@ export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{isEdit ? 'Xarajatni tahrirlash' : 'Xarajat qo\'shish'}</SheetTitle>
+          <SheetTitle>{isEdit ? 'Xarajatni tahrirlash' : "Xarajat qo'shish"}</SheetTitle>
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(data => mutation.mutate(data))}
+            className="space-y-4 py-4"
+          >
             <FormField
               control={form.control}
               name="category"
@@ -179,7 +183,7 @@ export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }
                       type="number"
                       placeholder="0"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormDescription className="text-blue-600 font-medium">
@@ -235,10 +239,10 @@ export function AddExpenseSheet({ open, onOpenChange, defaultCategory, expense }
                               className="w-full h-full object-cover rounded-md border shadow-sm"
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md">
-                              <Button 
-                                type="button" 
-                                variant="secondary" 
-                                size="sm" 
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
                                 className="h-8 text-xs"
                                 onClick={() => field.onChange('')}
                               >

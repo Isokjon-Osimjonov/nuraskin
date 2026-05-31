@@ -6,17 +6,41 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createOrderSchema, type CreateOrderInput } from '@nuraskin/shared-types';
 import { ordersApi } from './api/orders.api';
 import { customersApi } from '../customers/api/customers.api';
-import { productsApi, type ProductDetail, type ProductRegionalConfig } from '../products/api/products.api';
+import {
+  productsApi,
+  type ProductDetail,
+  type ProductRegionalConfig,
+} from '../products/api/products.api';
 import { exchangeRatesApi } from '../exchange-rates/api/exchange-rates.api';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { toast } from 'sonner';
 import { ArrowLeft, Search, Plus, Trash, Package, Info } from 'lucide-react';
 
@@ -43,7 +67,8 @@ export function OrderCreatePage() {
   // 1. Data Fetching
   const { data: customersResponse } = useQuery({
     queryKey: queryKeys.customers.all(),
-    queryFn: () => customersApi.getAll({ page: 1, limit: 100, region: 'ALL', status: 'all', debtStatus: 'ALL' }),
+    queryFn: () =>
+      customersApi.getAll({ page: 1, limit: 100, region: 'ALL', status: 'all', debtStatus: 'ALL' }),
   });
   const customers = customersResponse?.data ?? [];
 
@@ -73,43 +98,47 @@ export function OrderCreatePage() {
   const currency = form.watch('currency');
 
   // 2. Price Calculation Logic Overhaul
-  const calculateEstimate = React.useCallback((p: ProductDetail | LocalOrderItem, qty: number) => {
-    const configs = (p as any).regionalConfigs || [];
-    const config = configs.find((c: ProductRegionalConfig) => c.regionCode === regionCode);
-    if (!config) return 0;
+  const calculateEstimate = React.useCallback(
+    (p: ProductDetail | LocalOrderItem, qty: number) => {
+      const configs = (p as any).regionalConfigs || [];
+      const config = configs.find((c: ProductRegionalConfig) => c.regionCode === regionCode);
+      if (!config) return 0;
 
-    const baseKrw = qty >= (config.minWholesaleQty || 5)
-      ? Number(BigInt(config.wholesalePrice))
-      : Number(BigInt(config.retailPrice));
+      const baseKrw =
+        qty >= (config.minWholesaleQty || 5)
+          ? Number(BigInt(config.wholesalePrice))
+          : Number(BigInt(config.retailPrice));
 
-    if (regionCode === 'UZB') {
-      if (!latestRate) return 0;
-      const krwToUzs = latestRate.krwToUzs;
-      const cargoRateKrw = latestRate.cargoRateKrwPerKg;
-      const weightKg = (p.weightGrams || 0) / 1000;
+      if (regionCode === 'UZB') {
+        if (!latestRate) return 0;
+        const krwToUzs = latestRate.krwToUzs;
+        const cargoRateKrw = latestRate.cargoRateKrwPerKg;
+        const weightKg = (p.weightGrams || 0) / 1000;
 
-      const productUzs = baseKrw * krwToUzs;
-      const cargoUzs = weightKg * cargoRateKrw * krwToUzs;
+        const productUzs = baseKrw * krwToUzs;
+        const cargoUzs = weightKg * cargoRateKrw * krwToUzs;
 
-      const roundedProduct = Math.round(productUzs / 1000) * 1000;
-      const roundedCargo = Math.round(cargoUzs / 1000) * 1000;
+        const roundedProduct = Math.round(productUzs / 1000) * 1000;
+        const roundedCargo = Math.round(cargoUzs / 1000) * 1000;
 
-      return roundedProduct + roundedCargo;
-    }
-    
-    // KOR region direct KRW (rounded to 100)
-    return displayKrw(baseKrw);
-  }, [latestRate, regionCode]);
+        return roundedProduct + roundedCargo;
+      }
+
+      // KOR region direct KRW (rounded to 100)
+      return displayKrw(baseKrw);
+    },
+    [latestRate, regionCode]
+  );
 
   // Recalculate all items when region changes
   React.useEffect(() => {
     if (items.length > 0) {
       const updated = items.map(item => ({
         ...item,
-        estimatedUnitPrice: calculateEstimate(item, item.quantity)
+        estimatedUnitPrice: calculateEstimate(item, item.quantity),
       }));
       setItems(updated);
-      
+
       // Update form currency when region changes
       form.setValue('currency', regionCode === 'UZB' ? 'UZS' : 'KRW');
     }
@@ -118,11 +147,11 @@ export function OrderCreatePage() {
   // 3. Handlers
   const handleAddProduct = async () => {
     if (!selectedProductId) return;
-    
+
     try {
       const p = await productsApi.getById(selectedProductId);
       const config = p.regionalConfigs.find(c => c.regionCode === regionCode);
-      
+
       if (!config) {
         toast.error(`Mahsulot ushbu regionda mavjud emas: ${regionCode}`);
         return;
@@ -133,42 +162,56 @@ export function OrderCreatePage() {
       if (existingIdx > -1) {
         newItems = [...items];
         newItems[existingIdx].quantity += addQty;
-        newItems[existingIdx].estimatedUnitPrice = calculateEstimate(p, newItems[existingIdx].quantity);
+        newItems[existingIdx].estimatedUnitPrice = calculateEstimate(
+          p,
+          newItems[existingIdx].quantity
+        );
       } else {
-        newItems = [...items, {
-          productId: p.id,
-          name: p.name,
-          quantity: addQty,
-          weightGrams: p.weightGrams,
-          retailPrice: Number(BigInt(config.retailPrice)),
-          wholesalePrice: Number(BigInt(config.wholesalePrice)),
-          minWholesaleQty: config.minWholesaleQty || 5,
-          estimatedUnitPrice: calculateEstimate(p, addQty),
-          regionalConfigs: p.regionalConfigs
-        }];
+        newItems = [
+          ...items,
+          {
+            productId: p.id,
+            name: p.name,
+            quantity: addQty,
+            weightGrams: p.weightGrams,
+            retailPrice: Number(BigInt(config.retailPrice)),
+            wholesalePrice: Number(BigInt(config.wholesalePrice)),
+            minWholesaleQty: config.minWholesaleQty || 5,
+            estimatedUnitPrice: calculateEstimate(p, addQty),
+            regionalConfigs: p.regionalConfigs,
+          },
+        ];
       }
-      
+
       setItems(newItems);
-      form.setValue('items', newItems.map(i => ({ productId: i.productId, quantity: i.quantity })), { shouldValidate: true });
-      
+      form.setValue(
+        'items',
+        newItems.map(i => ({ productId: i.productId, quantity: i.quantity })),
+        { shouldValidate: true }
+      );
+
       setProductSearch('');
       setSelectedProductId(null);
       setAddQty(1);
-      toast.success('Mahsulot qo\'shildi');
+      toast.success("Mahsulot qo'shildi");
     } catch (err) {
-      toast.error('Mahsulot ma\'lumotlarini yuklashda xatolik');
+      toast.error("Mahsulot ma'lumotlarini yuklashda xatolik");
     }
   };
 
   const removeProduct = (id: string) => {
     const newItems = items.filter(i => i.productId !== id);
     setItems(newItems);
-    form.setValue('items', newItems.map(i => ({ productId: i.productId, quantity: i.quantity })), { shouldValidate: true });
+    form.setValue(
+      'items',
+      newItems.map(i => ({ productId: i.productId, quantity: i.quantity })),
+      { shouldValidate: true }
+    );
   };
 
   const createMutation = useMutation({
     mutationFn: ordersApi.create,
-    onSuccess: (order) => {
+    onSuccess: order => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       toast.success('Buyurtma yaratildi');
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
@@ -181,15 +224,15 @@ export function OrderCreatePage() {
 
   const onSubmit = (data: CreateOrderInput) => {
     if (items.length === 0) {
-      toast.error('Kamida bitta mahsulot qo\'shing');
+      toast.error("Kamida bitta mahsulot qo'shing");
       return;
     }
     createMutation.mutate(data);
   };
 
   // 4. Summary Calculations
-  const grandTotal = items.reduce((acc, i) => acc + (i.estimatedUnitPrice * i.quantity), 0);
-  const totalWeightGrams = items.reduce((acc, i) => acc + (i.weightGrams * i.quantity), 0);
+  const grandTotal = items.reduce((acc, i) => acc + i.estimatedUnitPrice * i.quantity, 0);
+  const totalWeightGrams = items.reduce((acc, i) => acc + i.weightGrams * i.quantity, 0);
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -204,7 +247,9 @@ export function OrderCreatePage() {
         {/* Main Form */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader><CardTitle className="text-lg">Buyurtma ma'lumotlari</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Buyurtma ma'lumotlari</CardTitle>
+            </CardHeader>
             <CardContent>
               <Form {...form}>
                 <form className="space-y-4">
@@ -216,10 +261,12 @@ export function OrderCreatePage() {
                         <FormLabel>Mijoz</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Mijozni tanlang" /></SelectTrigger>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Mijozni tanlang" />
+                            </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {customers.map((c) => (
+                            {customers.map(c => (
                               <SelectItem key={c.id} value={c.id}>
                                 {c.fullName} {c.phone ? `(${c.phone})` : ''}
                               </SelectItem>
@@ -240,7 +287,9 @@ export function OrderCreatePage() {
                           <FormLabel>Region</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger><SelectValue placeholder="Region" /></SelectTrigger>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Region" />
+                              </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="UZB">O'zbekiston</SelectItem>
@@ -259,7 +308,9 @@ export function OrderCreatePage() {
                           <FormLabel>Valyuta</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger><SelectValue placeholder="Valyuta" /></SelectTrigger>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Valyuta" />
+                              </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="UZS">UZS</SelectItem>
@@ -278,7 +329,9 @@ export function OrderCreatePage() {
 
           {/* Product Selection Section */}
           <Card>
-            <CardHeader><CardTitle className="text-lg">Mahsulotlar qo'shish</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Mahsulotlar qo'shish</CardTitle>
+            </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex gap-4 items-end">
                 <div className="flex-1 space-y-2 relative">
@@ -289,15 +342,15 @@ export function OrderCreatePage() {
                       placeholder="Nomi yoki barkod..."
                       className="pl-8"
                       value={productSearch}
-                      onChange={(e) => {
-                          setProductSearch(e.target.value);
-                          if (selectedProductId) setSelectedProductId(null);
+                      onChange={e => {
+                        setProductSearch(e.target.value);
+                        if (selectedProductId) setSelectedProductId(null);
                       }}
                     />
                   </div>
                   {searchResults.length > 0 && productSearch && !selectedProductId && (
                     <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
-                      {searchResults.map((p) => (
+                      {searchResults.map(p => (
                         <button
                           key={p.id}
                           className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center justify-between text-sm"
@@ -317,11 +370,11 @@ export function OrderCreatePage() {
                 </div>
                 <div className="w-24 space-y-2">
                   <Label>Miqdor</Label>
-                  <Input 
-                    type="number" 
-                    min="1" 
-                    value={addQty} 
-                    onChange={e => setAddQty(parseInt(e.target.value) || 1)} 
+                  <Input
+                    type="number"
+                    min="1"
+                    value={addQty}
+                    onChange={e => setAddQty(parseInt(e.target.value) || 1)}
                   />
                 </div>
                 <Button onClick={handleAddProduct} disabled={!selectedProductId}>
@@ -349,7 +402,7 @@ export function OrderCreatePage() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      items.map((item) => (
+                      items.map(item => (
                         <TableRow key={item.productId}>
                           <TableCell className="font-medium">{item.name}</TableCell>
                           <TableCell className="text-center">{item.quantity}</TableCell>
@@ -360,9 +413,9 @@ export function OrderCreatePage() {
                             {(item.estimatedUnitPrice * item.quantity).toLocaleString()} {currency}
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-destructive"
                               onClick={() => removeProduct(item.productId)}
                             >
@@ -382,36 +435,41 @@ export function OrderCreatePage() {
         {/* Order Summary Side Card */}
         <div className="space-y-6">
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader><CardTitle className="text-lg">Xulosa</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Xulosa</CardTitle>
+            </CardHeader>
             <CardContent className="space-y-4">
               <div className="pt-2 border-t flex justify-between items-center">
-                <span className="font-bold uppercase tracking-wider text-xs text-muted-foreground">Umumiy summa:</span>
+                <span className="font-bold uppercase tracking-wider text-xs text-muted-foreground">
+                  Umumiy summa:
+                </span>
                 <span className="text-2xl font-black text-primary">
                   {grandTotal.toLocaleString()} {currency}
                 </span>
               </div>
-              
+
               <div className="flex items-start gap-2 p-3 bg-blue-50 text-blue-700 rounded-xl text-[11px] leading-relaxed">
                 <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <div>
-                  <b>Diqqat:</b> Narxlar {latestRate ? `1 KRW = ${latestRate.krwToUzs} UZS` : 'joriy'} kurs 
-                  va mahsulot og'irligi asosida avtomatik hisoblandi. 
-                  {regionCode === 'UZB' && " UZB uchun kargo narxi mahsulot ichiga kiritilgan."}
+                  <b>Diqqat:</b> Narxlar{' '}
+                  {latestRate ? `1 KRW = ${latestRate.krwToUzs} UZS` : 'joriy'} kurs va mahsulot
+                  og'irligi asosida avtomatik hisoblandi.
+                  {regionCode === 'UZB' && ' UZB uchun kargo narxi mahsulot ichiga kiritilgan.'}
                 </div>
               </div>
 
               <div className="pt-2">
                 <Label>Admin izohi</Label>
-                <Textarea 
-                  placeholder="Ixtiyoriy izoh..." 
+                <Textarea
+                  placeholder="Ixtiyoriy izoh..."
                   className="mt-1 bg-white"
                   {...form.register('adminNote')}
                 />
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full h-12 text-lg font-bold" 
+              <Button
+                className="w-full h-12 text-lg font-bold"
                 onClick={form.handleSubmit(onSubmit)}
                 disabled={createMutation.isPending || items.length === 0}
               >
@@ -421,11 +479,17 @@ export function OrderCreatePage() {
           </Card>
 
           <Card>
-            <CardHeader className="py-3"><CardTitle className="text-sm flex items-center gap-2"><Package className="h-4 w-4" /> Logistika</CardTitle></CardHeader>
+            <CardHeader className="py-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Package className="h-4 w-4" /> Logistika
+              </CardTitle>
+            </CardHeader>
             <CardContent className="text-xs space-y-1">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Region:</span>
-                <span className="font-bold">{regionCode === 'UZB' ? "O'zbekiston 🇺🇿" : "Koreya 🇰🇷"}</span>
+                <span className="font-bold">
+                  {regionCode === 'UZB' ? "O'zbekiston 🇺🇿" : 'Koreya 🇰🇷'}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Umumiy og'irlik:</span>

@@ -10,11 +10,26 @@ interface OrderStatusBadgeProps {
 
 const statusConfig: Record<OrderStatus, { label: string; className: string }> = {
   DRAFT: { label: 'Qoralama', className: 'bg-gray-100 text-gray-700 hover:bg-gray-100' },
-  PENDING_PAYMENT: { label: "To'lov kutilmoqda", className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200' },
-  PAYMENT_SUBMITTED: { label: "Chek yuborildi", className: 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200' },
-  PAYMENT_CONFIRMED: { label: "To'lov tasdiqlandi", className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
-  PAYMENT_REJECTED: { label: "To'lov rad etildi", className: 'bg-red-100 text-red-700 hover:bg-red-100' },
-  PACKING: { label: 'Tayyorlanmoqda', className: 'bg-orange-100 text-orange-700 hover:bg-orange-100' },
+  PENDING_PAYMENT: {
+    label: "To'lov kutilmoqda",
+    className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200',
+  },
+  PAYMENT_SUBMITTED: {
+    label: 'Chek yuborildi',
+    className: 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200',
+  },
+  PAYMENT_CONFIRMED: {
+    label: "To'lov tasdiqlandi",
+    className: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  },
+  PAYMENT_REJECTED: {
+    label: "To'lov rad etildi",
+    className: 'bg-red-100 text-red-700 hover:bg-red-100',
+  },
+  PACKING: {
+    label: 'Tayyorlanmoqda',
+    className: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
+  },
   SHIPPED: { label: 'Yuborildi', className: 'bg-purple-100 text-purple-700 hover:bg-purple-100' },
   DELIVERED: { label: 'Yetkazildi', className: 'bg-green-100 text-green-700 hover:bg-green-100' },
   CANCELED: { label: 'Bekor qilindi', className: 'bg-red-100 text-red-700 hover:bg-red-100' },
@@ -23,9 +38,16 @@ const statusConfig: Record<OrderStatus, { label: string; className: string }> = 
 
 export function OrderStatusBadge({ status, className }: OrderStatusBadgeProps) {
   const config = statusConfig[status] || { label: status, className: '' };
-  
+
   return (
-    <Badge variant="outline" className={cn('font-medium shadow-none px-2.5 py-0.5 rounded-full border-transparent', config.className, className)}>
+    <Badge
+      variant="outline"
+      className={cn(
+        'font-medium shadow-none px-2.5 py-0.5 rounded-full border-transparent',
+        config.className,
+        className
+      )}
+    >
       {config.label}
     </Badge>
   );

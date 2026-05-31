@@ -4,7 +4,6 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 
-
 export const Route = createFileRoute('/account')({
   component: AccountPage,
 });
@@ -34,9 +33,10 @@ function AccountPage() {
 
         const { token, user: userData } = data;
         setAuth(token, userData);
-        
+
         // Clear query params and redirect
-        const redirectPath = new URLSearchParams(window.location.search).get('redirect') || '/account';
+        const redirectPath =
+          new URLSearchParams(window.location.search).get('redirect') || '/account';
         navigate({ to: redirectPath, replace: true });
       } catch {
         navigate({ to: '/login' });
@@ -62,7 +62,6 @@ function AccountPage() {
 
   return (
     <div className="min-h-screen bg-white">
-
       <div className="max-w-lg mx-auto mt-12 p-4">
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-8">
           <div className="w-16 h-16 rounded-full bg-[#4A1525]/10 flex items-center justify-center">
@@ -70,9 +69,7 @@ function AccountPage() {
           </div>
 
           <h2 className="text-zinc-900 font-normal text-xl mt-4">{user.first_name}</h2>
-          {user.username && (
-            <p className="text-zinc-400 text-sm">@{user.username}</p>
-          )}
+          {user.username && <p className="text-zinc-400 text-sm">@{user.username}</p>}
 
           <div className="border-t border-zinc-100 my-6" />
 

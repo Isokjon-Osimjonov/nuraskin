@@ -4,14 +4,13 @@ function getToken(): string {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH);
     if (stored) return JSON.parse(stored)?.state?.token ?? '';
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
   return '';
 }
 
-export async function adminApi<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function adminApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`/api${path}`, {
     ...options,
@@ -30,20 +29,24 @@ export async function adminApi<T>(
 }
 
 export const api = {
-  get:    <T>(path: string, o?: RequestInit) =>
-            adminApi<T>(path, { method: 'GET', ...o }),
-  post:   <T>(path: string, body: unknown, o?: RequestInit) =>
-            adminApi<T>(path, {
-              method: 'POST',
-              body: JSON.stringify(body), ...o }),
-  patch:  <T>(path: string, body: unknown, o?: RequestInit) =>
-            adminApi<T>(path, {
-              method: 'PATCH',
-              body: JSON.stringify(body), ...o }),
-  put:    <T>(path: string, body: unknown, o?: RequestInit) =>
-            adminApi<T>(path, {
-              method: 'PUT',
-              body: JSON.stringify(body), ...o }),
-  delete: <T>(path: string, o?: RequestInit) =>
-            adminApi<T>(path, { method: 'DELETE', ...o }),
+  get: <T>(path: string, o?: RequestInit) => adminApi<T>(path, { method: 'GET', ...o }),
+  post: <T>(path: string, body: unknown, o?: RequestInit) =>
+    adminApi<T>(path, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      ...o,
+    }),
+  patch: <T>(path: string, body: unknown, o?: RequestInit) =>
+    adminApi<T>(path, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      ...o,
+    }),
+  put: <T>(path: string, body: unknown, o?: RequestInit) =>
+    adminApi<T>(path, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+      ...o,
+    }),
+  delete: <T>(path: string, o?: RequestInit) => adminApi<T>(path, { method: 'DELETE', ...o }),
 };

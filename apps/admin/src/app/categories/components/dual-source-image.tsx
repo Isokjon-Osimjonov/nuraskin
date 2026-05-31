@@ -1,4 +1,3 @@
-import { api } from '@/lib/api';
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -24,20 +23,20 @@ export function DualSourceImage({ value, onChange }: DualSourceImageProps) {
     try {
       setIsUploading(true);
       const { url, timestamp, signature, apiKey } = await categoriesApi.getUploadUrl();
-      
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', apiKey);
       formData.append('timestamp', String(timestamp));
       formData.append('signature', signature);
-      
+
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) throw new Error('Upload failed');
-      
+
       const data = await response.json();
       onChange(data.secure_url || data.url);
     } catch (error) {
@@ -80,9 +79,9 @@ export function DualSourceImage({ value, onChange }: DualSourceImageProps) {
             <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-md p-6 space-y-2">
               <UploadCloudIcon className="w-8 h-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Select an image from your device</p>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
               >
@@ -103,10 +102,10 @@ export function DualSourceImage({ value, onChange }: DualSourceImageProps) {
               <Label>Image URL</Label>
               <Input
                 placeholder="https://example.com/image.jpg"
-                onBlur={(e) => {
+                onBlur={e => {
                   if (e.target.value) onChange(e.target.value);
                 }}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     if (e.currentTarget.value) onChange(e.currentTarget.value);

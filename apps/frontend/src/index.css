@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -14,7 +14,7 @@
     --muted-foreground: 240 3.8% 46.1%;
     --border: 240 5.9% 90%;
     --radius: 0.5rem;
-    --brand: #4A1525;
+    --brand: #4a1525;
   }
 }
 
@@ -54,8 +54,12 @@
   }
 
   @keyframes marquee {
-    0%   { transform: translateX(100vw); }
-    100% { transform: translateX(-100%); }
+    0% {
+      transform: translateX(100vw);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
   }
   .animate-marquee {
     animation: marquee 20s linear infinite;

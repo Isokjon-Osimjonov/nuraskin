@@ -7,15 +7,15 @@ export function errorMiddleware(
   err: unknown,
   req: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _next: NextFunction,
+
+  _next: NextFunction
 ): void {
   if (err instanceof PriceChangedError) {
     logger.warn({ err, path: req.path }, err.message);
     res.status(422).json({
       error: 'PRICE_CHANGED',
       message: err.message,
-      changedItems: err.data.changedItems
+      changedItems: err.data.changedItems,
     });
     return;
   }
@@ -24,7 +24,7 @@ export function errorMiddleware(
     logger.warn({ err, path: req.path }, err.message);
     res.status(401).json({
       error: 'UNAUTHORIZED',
-      message: err.message
+      message: err.message,
     });
     return;
   }

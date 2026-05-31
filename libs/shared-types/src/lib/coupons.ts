@@ -65,14 +65,16 @@ export type UpdateCouponInput = z.infer<typeof updateCouponSchema>;
 export const validateCouponInputSchema = z.object({
   code: z.string(),
   regionCode: z.string().optional(),
-  cartItems: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().min(1),
-    categoryId: z.string().uuid().or(z.literal('')).optional(),
-    brandName: z.string().nullable().optional(),
-    subtotal: z.string(), // BigInt as string
-    isWholesale: z.boolean().optional(),
-  })),
+  cartItems: z.array(
+    z.object({
+      productId: z.string().uuid(),
+      quantity: z.number().int().min(1),
+      categoryId: z.string().uuid().or(z.literal('')).optional(),
+      brandName: z.string().nullable().optional(),
+      subtotal: z.string(), // BigInt as string
+      isWholesale: z.boolean().optional(),
+    })
+  ),
 });
 
 export type ValidateCouponInput = z.infer<typeof validateCouponInputSchema>;
@@ -82,7 +84,14 @@ export interface CouponValidationResponse {
   discountAmount?: string; // BigInt as string
   discountType?: CouponType;
   description?: string;
-  error?: 'NOT_FOUND' | 'EXPIRED' | 'DEPLETED' | 'MIN_AMOUNT' | 'NOT_APPLICABLE' | 'LIMIT_REACHED' | 'INACTIVE';
+  error?:
+    | 'NOT_FOUND'
+    | 'EXPIRED'
+    | 'DEPLETED'
+    | 'MIN_AMOUNT'
+    | 'NOT_APPLICABLE'
+    | 'LIMIT_REACHED'
+    | 'INACTIVE';
   amountNeeded?: string; // BigInt as string for MIN_AMOUNT error
   isFreeShipping?: boolean;
 }

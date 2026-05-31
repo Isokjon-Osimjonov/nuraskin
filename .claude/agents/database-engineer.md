@@ -51,26 +51,41 @@ packages/database/src/
 ## Standard patterns
 
 ### Table
+
 ```ts
-export const orders = pgTable('orders', {
-  id:          uuid('id').primaryKey().defaultRandom(),
-  userId:      uuid('user_id').notNull().references(() => users.id),
-  status:      orderStatusEnum('status').notNull().default('draft'),
-  totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull(),
-  currency:    text('currency').notNull(),
-  createdAt:   timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt:   timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => ({
-  userIdx:    index('orders_user_idx').on(t.userId),
-  statusIdx:  index('orders_status_idx').on(t.status),
-  createdIdx: index('orders_created_idx').on(t.createdAt),
-}));
+export const orders = pgTable(
+  'orders',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    status: orderStatusEnum('status').notNull().default('draft'),
+    totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull(),
+    currency: text('currency').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  t => ({
+    userIdx: index('orders_user_idx').on(t.userId),
+    statusIdx: index('orders_status_idx').on(t.status),
+    createdIdx: index('orders_created_idx').on(t.createdAt),
+  })
+);
 ```
 
 ### Enum
+
 ```ts
 export const orderStatusEnum = pgEnum('order_status', [
-  'draft', 'pending_payment', 'paid', 'packing', 'shipped', 'delivered', 'canceled', 'refunded'
+  'draft',
+  'pending_payment',
+  'paid',
+  'packing',
+  'shipped',
+  'delivered',
+  'canceled',
+  'refunded',
 ]);
 ```
 

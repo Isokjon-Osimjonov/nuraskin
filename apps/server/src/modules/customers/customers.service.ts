@@ -5,8 +5,6 @@ import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import { ConflictError, NotFoundError } from '../../common/errors/AppError';
 import type { CustomerFilters, UpdateCustomerInput } from '@nuraskin/shared-types';
 
-
-
 export async function listCustomersAdmin(filters: CustomerFilters) {
   return await repository.findAdminList(filters);
 }
@@ -46,10 +44,9 @@ export async function getCustomerDetailAdmin(id: string) {
     })
     .from(stockReservations)
     .innerJoin(products, eq(stockReservations.productId, products.id))
-    .where(and(
-      eq(stockReservations.customerId, id as string),
-      eq(stockReservations.status, 'ACTIVE')
-    ));
+    .where(
+      and(eq(stockReservations.customerId, id as string), eq(stockReservations.status, 'ACTIVE'))
+    );
 
   // 4. Waitlist
   const waitlist = await db
@@ -68,21 +65,25 @@ export async function getCustomerDetailAdmin(id: string) {
   const [totalSpentKrw] = await db
     .select({ total: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)::text` })
     .from(orders)
-    .where(and(
-      eq(orders.customerId, id as string),
-      eq(orders.regionCode, 'KOR'),
-      inArray(orders.status, PAID_STATUSES)
-    ));
+    .where(
+      and(
+        eq(orders.customerId, id as string),
+        eq(orders.regionCode, 'KOR'),
+        inArray(orders.status, PAID_STATUSES)
+      )
+    );
 
   // Calculate total spent UZS (UZB orders)
   const [totalSpentUzs] = await db
     .select({ total: sql<string>`COALESCE(SUM(${orders.totalAmount}), 0)::text` })
     .from(orders)
-    .where(and(
-      eq(orders.customerId, id as string),
-      eq(orders.regionCode, 'UZB'),
-      inArray(orders.status, PAID_STATUSES)
-    ));
+    .where(
+      and(
+        eq(orders.customerId, id as string),
+        eq(orders.regionCode, 'UZB'),
+        inArray(orders.status, PAID_STATUSES)
+      )
+    );
 
   return {
     ...customer,
@@ -123,12 +124,12 @@ export async function deleteCustomerAdmin(id: string) {
 
   const activeOrders = await repository.getActiveOrderCount(id);
   if (Number(activeOrders as any) > 0) {
-    throw new ConflictError('Mijozda faol buyurtmalar bor, o\'chirish imkonsiz');
+    throw new ConflictError("Mijozda faol buyurtmalar bor, o'chirish imkonsiz");
   }
 
   const debt = await repository.getOutstandingDebt(id);
   if (BigInt(debt as any) > 0n) {
-    throw new ConflictError('Mijozda qarzdorlik bor, o\'chirish imkonsiz');
+    throw new ConflictError("Mijozda qarzdorlik bor, o'chirish imkonsiz");
   }
 
   await repository.softDelete(id);

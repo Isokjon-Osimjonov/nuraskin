@@ -1,8 +1,14 @@
 import { PAID_STATUSES } from '@nuraskin/shared-utils';
-import { db, orders, orderItems, products, customers, exchangeRateSnapshots } from '@nuraskin/database';
-import { eq, sql, and, gte, lte, desc, count, inArray } from 'drizzle-orm';
+import { db, orders, customers, exchangeRateSnapshots } from '@nuraskin/database';
+import { eq, sql, and, desc, count, inArray } from 'drizzle-orm';
 
-export async function listSalesOrders(from: string, to: string, regionCode?: string, page = 1, limit = 10) {
+export async function listSalesOrders(
+  from: string,
+  to: string,
+  regionCode?: string,
+  page = 1,
+  limit = 10
+) {
   const offset = (page - 1) * limit;
   let regionFilter = sql`1=1`;
   if (regionCode && regionCode !== 'all') {
@@ -126,7 +132,7 @@ function processSalesRows(rows: any[]) {
     const qty = Number(row.quantity);
     const rev = BigInt(row.unit_price_krw || 0) * BigInt(qty);
     const cogs = BigInt(row.cost_at_sale_krw || 0) * BigInt(qty);
-    
+
     const orderTotalWeight = Number(row.total_weight_grams || 0);
     const itemWeight = Number(row.weight_grams || 0) * qty;
     const orderCargo = BigInt(row.cargo_fee || 0n);
@@ -139,14 +145,15 @@ function processSalesRows(rows: any[]) {
     totalRevenue += rev;
     totalCogs += cogs;
     totalCargo += cargo;
-    
+
     if (!uniqueOrders.has(row.order_id)) {
       totalDiscounts += BigInt(row.discount_krw || 0n);
     }
-    
+
     uniqueOrders.add(row.order_id);
 
-    const dateStr = row.sale_date instanceof Date ? row.sale_date.toISOString().split('T')[0] : row.sale_date;
+    const dateStr =
+      row.sale_date instanceof Date ? row.sale_date.toISOString().split('T')[0] : row.sale_date;
     if (!byDate[dateStr]) byDate[dateStr] = { date: dateStr, KOR: 0n, UZB: 0n, total: 0n };
     if (row.region_code === 'KOR') byDate[dateStr].KOR += rev;
     if (row.region_code === 'UZB') byDate[dateStr].UZB += rev;
@@ -173,14 +180,31 @@ function processSalesRows(rows: any[]) {
     byProduct[pId].cargoKrw += cargo;
   }
 
-  return formatResponse(totalRevenue, totalCogs, totalCargo, uniqueOrders.size, byDate, byProduct, totalDiscounts);
+  return formatResponse(
+    totalRevenue,
+    totalCogs,
+    totalCargo,
+    uniqueOrders.size,
+    byDate,
+    byProduct,
+    totalDiscounts
+  );
 }
 
-function formatResponse(totalRevenue: bigint, totalCogs: bigint, totalCargo: bigint, orderCount: number, byDate: any, byProduct: any, totalDiscounts: bigint) {
+function formatResponse(
+  totalRevenue: bigint,
+  totalCogs: bigint,
+  totalCargo: bigint,
+  orderCount: number,
+  byDate: any,
+  byProduct: any,
+  totalDiscounts: bigint
+) {
   const netRevenue = totalRevenue - totalDiscounts;
-  const marginStr = netRevenue > 0n 
-    ? (((Number(netRevenue - totalCogs - totalCargo) / Number(netRevenue)) * 100).toFixed(1) + '%') 
-    : '0.0%';
+  const marginStr =
+    netRevenue > 0n
+      ? ((Number(netRevenue - totalCogs - totalCargo) / Number(netRevenue)) * 100).toFixed(1) + '%'
+      : '0.0%';
 
   return {
     summary: {
@@ -192,20 +216,28 @@ function formatResponse(totalRevenue: bigint, totalCogs: bigint, totalCargo: big
       orderCount,
       grossMargin: marginStr,
     },
-    byDate: Object.values(byDate).sort((a: any, b: any) => a.date.localeCompare(b.date)).map((d: any) => ({
-      ...d,
-      KOR: d.KOR.toString(),
-      UZB: d.UZB.toString(),
-      total: d.total.toString(),
-    })),
-    byProduct: Object.values(byProduct).map((p: any) => ({
-      ...p,
-      revenueKrw: p.revenueKrw.toString(),
-      cogsKrw: p.cogsKrw.toString(),
-      cargoKrw: p.cargoKrw.toString(),
-      grossMargin: p.revenueKrw > 0n 
-        ? (((Number(p.revenueKrw - p.cogsKrw - p.cargoKrw) / Number(p.revenueKrw)) * 100).toFixed(1) + '%') 
-        : '0.0%',
-    })).sort((a: any, b: any) => parseFloat(b.grossMargin) - parseFloat(a.grossMargin)),
+    byDate: Object.values(byDate)
+      .sort((a: any, b: any) => a.date.localeCompare(b.date))
+      .map((d: any) => ({
+        ...d,
+        KOR: d.KOR.toString(),
+        UZB: d.UZB.toString(),
+        total: d.total.toString(),
+      })),
+    byProduct: Object.values(byProduct)
+      .map((p: any) => ({
+        ...p,
+        revenueKrw: p.revenueKrw.toString(),
+        cogsKrw: p.cogsKrw.toString(),
+        cargoKrw: p.cargoKrw.toString(),
+        grossMargin:
+          p.revenueKrw > 0n
+            ? (
+                (Number(p.revenueKrw - p.cogsKrw - p.cargoKrw) / Number(p.revenueKrw)) *
+                100
+              ).toFixed(1) + '%'
+            : '0.0%',
+      }))
+      .sort((a: any, b: any) => parseFloat(b.grossMargin) - parseFloat(a.grossMargin)),
   };
 }

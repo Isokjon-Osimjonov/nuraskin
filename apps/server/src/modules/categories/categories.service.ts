@@ -78,10 +78,7 @@ export async function generateUploadUrl() {
   }
 
   const timestamp = Math.round(new Date().getTime() / 1000);
-  const signature = cloudinary.utils.api_sign_request(
-    { timestamp },
-    env.CLOUDINARY_API_SECRET
-  );
+  const signature = cloudinary.utils.api_sign_request({ timestamp }, env.CLOUDINARY_API_SECRET);
 
   return {
     url: `https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/image/upload`,

@@ -7,29 +7,15 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "types": [
-      "vite/client"
-    ],
+    "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@nuraskin/database": [
-        "../../libs/database/src/index.ts"
-      ],
-      "@nuraskin/shared-types": [
-        "../../libs/shared-types/src/index.ts"
-      ],
-      "@nuraskin/validation": [
-        "../../libs/validation/src/index.ts"
-      ],
-      "@nuraskin/ui": [
-        "../../libs/ui/src/index.ts"
-      ],
-      "@nuraskin/shared-utils": [
-        "../../libs/shared-utils/src/index.ts"
-      ]
+      "@/*": ["src/*"],
+      "@nuraskin/database": ["../../libs/database/src/index.ts"],
+      "@nuraskin/shared-types": ["../../libs/shared-types/src/index.ts"],
+      "@nuraskin/validation": ["../../libs/validation/src/index.ts"],
+      "@nuraskin/ui": ["../../libs/ui/src/index.ts"],
+      "@nuraskin/shared-utils": ["../../libs/shared-utils/src/index.ts"]
     }
   },
   "files": [],

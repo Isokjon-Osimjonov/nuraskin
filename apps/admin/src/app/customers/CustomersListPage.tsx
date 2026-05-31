@@ -1,4 +1,4 @@
-import {  queryKeys, displayUzs  } from '@nuraskin/shared-utils';
+import { queryKeys, displayUzs } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customersApi } from './api/customers.api';
@@ -6,13 +6,19 @@ import { useNavigate } from '@tanstack/react-router';
 import { Route } from '../../routes/_app/customers/index';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, User, Eye, UserMinus, UserCheck, Trash2 } from 'lucide-react';
+import { Search, Eye, UserMinus, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { UZ, translateServerError } from '@/lib/uz';
-import {  formatPrice  } from '@nuraskin/shared-utils';
+import { formatPrice } from '@nuraskin/shared-utils';
 import {
   DataTable,
   DataTableHeader,
@@ -20,7 +26,7 @@ import {
   DataTableRow,
   DataTableHead,
   DataTableCell,
-  DataTableEmpty
+  DataTableEmpty,
 } from '@/components/ui/DataTable';
 import { TablePagination } from '@/components/ui/TablePagination';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,25 +43,26 @@ export function CustomersListPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['customers', { page, limit, search, region, status, debtStatus }],
-    queryFn: () => customersApi.getAll({ 
-        page, 
-        limit, 
-        search: search || undefined, 
-        region: region as any, 
-        status: status as any, 
-        debtStatus: debtStatus as any 
-    }),
+    queryFn: () =>
+      customersApi.getAll({
+        page,
+        limit,
+        search: search || undefined,
+        region: region as any,
+        status: status as any,
+        debtStatus: debtStatus as any,
+      }),
   });
 
   const customers = data?.data || [];
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
 
   const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string, isActive: boolean }) => 
-        customersApi.update(id, { isActive }),
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      customersApi.update(id, { isActive }),
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
-        toast.success(UZ.common.success);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
+      toast.success(UZ.common.success);
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
@@ -66,8 +73,8 @@ export function CustomersListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => customersApi.delete(id),
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
-        toast.success(UZ.common.success);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.customers.all() });
+      toast.success(UZ.common.success);
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
@@ -78,12 +85,31 @@ export function CustomersListPage() {
   const getDebtBadge = (outstanding: string, debtLimit: string) => {
     const debt = BigInt(outstanding);
     const lim = BigInt(debtLimit);
-    if (lim === 0n) return <Badge variant="outline" className="rounded-full">{UZ.accounting.noDebt}</Badge>;
-    
-    const usage = Number(debt * 100n / lim);
-    if (usage >= 100) return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none rounded-full">Bloklangan</Badge>;
-    if (usage >= 80) return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none rounded-full">Ogohlantirish</Badge>;
-    return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none rounded-full">Yaxshi</Badge>;
+    if (lim === 0n)
+      return (
+        <Badge variant="outline" className="rounded-full">
+          {UZ.accounting.noDebt}
+        </Badge>
+      );
+
+    const usage = Number((debt * 100n) / lim);
+    if (usage >= 100)
+      return (
+        <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none rounded-full">
+          Bloklangan
+        </Badge>
+      );
+    if (usage >= 80)
+      return (
+        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none rounded-full">
+          Ogohlantirish
+        </Badge>
+      );
+    return (
+      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none rounded-full">
+        Yaxshi
+      </Badge>
+    );
   };
 
   const handlePageChange = (newPage: number) => {
@@ -97,12 +123,16 @@ export function CustomersListPage() {
   return (
     <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">{UZ.customers.title}</h1>
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">
+          {UZ.customers.title}
+        </h1>
       </div>
 
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-bold uppercase tracking-widest text-stone-400">{UZ.common.filter}</CardTitle>
+          <CardTitle className="text-sm font-bold uppercase tracking-widest text-stone-400">
+            {UZ.common.filter}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -112,28 +142,55 @@ export function CustomersListPage() {
                 placeholder={UZ.common.placeholderSearch}
                 className="pl-8 w-full"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); handlePageChange(1); }}
+                onChange={e => {
+                  setSearch(e.target.value);
+                  handlePageChange(1);
+                }}
               />
             </div>
             <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
-              <Select value={region} onValueChange={(v) => { setRegion(v); handlePageChange(1); }}>
-                <SelectTrigger className="w-full sm:w-[130px]"><SelectValue placeholder={UZ.common.region} /></SelectTrigger>
+              <Select
+                value={region}
+                onValueChange={v => {
+                  setRegion(v);
+                  handlePageChange(1);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-[130px]">
+                  <SelectValue placeholder={UZ.common.region} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">{UZ.common.all}</SelectItem>
                   <SelectItem value="UZB">O'zbekiston</SelectItem>
                   <SelectItem value="KOR">Koreya</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={status} onValueChange={(v) => { setStatus(v); handlePageChange(1); }}>
-                <SelectTrigger className="w-full sm:w-[130px]"><SelectValue placeholder={UZ.common.status} /></SelectTrigger>
+              <Select
+                value={status}
+                onValueChange={v => {
+                  setStatus(v);
+                  handlePageChange(1);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-[130px]">
+                  <SelectValue placeholder={UZ.common.status} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{UZ.common.all}</SelectItem>
                   <SelectItem value="active">Faol</SelectItem>
                   <SelectItem value="inactive">Bloklangan</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={debtStatus} onValueChange={(v) => { setDebtStatus(v); handlePageChange(1); }}>
-                <SelectTrigger className="w-full sm:w-[150px] md:col-span-2 lg:col-span-1"><SelectValue placeholder={UZ.accounting.outstandingDebt} /></SelectTrigger>
+              <Select
+                value={debtStatus}
+                onValueChange={v => {
+                  setDebtStatus(v);
+                  handlePageChange(1);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-[150px] md:col-span-2 lg:col-span-1">
+                  <SelectValue placeholder={UZ.accounting.outstandingDebt} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">{UZ.common.all}</SelectItem>
                   <SelectItem value="GOOD">Yaxshi</SelectItem>
@@ -166,22 +223,42 @@ export function CustomersListPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <DataTableRow key={i}>
-                  <DataTableCell><Skeleton className="h-10 w-10 rounded-full" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[150px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[60px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[100px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[40px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[100px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[100px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-6 w-[80px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-6 w-[60px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-8 w-20 ml-auto" /></DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[60px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[40px] ml-auto" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[100px] ml-auto" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[100px] ml-auto" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-6 w-[80px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-6 w-[60px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-8 w-20 ml-auto" />
+                  </DataTableCell>
                 </DataTableRow>
               ))
             ) : customers.length === 0 ? (
-                <DataTableEmpty colSpan={10} message={UZ.customers.errors.notFound} />
+              <DataTableEmpty colSpan={10} message={UZ.customers.errors.notFound} />
             ) : (
-              customers.map((customer) => (
+              customers.map(customer => (
                 <DataTableRow key={customer.id}>
                   <DataTableCell>
                     <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-bold">
@@ -190,47 +267,88 @@ export function CustomersListPage() {
                   </DataTableCell>
                   <DataTableCell className="font-medium">{customer.fullName}</DataTableCell>
                   <DataTableCell>
-                    <Badge variant="outline" className="rounded-full text-xs font-normal bg-stone-50">{customer.regionCode}</Badge>
+                    <Badge
+                      variant="outline"
+                      className="rounded-full text-xs font-normal bg-stone-50"
+                    >
+                      {customer.regionCode}
+                    </Badge>
                   </DataTableCell>
-                  <DataTableCell className="font-mono text-sm">{customer.phone || '—'}</DataTableCell>
-                  <DataTableCell className="text-right font-medium">{(customer as any).orderCount}</DataTableCell>
+                  <DataTableCell className="font-mono text-sm">
+                    {customer.phone || '—'}
+                  </DataTableCell>
+                  <DataTableCell className="text-right font-medium">
+                    {(customer as any).orderCount}
+                  </DataTableCell>
                   <DataTableCell className="text-right whitespace-nowrap">
                     <div className="flex flex-col items-end gap-0.5">
-                      {(Number((customer as any).totalSpentKrw) ?? 0) > 0 && (
-                        <span className="text-[13px]">{Number((customer as any).totalSpentKrw).toLocaleString()} ₩</span>
+                      {Number((customer as any).totalSpentKrw) > 0 && (
+                        <p className="text-sm font-normal">
+                          {Number((customer as any).totalSpentKrw).toLocaleString()} ₩
+                        </p>
                       )}
-                      {(Number((customer as any).totalSpentUzs) ?? 0) > 0 && (
-                        <span className="text-[13px]">{displayUzs((customer as any).totalSpentUzs).toLocaleString()} so&apos;m</span>
+                      {Number((customer as any).totalSpentUzs) > 0 && (
+                        <span className="text-[13px]">
+                          {displayUzs((customer as any).totalSpentUzs).toLocaleString()} so&apos;m
+                        </span>
                       )}
-                      {(! (customer as any).totalSpentKrw || Number((customer as any).totalSpentKrw) === 0) &&
-                       (! (customer as any).totalSpentUzs || Number((customer as any).totalSpentUzs) === 0) && (
-                        <span className="text-stone-300">—</span>
-                      )}
+                      {(!(customer as any).totalSpentKrw ||
+                        Number((customer as any).totalSpentKrw) === 0) &&
+                        (!(customer as any).totalSpentUzs ||
+                          Number((customer as any).totalSpentUzs) === 0) && (
+                          <span className="text-stone-300">—</span>
+                        )}
                     </div>
                   </DataTableCell>
                   <DataTableCell className="text-right font-medium whitespace-nowrap text-stone-900">
-                    {formatPrice((customer as any).outstandingDebt, customer.regionCode as 'UZB' | 'KOR')}
+                    {formatPrice(
+                      (customer as any).outstandingDebt,
+                      customer.regionCode as 'UZB' | 'KOR'
+                    )}
                   </DataTableCell>
                   <DataTableCell>
                     {getDebtBadge((customer as any).outstandingDebt, (customer as any).debtLimit)}
                   </DataTableCell>
                   <DataTableCell>
-                    <Badge variant={customer.isActive ? 'success' : 'secondary'} className="rounded-full">
+                    <Badge
+                      variant={customer.isActive ? 'success' : 'secondary'}
+                      className="rounded-full"
+                    >
                       {customer.isActive ? 'Faol' : 'Bloklangan'}
                     </Badge>
                   </DataTableCell>
                   <DataTableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="text-stone-400 hover:text-stone-900" onClick={() => navigate({ to: '/customers/$id', params: { id: customer.id } as any })}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-stone-400 hover:text-stone-900"
+                        onClick={() =>
+                          navigate({ to: '/customers/$id', params: { id: customer.id } as any })
+                        }
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
-                        className={customer.isActive ? "text-stone-400 hover:text-orange-600" : "text-stone-400 hover:text-green-600"}
-                        onClick={() => toggleStatusMutation.mutate({ id: customer.id, isActive: !customer.isActive })}
+                        className={
+                          customer.isActive
+                            ? 'text-stone-400 hover:text-orange-600'
+                            : 'text-stone-400 hover:text-green-600'
+                        }
+                        onClick={() =>
+                          toggleStatusMutation.mutate({
+                            id: customer.id,
+                            isActive: !customer.isActive,
+                          })
+                        }
                       >
-                        {customer.isActive ? <UserMinus className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                        {customer.isActive ? (
+                          <UserMinus className="h-4 w-4" />
+                        ) : (
+                          <UserCheck className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </DataTableCell>
@@ -241,12 +359,12 @@ export function CustomersListPage() {
         </DataTable>
 
         {!isLoading && (
-          <TablePagination 
-            currentPage={page} 
-            totalPages={totalPages} 
-            pageSize={limit} 
-            onPageChange={handlePageChange} 
-            onPageSizeChange={handlePageSizeChange} 
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            pageSize={limit}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         )}
       </div>

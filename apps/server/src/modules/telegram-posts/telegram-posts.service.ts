@@ -9,17 +9,20 @@ import { logger } from '../../common/utils/logger';
 import { OpenAI } from 'openai';
 import { telegramScheduleQueue } from '../queues/telegram-schedule.queue';
 import type { CreateTelegramPostInput, UpdateTelegramPostInput } from '@nuraskin/shared-types';
-import { InputMediaPhoto } from 'grammy/types';
+import type { InputMediaPhoto } from 'grammy/types';
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 export async function createPost(input: CreateTelegramPostInput, adminId: string) {
   const { channelIds, ...postData } = input;
-  return await repository.create({
-    ...postData,
-    scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
-    createdBy: adminId,
-  } as any, channelIds);
+  return await repository.create(
+    {
+      ...postData,
+      scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
+      createdBy: adminId,
+    } as any,
+    channelIds
+  );
 }
 
 export async function updatePost(id: string, input: UpdateTelegramPostInput) {
@@ -29,7 +32,7 @@ export async function updatePost(id: string, input: UpdateTelegramPostInput) {
 
   const updateData: any = { ...input };
   if (input.scheduledAt !== undefined) {
-      updateData.scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
+    updateData.scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
   }
 
   return await repository.update(id, updateData);
@@ -51,7 +54,7 @@ export async function generateCaption(productId: string, postType: string, langu
 
   const systemPrompt = `You are a copywriter for NuraSkin, a Korean cosmetics brand selling to Uzbekistan. Write Telegram post captions.
 Rules:
-- Language: ${language === 'UZB' ? "Uzbek (Latin script)" : "Russian"}
+- Language: ${language === 'UZB' ? 'Uzbek (Latin script)' : 'Russian'}
 - Tone: warm, trustworthy, not pushy
 - First line: one hook (benefit-focused, NOT product name)
 - Then: product name in CAPS on its own line
@@ -101,22 +104,24 @@ export async function sendPost(id: string) {
   const post = await repository.findById(id);
   if (!post) throw new NotFoundError('Post not found');
 
-  const product = post.productId ? await storefrontRepository.findProductById(post.productId) : { configs: [] };
+  const product = post.productId
+    ? await storefrontRepository.findProductById(post.productId)
+    : { configs: [] };
   const rate = await ordersRepository.getLatestRateSnapshot();
-  
+
   if (!rate) {
     throw new BadRequestError('No exchange rate configured');
   }
-  
+
   let caption = buildCaption(post as any, product, rate);
-  
+
   // Truncate based on content
   const hasImages = post.imageUrls && (post.imageUrls as string[]).length > 0;
   const maxLen = hasImages ? 1024 : 4096;
-  
+
   if (caption.length > maxLen) {
-      logger.warn({ postId: id, originalLength: caption.length }, 'Telegram caption truncated');
-      caption = caption.substring(0, maxLen - 3) + '...';
+    logger.warn({ postId: id, originalLength: caption.length }, 'Telegram caption truncated');
+    caption = caption.substring(0, maxLen - 3) + '...';
   }
 
   const results = [];
@@ -125,14 +130,17 @@ export async function sendPost(id: string) {
   for (const channel of (post as any).channels) {
     try {
       let messageId: number;
-      
+
       if (!hasImages) {
         const msg = await bot.api.sendMessage(channel.chatId, caption, { parse_mode: 'HTML' });
         messageId = msg.message_id;
       } else {
         const images = post.imageUrls as string[];
         if (images.length === 1) {
-          const msg = await bot.api.sendPhoto(channel.chatId, images[0], { caption, parse_mode: 'HTML' });
+          const msg = await bot.api.sendPhoto(channel.chatId, images[0], {
+            caption,
+            parse_mode: 'HTML',
+          });
           messageId = msg.message_id;
         } else {
           const mediaGroup: InputMediaPhoto[] = images.map((url, index) => ({
@@ -203,25 +211,25 @@ export async function cancelScheduled(id: string) {
 }
 
 export async function removePost(id: string) {
-    const post = await repository.findById(id);
-    if (!post) throw new NotFoundError('Post not found');
-    
-    if (post.status === 'SCHEDULED') {
-        const job = await telegramScheduleQueue.getJob(`tg-post-${id}`);
-        if (job) await job.remove();
-    }
+  const post = await repository.findById(id);
+  if (!post) throw new NotFoundError('Post not found');
 
-    if (post.status === 'SENT') {
-      for (const channel of post.channels) {
-        if (channel.messageId) {
-          try {
-            await bot.api.deleteMessage(channel.chatId, Number(channel.messageId));
-          } catch (err) {
-            logger.warn({ err, channelId: channel.id }, 'Could not delete Telegram message');
-          }
+  if (post.status === 'SCHEDULED') {
+    const job = await telegramScheduleQueue.getJob(`tg-post-${id}`);
+    if (job) await job.remove();
+  }
+
+  if (post.status === 'SENT') {
+    for (const channel of post.channels) {
+      if (channel.messageId) {
+        try {
+          await bot.api.deleteMessage(channel.chatId, Number(channel.messageId));
+        } catch (err) {
+          logger.warn({ err, channelId: channel.id }, 'Could not delete Telegram message');
         }
       }
     }
-    
-    await repository.remove(id);
+  }
+
+  await repository.remove(id);
 }

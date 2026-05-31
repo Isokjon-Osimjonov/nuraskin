@@ -21,8 +21,8 @@ export default defineConfig(() => ({
         changeOrigin: true,
         secure: false,
         ws: false,
-      }
-    }
+      },
+    },
   },
   preview: {
     port: 4200,

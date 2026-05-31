@@ -22,18 +22,22 @@ export const DashboardKPIsSchema = z.object({
 export type DashboardKPIs = z.infer<typeof DashboardKPIsSchema>;
 
 export const DashboardTrendSchema = z.object({
-  days: z.array(z.object({
-    date: z.string(),
-    kor_revenue_krw: z.string(),
-    uzb_revenue_krw: z.string(),
-    total_orders: z.number(),
-  })),
-  top_skus: z.array(z.object({
-    product_id: z.string(),
-    product_name: z.string(),
-    units_sold: z.number(),
-    revenue_krw: z.string(),
-  })),
+  days: z.array(
+    z.object({
+      date: z.string(),
+      kor_revenue_krw: z.string(),
+      uzb_revenue_krw: z.string(),
+      total_orders: z.number(),
+    })
+  ),
+  top_skus: z.array(
+    z.object({
+      product_id: z.string(),
+      product_name: z.string(),
+      units_sold: z.number(),
+      revenue_krw: z.string(),
+    })
+  ),
 });
 
 export type DashboardTrend = z.infer<typeof DashboardTrendSchema>;

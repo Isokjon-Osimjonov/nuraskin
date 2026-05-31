@@ -1,20 +1,17 @@
 import { api } from '@/lib/api';
-import type { 
-  OrderResponse, 
-  CreateOrderInput, 
-  AddOrderItemInput, 
-  UpdateOrderStatusInput, 
+import type {
+  OrderResponse,
+  CreateOrderInput,
+  AddOrderItemInput,
+  UpdateOrderStatusInput,
   ScanItemInput,
   CreateManualOrderInput,
-  ConfirmManualPaymentInput
+  ConfirmManualPaymentInput,
 } from '@nuraskin/shared-types';
 
-
-
 export const ordersApi = {
-  create: (data: CreateOrderInput): Promise<OrderResponse> =>
-    api.post<any>('/orders', data),
-    
+  create: (data: CreateOrderInput): Promise<OrderResponse> => api.post<any>('/orders', data),
+
   list: (filters: { status?: string[]; customerId?: string } = {}): Promise<OrderResponse[]> => {
     const params = new URLSearchParams();
     if (filters.status?.length) params.set('status', filters.status.join(','));
@@ -22,33 +19,36 @@ export const ordersApi = {
     const query = params.toString() ? `?${params.toString()}` : '';
     return api.get<any>(`/orders${query}`);
   },
-  
-  getById: (id: string): Promise<OrderResponse> =>
-    api.get<any>(`/orders/${id}`),
+
+  getById: (id: string): Promise<OrderResponse> => api.get<any>(`/orders/${id}`),
 
   getReceipt: (id: string): Promise<{ receipt_url: string }> =>
     api.get<any>(`/orders/${id}/receipt`),
-    
+
   addItem: (id: string, data: AddOrderItemInput): Promise<any> =>
     api.post<any>(`/orders/${id}/items`, data),
-    
+
   removeItem: (id: string, itemId: string): Promise<void> =>
     api.delete<any>(`/orders/${id}/items/${itemId}`),
-    
-  updateStatus: (id: string, data: UpdateOrderStatusInput & { bypassDebtLimit?: boolean }): Promise<void> =>
-    api.patch<any>(`/orders/${id}/status`, data),
-    
-  scanItem: (id: string, data: ScanItemInput): Promise<{ 
-    success: boolean; 
-    alreadyScanned?: boolean; 
-    allItemsScanned?: boolean; 
+
+  updateStatus: (
+    id: string,
+    data: UpdateOrderStatusInput & { bypassDebtLimit?: boolean }
+  ): Promise<void> => api.patch<any>(`/orders/${id}/status`, data),
+
+  scanItem: (
+    id: string,
+    data: ScanItemInput
+  ): Promise<{
+    success: boolean;
+    alreadyScanned?: boolean;
+    allItemsScanned?: boolean;
     message: string;
     product?: any;
     scannedCount?: number;
     totalCount?: number;
-  }> =>
-    api.post<any>(`/orders/${id}/scan-item`, data),
-    
+  }> => api.post<any>(`/orders/${id}/scan-item`, data),
+
   completePacking: (id: string): Promise<void> =>
     api.post<any>(`/orders/${id}/complete-packing`, {}),
 

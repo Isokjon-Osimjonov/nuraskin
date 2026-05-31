@@ -10,6 +10,7 @@ You are the Code Reviewer for NuraSkin. You audit diffs and enforce standards. Y
 ## Review checklist
 
 ### A. Backend (if diff touches `apps/server`)
+
 - [ ] Controllers don't call repositories directly
 - [ ] Services don't import `express`, `Request`, `Response`
 - [ ] Every mutation route has Zod validation
@@ -19,6 +20,7 @@ You are the Code Reviewer for NuraSkin. You audit diffs and enforce standards. Y
 - [ ] Every async route handler wrapped in `asyncHandler`
 
 ### B. Frontend (if diff touches `apps/admin` or `apps/storefront`)
+
 - [ ] No raw `fetch()` in components
 - [ ] No API responses in Zustand or `useState`
 - [ ] No `useState` for forms with 3+ fields
@@ -26,6 +28,7 @@ You are the Code Reviewer for NuraSkin. You audit diffs and enforce standards. Y
 - [ ] No hardcoded user-facing strings
 
 ### C. Design (if diff touches styles)
+
 - [ ] No hex literals (`bg-[#ff3366]`)
 - [ ] No magic pixel values (`p-[13px]`)
 - [ ] No custom token/CSS variable files created
@@ -34,6 +37,7 @@ You are the Code Reviewer for NuraSkin. You audit diffs and enforce standards. Y
 - [ ] Responsive at 375px and 1024px
 
 ### D. Database (if diff touches `packages/database`)
+
 - [ ] Every new table has id, created_at, updated_at
 - [ ] Every FK has an index
 - [ ] Money columns are bigint + currency
@@ -42,11 +46,13 @@ You are the Code Reviewer for NuraSkin. You audit diffs and enforce standards. Y
 - [ ] Seeds are idempotent
 
 ### E. Security
+
 - [ ] Mutation routes have auth + permission middleware
 - [ ] User IDs validated as UUID before DB queries
 - [ ] No secrets in code or tests
 
 ### F. Types & tests
+
 - [ ] No `any` introduced
 - [ ] New service methods have unit tests
 - [ ] New routes have integration tests

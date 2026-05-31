@@ -1,8 +1,5 @@
 import { api } from '@/lib/api';
-import type { 
-  CreateStorefrontOrderInput, 
-  StorefrontOrderResponse 
-} from '@nuraskin/shared-types';
+import type { CreateStorefrontOrderInput } from '@nuraskin/shared-types';
 
 export async function createOrder(data: CreateStorefrontOrderInput) {
   return await api.auth.post<any>('/storefront/orders', data);
@@ -30,12 +27,11 @@ export async function getUploadUrl() {
 }
 
 export async function uploadReceipt(orderId: string, paymentProofUrl: string) {
-  return await api.auth.patch<any>(`/storefront/orders/${orderId}/receipt`, { 
-    payment_proof_url: paymentProofUrl
+  return await api.auth.patch<any>(`/storefront/orders/${orderId}/receipt`, {
+    payment_proof_url: paymentProofUrl,
   });
 }
 
 export async function cancelOrder(orderId: string) {
   return await api.auth.delete<any>(`/storefront/orders/${orderId}`);
 }
-

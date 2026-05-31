@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express';
 import * as service from './products.service';
-import { createProductSchema, updateProductSchema, analyzeImageSchema } from '@nuraskin/shared-types';
-import { logger } from '../../common/utils/logger';
+import {
+  createProductSchema,
+  updateProductSchema,
+  analyzeImageSchema,
+} from '@nuraskin/shared-types';
 
 export async function list(req: Request, res: Response): Promise<void> {
   const { categoryId, isActive, search, deleted } = req.query;

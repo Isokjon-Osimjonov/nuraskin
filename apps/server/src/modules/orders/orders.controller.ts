@@ -2,7 +2,14 @@ import type { Request, Response } from 'express';
 import * as service from './orders.service';
 import * as orderExpensesService from './order-expenses.service';
 import { generateInvoiceHtml } from './invoice.service';
-import { addOrderItemSchema, updateOrderStatusSchema, scanItemSchema, createOrderExpenseSchema, createManualOrderSchema, confirmManualPaymentSchema } from '@nuraskin/shared-types';
+import {
+  addOrderItemSchema,
+  updateOrderStatusSchema,
+  scanItemSchema,
+  createOrderExpenseSchema,
+  createManualOrderSchema,
+  confirmManualPaymentSchema,
+} from '@nuraskin/shared-types';
 import { NotFoundError, UnauthorizedError } from '../../common/errors/AppError';
 
 export async function listOrders(req: Request, res: Response) {
@@ -77,9 +84,9 @@ export async function scanItem(req: Request, res: Response) {
 }
 
 export async function completePacking(req: Request, res: Response) {
-    const adminId = req.user?.sub;
-    const result = await service.completePacking(req.params.id, adminId);
-    res.json(result);
+  const adminId = req.user?.sub;
+  const result = await service.completePacking(req.params.id, adminId);
+  res.json(result);
 }
 
 export async function getOrderExpenses(req: Request, res: Response) {
@@ -99,19 +106,34 @@ export async function deleteOrderExpense(req: Request, res: Response) {
   const adminId = req.user?.sub;
   if (!adminId) throw new UnauthorizedError();
   const isAdminSuper = req.user?.role === 'SUPER_ADMIN';
-  const result = await orderExpensesService.deleteOrderExpense(req.params.id, req.params.expenseId, adminId, isAdminSuper);
+  const result = await orderExpensesService.deleteOrderExpense(
+    req.params.id,
+    req.params.expenseId,
+    adminId,
+    isAdminSuper
+  );
   res.json(result);
 }
 
 export async function submitPayment(req: Request, res: Response) {
   const adminId = req.user?.sub;
-  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_SUBMITTED', req.body, adminId);
+  const result = await service.transitionOrderStatus(
+    req.params.id,
+    'PAYMENT_SUBMITTED',
+    req.body,
+    adminId
+  );
   res.json(result);
 }
 
 export async function verifyPayment(req: Request, res: Response) {
   const adminId = req.user?.sub;
-  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_CONFIRMED', req.body, adminId);
+  const result = await service.transitionOrderStatus(
+    req.params.id,
+    'PAYMENT_CONFIRMED',
+    req.body,
+    adminId
+  );
   res.json(result);
 }
 
@@ -122,14 +144,24 @@ export async function rejectPayment(req: Request, res: Response) {
     res.status(400).json({ error: 'Rejection note is required' });
     return;
   }
-  const result = await service.transitionOrderStatus(req.params.id, 'PAYMENT_REJECTED', { paymentNote: note, note }, adminId);
+  const result = await service.transitionOrderStatus(
+    req.params.id,
+    'PAYMENT_REJECTED',
+    { paymentNote: note, note },
+    adminId
+  );
   res.json(result);
 }
 
 export async function shipOrder(req: Request, res: Response) {
   const adminId = req.user?.sub;
   const { trackingNumber } = req.body;
-  const result = await service.transitionOrderStatus(req.params.id, 'SHIPPED', { trackingNumber }, adminId);
+  const result = await service.transitionOrderStatus(
+    req.params.id,
+    'SHIPPED',
+    { trackingNumber },
+    adminId
+  );
   res.json(result);
 }
 
@@ -149,7 +181,7 @@ export async function cancelOrder(req: Request, res: Response) {
 export async function getPaymentReceipt(req: Request, res: Response) {
   const order = await service.getOrderDetail(req.params.id);
   if (!order) throw new NotFoundError('Buyurtma topilmadi');
-  
+
   if (!order.paymentReceiptUrl) {
     res.status(404).json({ error: 'Chek topilmadi' });
     return;
@@ -163,10 +195,10 @@ export async function downloadInvoice(req: Request, res: Response) {
   if (!order) throw new NotFoundError('Buyurtma topilmadi');
 
   // Calculate savings and price types
-  let totalSavings = 0;
+  const totalSavings = 0;
   const items = order.items.map((i: any) => {
     let priceType: 'ulgurji' | 'birlik' | 'kelishilgan' | undefined;
-    
+
     // For manual orders we use negotiatedPriceKrw
     if (order.orderSource === 'MANUAL') {
       priceType = 'kelishilgan';
@@ -182,7 +214,7 @@ export async function downloadInvoice(req: Request, res: Response) {
       quantity: i.quantity,
       unitPrice: i.unitPriceSnapshot,
       subtotal: i.subtotalSnapshot,
-      priceType
+      priceType,
     };
   });
 
@@ -212,4 +244,3 @@ export async function downloadInvoice(req: Request, res: Response) {
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
 }
-

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { usePromotions } from '@/hooks/usePromotions';
-import { cn } from '@/lib/utils';
 
 export function AnnouncementBar() {
   const { promotions } = usePromotions();
@@ -13,7 +12,7 @@ export function AnnouncementBar() {
     const interval = setInterval(() => {
       // Only rotate on sm+ screen sizes
       if (window.innerWidth >= 640) {
-        setCurrentTime((prev) => (prev + 1) % promotions.length);
+        setCurrentTime(prev => (prev + 1) % promotions.length);
       }
     }, 4000);
 

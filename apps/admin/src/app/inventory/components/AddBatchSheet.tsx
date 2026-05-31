@@ -3,7 +3,14 @@ import { Drawer } from 'vaul';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addBatchSchema, type AddBatchInput } from '@nuraskin/shared-types';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { inventoryApi, type ScannedProduct } from '../api/inventory.api';
@@ -67,7 +74,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
         <Drawer.Content className="bg-background flex flex-col rounded-t-[10px] h-[85vh] fixed bottom-0 left-0 right-0 z-50">
           <div className="p-4 bg-background rounded-t-[10px] flex-1 overflow-y-auto">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted mb-8" />
-            
+
             <div className="max-w-md mx-auto">
               <Drawer.Title className="text-xl font-semibold mb-2">
                 Kirim: {product?.name}
@@ -85,7 +92,17 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                         <FormItem>
                           <FormLabel>Miqdor</FormLabel>
                           <FormControl>
-                            <Input type="number" min="1" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} />
+                            <Input
+                              type="number"
+                              min="1"
+                              placeholder="0"
+                              {...field}
+                              onChange={e =>
+                                field.onChange(
+                                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                                )
+                              }
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -97,7 +114,16 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                         <FormItem>
                           <FormLabel>Tan narxi (KRW)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} />
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              {...field}
+                              onChange={e =>
+                                field.onChange(
+                                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                                )
+                              }
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -175,7 +201,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       Bekor qilish
                     </Button>
                     <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                      {isSubmitting ? "Saqlanmoqda..." : "Qabul qilish"}
+                      {isSubmitting ? 'Saqlanmoqda...' : 'Qabul qilish'}
                     </Button>
                   </div>
                 </form>

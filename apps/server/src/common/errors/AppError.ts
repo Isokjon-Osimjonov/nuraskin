@@ -3,12 +3,7 @@ export class AppError extends Error {
   public code?: string;
   public data?: any;
 
-  constructor(
-    message: string,
-    statusCode = 500,
-    code?: string,
-    data?: any
-  ) {
+  constructor(message: string, statusCode = 500, code?: string, data?: any) {
     super(message);
     this.name = this.constructor.name;
     this.statusCode = statusCode;
@@ -62,10 +57,7 @@ export class InternalError extends AppError {
 export class PriceChangedError extends Error {
   statusCode = 422;
   data: any;
-  constructor({ message, changedItems }: {
-    message: string;
-    changedItems: any[];
-  }) {
+  constructor({ message, changedItems }: { message: string; changedItems: any[] }) {
     super(message);
     this.name = 'PriceChangedError';
     this.data = { changedItems };
@@ -93,7 +85,7 @@ export class InsufficientStockError extends BadRequestError {
 
 export class CannotCancelShippedOrderError extends BadRequestError {
   constructor() {
-    super('Yuborilgan buyurtmani bekor qilib bo\'lmaydi', 'CANNOT_CANCEL_SHIPPED');
+    super("Yuborilgan buyurtmani bekor qilib bo'lmaydi", 'CANNOT_CANCEL_SHIPPED');
   }
 }
 
@@ -124,10 +116,8 @@ export class CouponNotApplicableError extends BadRequestError {
 
 export class CouponMinAmountError extends BadRequestError {
   constructor(amountNeeded: bigint) {
-    super(
-      `Minimal buyurtma miqdori: ${Number(amountNeeded) / 100} so'm`,
-      'COUPON_MIN_AMOUNT',
-      { amountNeeded: amountNeeded.toString() }
-    );
+    super(`Minimal buyurtma miqdori: ${Number(amountNeeded) / 100} so'm`, 'COUPON_MIN_AMOUNT', {
+      amountNeeded: amountNeeded.toString(),
+    });
   }
 }

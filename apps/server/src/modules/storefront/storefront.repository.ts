@@ -8,14 +8,17 @@ import {
   orderItems,
   customers,
   settings,
-  exchangeRateSnapshots,
   korShippingTiers,
   stockReservations,
 } from '@nuraskin/database';
 import { eq, and, isNull, sql, desc, inArray, asc } from 'drizzle-orm';
-import type { OrderStatus, KorShippingTierInput } from '@nuraskin/shared-types';
+import type { KorShippingTierInput } from '@nuraskin/shared-types';
 
-export async function findActiveProducts(filters: { categoryId?: string; search?: string; limit?: number }) {
+export async function findActiveProducts(filters: {
+  categoryId?: string;
+  search?: string;
+  limit?: number;
+}) {
   const conditions = [isNull(products.deletedAt), eq(products.isActive, true)];
 
   if (filters.categoryId) conditions.push(eq(products.categoryId, filters.categoryId));
@@ -51,14 +54,18 @@ export async function findActiveProducts(filters: { categoryId?: string; search?
 
   // Fetch configs for all these products
   const productIds = baseProducts.map(p => p.id);
-  const configs = productIds.length > 0 
-    ? await db.select().from(productRegionalConfigs).where(inArray(productRegionalConfigs.productId, productIds))
-    : [];
+  const configs =
+    productIds.length > 0
+      ? await db
+          .select()
+          .from(productRegionalConfigs)
+          .where(inArray(productRegionalConfigs.productId, productIds))
+      : [];
 
   return baseProducts.map(p => ({
     ...p,
     slug: p.barcode,
-    configs: configs.filter(c => c.productId === p.id)
+    configs: configs.filter(c => c.productId === p.id),
   }));
 }
 
@@ -96,7 +103,7 @@ export async function findProductByBarcode(barcode: string) {
   return {
     ...product,
     slug: product.barcode,
-    configs
+    configs,
   };
 }
 
@@ -128,7 +135,7 @@ export async function findProductById(id: string) {
   return {
     ...product,
     slug: product.barcode,
-    configs
+    configs,
   };
 }
 
@@ -136,21 +143,27 @@ export async function getRegionalConfig(productId: string, regionCode: 'UZB' | '
   const [config] = await db
     .select()
     .from(productRegionalConfigs)
-    .where(and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, regionCode)))
+    .where(
+      and(
+        eq(productRegionalConfigs.productId, productId),
+        eq(productRegionalConfigs.regionCode, regionCode)
+      )
+    )
     .limit(1);
   return config || null;
 }
 
 export async function getStorefrontSettings() {
-  const [row] = await db
-    .select()
-    .from(settings)
-    .limit(1);
+  const [row] = await db.select().from(settings).limit(1);
   return row || null;
 }
 
 export async function findCustomerByTelegramId(telegramId: bigint) {
-  const [customer] = await db.select().from(customers).where(eq(customers.telegramId, telegramId)).limit(1);
+  const [customer] = await db
+    .select()
+    .from(customers)
+    .where(eq(customers.telegramId, telegramId))
+    .limit(1);
   return customer || null;
 }
 
@@ -197,10 +210,7 @@ export async function getMyOrders(customerId: string) {
     const [resRow] = await db
       .select({ earliest: sql<string>`min(${stockReservations.expiresAt})::text` })
       .from(stockReservations)
-      .where(and(
-        eq(stockReservations.orderId, order.id),
-        eq(stockReservations.status, 'ACTIVE')
-      ));
+      .where(and(eq(stockReservations.orderId, order.id), eq(stockReservations.status, 'ACTIVE')));
 
     results.push({
       ...order,
@@ -210,8 +220,8 @@ export async function getMyOrders(customerId: string) {
       items: items.map(i => ({
         ...i,
         unitPrice: i.unitPrice.toString(),
-        subtotal: i.subtotal.toString()
-      }))
+        subtotal: i.subtotal.toString(),
+      })),
     });
   }
 
@@ -244,10 +254,7 @@ export async function getOrderForCustomer(orderId: string, customerId: string, t
   const [resRow] = await d
     .select({ earliest: sql<string>`min(${stockReservations.expiresAt})::text` })
     .from(stockReservations)
-    .where(and(
-      eq(stockReservations.orderId, orderId),
-      eq(stockReservations.status, 'ACTIVE')
-    ));
+    .where(and(eq(stockReservations.orderId, orderId), eq(stockReservations.status, 'ACTIVE')));
 
   return {
     ...order,
@@ -261,23 +268,31 @@ export async function listShippingTiers() {
 }
 
 export async function createShippingTier(input: KorShippingTierInput) {
-    const [row] = await db.insert(korShippingTiers).values({
-        ...input,
-        maxOrderKrw: input.maxOrderKrw ? BigInt(input.maxOrderKrw) : null,
-        cargoFeeKrw: BigInt(input.cargoFeeKrw),
-    }).returning();
-    return row;
+  const [row] = await db
+    .insert(korShippingTiers)
+    .values({
+      ...input,
+      maxOrderKrw: input.maxOrderKrw ? BigInt(input.maxOrderKrw) : null,
+      cargoFeeKrw: BigInt(input.cargoFeeKrw),
+    })
+    .returning();
+  return row;
 }
 
 export async function updateShippingTier(id: string, input: Partial<KorShippingTierInput>) {
-    const updateData: any = { ...input };
-    if (input.maxOrderKrw !== undefined) updateData.maxOrderKrw = input.maxOrderKrw ? BigInt(input.maxOrderKrw) : null;
-    if (input.cargoFeeKrw !== undefined) updateData.cargoFeeKrw = BigInt(input.cargoFeeKrw);
-    
-    const [row] = await db.update(korShippingTiers).set(updateData).where(eq(korShippingTiers.id, id)).returning();
-    return row;
+  const updateData: any = { ...input };
+  if (input.maxOrderKrw !== undefined)
+    updateData.maxOrderKrw = input.maxOrderKrw ? BigInt(input.maxOrderKrw) : null;
+  if (input.cargoFeeKrw !== undefined) updateData.cargoFeeKrw = BigInt(input.cargoFeeKrw);
+
+  const [row] = await db
+    .update(korShippingTiers)
+    .set(updateData)
+    .where(eq(korShippingTiers.id, id))
+    .returning();
+  return row;
 }
 
 export async function deleteShippingTier(id: string) {
-    await db.delete(korShippingTiers).where(eq(korShippingTiers.id, id));
+  await db.delete(korShippingTiers).where(eq(korShippingTiers.id, id));
 }

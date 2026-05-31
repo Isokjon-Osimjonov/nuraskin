@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 export function useCart() {
   const { isAuthenticated } = useAppStore();
-  
+
   return useQuery({
     queryKey: ['cart'],
     queryFn: cartApi.getCart,
@@ -19,15 +19,13 @@ export function useAddToCart() {
 
   return useMutation({
     mutationFn: cartApi.addToCart,
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.setQueryData(['cart'], data);
-      toast.success('Savatchaga qo\'shildi');
+      toast.success("Savatchaga qo'shildi");
     },
     onError: (err: any, variables: any) => {
-      const isRegionMismatch = 
-        err.status === 409 || 
-        err.error === 'REGION_MISMATCH' || 
-        err.message === 'REGION_MISMATCH';
+      const isRegionMismatch =
+        err.status === 409 || err.error === 'REGION_MISMATCH' || err.message === 'REGION_MISMATCH';
 
       if (isRegionMismatch && variables.regionCode) {
         setPendingRegion(variables.regionCode as any);
@@ -43,9 +41,9 @@ export function useUpdateCartItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, quantity }: { id: string; quantity: number }) => 
+    mutationFn: ({ id, quantity }: { id: string; quantity: number }) =>
       cartApi.updateCartItem(id, { quantity }),
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.setQueryData(['cart'], data);
     },
     onError: (err: any) => {
@@ -59,7 +57,7 @@ export function useRemoveCartItem() {
 
   return useMutation({
     mutationFn: cartApi.removeCartItem,
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.setQueryData(['cart'], data);
     },
   });
@@ -70,7 +68,7 @@ export function useClearCart() {
 
   return useMutation({
     mutationFn: (regionCode?: string) => cartApi.clearCart(regionCode),
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.setQueryData(['cart'], data);
     },
   });

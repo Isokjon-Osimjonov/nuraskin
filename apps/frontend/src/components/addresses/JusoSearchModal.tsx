@@ -1,12 +1,7 @@
 import { api } from '@/lib/api';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, Loader2 } from 'lucide-react';
 
 interface JusoResult {
@@ -77,7 +72,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
               placeholder="도로명, 건물명, 지번을 입력하세요"
               className="w-full h-12 pl-10 pr-4 rounded-xl bg-stone-50 border border-stone-100 text-[14px] outline-none focus:border-[#4A1525] transition-all"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value)}
               autoFocus
             />
           </div>
@@ -105,9 +100,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
                       </p>
                     </div>
                     {item.building_name && (
-                      <p className="text-[11px] text-stone-500 mt-1 ml-14">
-                        {item.building_name}
-                      </p>
+                      <p className="text-[11px] text-stone-500 mt-1 ml-14">{item.building_name}</p>
                     )}
                     <p className="text-[11px] text-stone-400 mt-1 ml-14 line-clamp-1 italic">
                       {item.jibun_address}

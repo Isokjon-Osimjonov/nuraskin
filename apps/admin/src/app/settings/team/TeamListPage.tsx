@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/select';
 import { UserPlus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import {  format  } from 'date-fns';
 import { formatDateTime } from '@nuraskin/shared-utils';
 import { Route } from '../../../routes/_app/settings/team';
 import { useNavigate } from '@tanstack/react-router';
@@ -51,16 +50,10 @@ export function TeamListPage() {
   });
 
   const isPaginatedResponse = !Array.isArray(rawTeam) && (rawTeam as any).data;
-  const teamList = Array.isArray(rawTeam)
-    ? rawTeam
-    : (rawTeam as any).data || [];
-  const totalItems = isPaginatedResponse
-    ? (rawTeam as any).total
-    : teamList.length;
+  const teamList = Array.isArray(rawTeam) ? rawTeam : (rawTeam as any).data || [];
+  const totalItems = isPaginatedResponse ? (rawTeam as any).total : teamList.length;
 
-  const team = Array.isArray(rawTeam)
-    ? teamList.slice((page - 1) * limit, page * limit)
-    : teamList;
+  const team = Array.isArray(rawTeam) ? teamList.slice((page - 1) * limit, page * limit) : teamList;
   const totalPages = Math.ceil(totalItems / limit);
 
   const handlePageChange = (newPage: number) => {
@@ -124,10 +117,7 @@ export function TeamListPage() {
             Admin panelga kirish huquqiga ega foydalanuvchilar
           </p>
         </div>
-        <Button
-          className="w-full sm:w-auto shrink-0"
-          onClick={() => setIsInviteOpen(true)}
-        >
+        <Button className="w-full sm:w-auto shrink-0" onClick={() => setIsInviteOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
           Yangi a'zo
         </Button>
@@ -171,26 +161,19 @@ export function TeamListPage() {
                   </DataTableRow>
                 ))
               ) : team.length === 0 ? (
-                <DataTableEmpty
-                  colSpan={6}
-                  message="Foydalanuvchilar topilmadi"
-                />
+                <DataTableEmpty colSpan={6} message="Foydalanuvchilar topilmadi" />
               ) : (
                 team.map((member: any) => (
                   <DataTableRow key={member.id}>
                     <DataTableCell>
-                      <div className="font-medium text-stone-900">
-                        {member.fullName}
-                      </div>
+                      <div className="font-medium text-stone-900">{member.fullName}</div>
                       {member.id === currentUser?.id && (
                         <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold uppercase mt-1 inline-block">
                           Siz
                         </span>
                       )}
                     </DataTableCell>
-                    <DataTableCell className="text-muted-foreground">
-                      {member.email}
-                    </DataTableCell>
+                    <DataTableCell className="text-muted-foreground">{member.email}</DataTableCell>
                     <DataTableCell>
                       <Badge
                         variant="secondary"
@@ -206,10 +189,7 @@ export function TeamListPage() {
                             Faol
                           </Badge>
                         ) : (
-                          <Badge
-                            variant="outline"
-                            className="rounded-full text-muted-foreground"
-                          >
+                          <Badge variant="outline" className="rounded-full text-muted-foreground">
                             Nofaol
                           </Badge>
                         )}
@@ -222,8 +202,7 @@ export function TeamListPage() {
                     </DataTableCell>
                     <DataTableCell className="text-stone-500 text-sm">
                       {member.lastLoginAt
-                        ? formatDateTime(
-                            new Date(member.lastLoginAt))
+                        ? formatDateTime(new Date(member.lastLoginAt))
                         : 'Hech qachon'}
                     </DataTableCell>
                     <DataTableCell className="text-right">
@@ -265,8 +244,7 @@ export function TeamListPage() {
           <DialogHeader>
             <DialogTitle>Yangi jamoa a'zosi</DialogTitle>
             <DialogDescription>
-              Foydalanuvchi ma'lumotlarini kiriting va boshlang'ich parolni
-              o'rnating.
+              Foydalanuvchi ma'lumotlarini kiriting va boshlang'ich parolni o'rnating.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -275,9 +253,7 @@ export function TeamListPage() {
               <Input
                 placeholder="Masalan: Aziz Alimov"
                 value={newMember.fullName}
-                onChange={(e) =>
-                  setNewMember((p) => ({ ...p, fullName: e.target.value }))
-                }
+                onChange={e => setNewMember(p => ({ ...p, fullName: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
@@ -286,16 +262,14 @@ export function TeamListPage() {
                 type="email"
                 placeholder="aziz@example.com"
                 value={newMember.email}
-                onChange={(e) =>
-                  setNewMember((p) => ({ ...p, email: e.target.value }))
-                }
+                onChange={e => setNewMember(p => ({ ...p, email: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Rol</label>
               <Select
                 value={newMember.role}
-                onValueChange={(v) => setNewMember((p) => ({ ...p, role: v }))}
+                onValueChange={v => setNewMember(p => ({ ...p, role: v }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -314,8 +288,8 @@ export function TeamListPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Kamida 8 ta belgi"
                   value={newMember.initialPassword}
-                  onChange={(e) =>
-                    setNewMember((p) => ({
+                  onChange={e =>
+                    setNewMember(p => ({
                       ...p,
                       initialPassword: e.target.value,
                     }))
@@ -328,11 +302,7 @@ export function TeamListPage() {
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
@@ -348,9 +318,7 @@ export function TeamListPage() {
             <Button
               className="w-full sm:w-auto"
               onClick={() => inviteMutation.mutate()}
-              disabled={
-                inviteMutation.isPending || newMember.initialPassword.length < 8
-              }
+              disabled={inviteMutation.isPending || newMember.initialPassword.length < 8}
             >
               Yaratish
             </Button>

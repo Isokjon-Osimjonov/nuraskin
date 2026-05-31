@@ -1,8 +1,19 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { adjustQuantitySchema, type AdjustQuantityInput, type InventoryBatchResponse } from '@nuraskin/shared-types';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  adjustQuantitySchema,
+  type AdjustQuantityInput,
+  type InventoryBatchResponse,
+} from '@nuraskin/shared-types';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { inventoryApi } from '../api/inventory.api';
@@ -23,7 +34,12 @@ interface AdjustQuantityDialogProps {
   onSuccess: () => void;
 }
 
-export function AdjustQuantityDialog({ batch, open, onOpenChange, onSuccess }: AdjustQuantityDialogProps) {
+export function AdjustQuantityDialog({
+  batch,
+  open,
+  onOpenChange,
+  onSuccess,
+}: AdjustQuantityDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<AdjustQuantityInput>({
@@ -48,7 +64,7 @@ export function AdjustQuantityDialog({ batch, open, onOpenChange, onSuccess }: A
     setIsSubmitting(true);
     try {
       await inventoryApi.adjustQuantity(batch.id, data);
-      toast.success('Miqdor muvaffaqiyatli o\'zgartirildi');
+      toast.success("Miqdor muvaffaqiyatli o'zgartirildi");
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -81,7 +97,9 @@ export function AdjustQuantityDialog({ batch, open, onOpenChange, onSuccess }: A
             <div className="text-2xl text-muted-foreground">→</div>
             <div className="text-center">
               <div className="text-xs text-muted-foreground uppercase">Yangi</div>
-              <div className={`text-xl font-bold ${isInvalid ? 'text-destructive' : 'text-primary'}`}>
+              <div
+                className={`text-xl font-bold ${isInvalid ? 'text-destructive' : 'text-primary'}`}
+              >
                 {newQty}
               </div>
             </div>
@@ -95,11 +113,15 @@ export function AdjustQuantityDialog({ batch, open, onOpenChange, onSuccess }: A
                   <FormItem>
                     <FormLabel>O'zgarish miqdori (Adjustment)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="+10 yoki -5" 
-                        {...field} 
-                        onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} 
+                      <Input
+                        type="number"
+                        placeholder="+10 yoki -5"
+                        {...field}
+                        onChange={e =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : parseInt(e.target.value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />

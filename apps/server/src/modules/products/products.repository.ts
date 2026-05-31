@@ -1,6 +1,11 @@
 import { db, products, productRegionalConfigs, inventoryBatches } from '@nuraskin/database';
 import { eq, isNull, and, like, or, sql, inArray, isNotNull } from 'drizzle-orm';
-import type { Product, NewProduct, ProductRegionalConfig, NewProductRegionalConfig } from '@nuraskin/database';
+import type {
+  Product,
+  NewProduct,
+  ProductRegionalConfig,
+  NewProductRegionalConfig,
+} from '@nuraskin/database';
 import { ConflictError, NotFoundError } from '../../common/errors/AppError';
 
 export interface ProductWithStock {
@@ -31,7 +36,8 @@ export interface ProductWithStock {
   korCurrency: string | null;
 }
 
-export interface ProductDetail extends Omit<ProductWithStock, 'uzbRetail' | 'uzbWholesale' | 'korRetail' | 'korWholesale'> {
+export interface ProductDetail
+  extends Omit<ProductWithStock, 'uzbRetail' | 'uzbWholesale' | 'korRetail' | 'korWholesale'> {
   regionalConfigs: any[];
 }
 
@@ -50,7 +56,12 @@ export async function findAll(filters?: {
   if (filters?.search) {
     const search = `%${filters.search}%`;
     conditions.push(
-      or(like(products.name, search), like(products.barcode, search), like(products.sku, search), like(products.brandName, search))!,
+      or(
+        like(products.name, search),
+        like(products.barcode, search),
+        like(products.sku, search),
+        like(products.brandName, search)
+      )!
     );
   }
 
@@ -83,7 +94,7 @@ export async function findAll(filters?: {
 
   if (rows.length === 0) return [];
 
-  const productIds = rows.map((r) => r.id);
+  const productIds = rows.map(r => r.id);
   const allConfigs = await db
     .select()
     .from(productRegionalConfigs)
@@ -96,10 +107,10 @@ export async function findAll(filters?: {
     configMap.set(c.productId, list);
   }
 
-  return rows.map((p) => {
+  return rows.map(p => {
     const cfg = configMap.get(p.id) ?? [];
-    const uzb = cfg.find((c) => c.regionCode === 'UZB');
-    const kor = cfg.find((c) => c.regionCode === 'KOR');
+    const uzb = cfg.find(c => c.regionCode === 'UZB');
+    const kor = cfg.find(c => c.regionCode === 'KOR');
     return {
       ...p,
       uzbRetail: uzb?.retailPrice?.toString() ?? null,
@@ -139,7 +150,7 @@ export async function findById(id: string): Promise<ProductDetail | null> {
     totalStock: stockRow?.total ?? 0,
     uzbCurrency: uzb?.currency ?? null,
     korCurrency: kor?.currency ?? null,
-    regionalConfigs: configs.map((c) => ({
+    regionalConfigs: configs.map(c => ({
       ...c,
       retailPrice: c.retailPrice.toString(),
       wholesalePrice: c.wholesalePrice.toString(),
@@ -174,7 +185,7 @@ export async function findByBarcode(barcode: string): Promise<ProductDetail | nu
     totalStock: stockRow?.total ?? 0,
     uzbCurrency: uzb?.currency ?? null,
     korCurrency: kor?.currency ?? null,
-    regionalConfigs: configs.map((c) => ({
+    regionalConfigs: configs.map(c => ({
       ...c,
       retailPrice: c.retailPrice.toString(),
       wholesalePrice: c.wholesalePrice.toString(),
@@ -184,7 +195,7 @@ export async function findByBarcode(barcode: string): Promise<ProductDetail | nu
 
 export async function create(
   data: NewProduct,
-  regionalConfigs: NewProductRegionalConfig[],
+  regionalConfigs: NewProductRegionalConfig[]
 ): Promise<Product> {
   const [existingBarcode] = await db
     .select({ id: products.id })
@@ -206,9 +217,9 @@ export async function create(
   if (!product) throw new Error('Failed to create product');
 
   if (regionalConfigs.length > 0) {
-    await db.insert(productRegionalConfigs).values(
-      regionalConfigs.map((rc) => ({ ...rc, productId: product.id })),
-    );
+    await db
+      .insert(productRegionalConfigs)
+      .values(regionalConfigs.map(rc => ({ ...rc, productId: product.id })));
   }
 
   return product;
@@ -250,12 +261,17 @@ export async function softDelete(id: string): Promise<void> {
 export async function updateRegionalConfig(
   productId: string,
   regionCode: string,
-  data: Partial<NewProductRegionalConfig>,
+  data: Partial<NewProductRegionalConfig>
 ): Promise<ProductRegionalConfig> {
   const [existing] = await db
     .select()
     .from(productRegionalConfigs)
-    .where(and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, regionCode)))
+    .where(
+      and(
+        eq(productRegionalConfigs.productId, productId),
+        eq(productRegionalConfigs.regionCode, regionCode)
+      )
+    )
     .limit(1);
 
   if (!existing) throw new NotFoundError('Regional config not found');
@@ -263,7 +279,12 @@ export async function updateRegionalConfig(
   const [updated] = await db
     .update(productRegionalConfigs)
     .set({ ...data, updatedAt: new Date() })
-    .where(and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, regionCode)))
+    .where(
+      and(
+        eq(productRegionalConfigs.productId, productId),
+        eq(productRegionalConfigs.regionCode, regionCode)
+      )
+    )
     .returning();
 
   return updated;
@@ -275,6 +296,6 @@ export async function listBrands(): Promise<string[]> {
     .from(products)
     .where(isNotNull(products.brandName))
     .orderBy(products.brandName);
-  
+
   return rows.map(r => r.name).filter((name): name is string => Boolean(name));
 }

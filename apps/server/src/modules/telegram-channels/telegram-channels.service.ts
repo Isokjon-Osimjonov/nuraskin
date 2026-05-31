@@ -24,9 +24,9 @@ export async function addChannel(input: CreateTelegramChannelInput, adminId: str
 export async function testConnection(chatId: string) {
   try {
     const chat = await bot.api.getChat(chatId);
-    return { 
-      ok: true, 
-      title: 'title' in chat ? chat.title : (chat as any).first_name || 'Group' 
+    return {
+      ok: true,
+      title: 'title' in chat ? chat.title : (chat as any).first_name || 'Group',
     };
   } catch (error: any) {
     return { ok: false, error: error.message };
@@ -36,7 +36,7 @@ export async function testConnection(chatId: string) {
 export async function toggleActive(id: string) {
   const channel = await repository.findById(id);
   if (!channel) throw new NotFoundError('Channel not found');
-  
+
   return await repository.update(id, { isActive: !channel.isActive });
 }
 

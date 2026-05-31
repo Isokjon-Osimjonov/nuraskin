@@ -20,10 +20,18 @@ export const settings = pgTable('settings', {
   adminCardHolder: varchar('admin_card_holder', { length: 100 }),
   adminCardBank: varchar('admin_card_bank', { length: 100 }),
   adminPhone: varchar('admin_phone', { length: 50 }),
-  minOrderUzbUzs: bigint('min_order_uzb_uzs', { mode: 'bigint' }).notNull().default(sql`0`),
-  minOrderKorKrw: bigint('min_order_kor_krw', { mode: 'bigint' }).notNull().default(sql`0`),
-  freeShippingThresholdKrw: bigint('free_shipping_threshold_krw', { mode: 'bigint' }).notNull().default(sql`200000`),
-  standardShippingFeeKrw: bigint('standard_shipping_fee_krw', { mode: 'bigint' }).notNull().default(sql`3000`),
+  minOrderUzbUzs: bigint('min_order_uzb_uzs', { mode: 'bigint' })
+    .notNull()
+    .default(sql`0`),
+  minOrderKorKrw: bigint('min_order_kor_krw', { mode: 'bigint' })
+    .notNull()
+    .default(sql`0`),
+  freeShippingThresholdKrw: bigint('free_shipping_threshold_krw', { mode: 'bigint' })
+    .notNull()
+    .default(sql`200000`),
+  standardShippingFeeKrw: bigint('standard_shipping_fee_krw', { mode: 'bigint' })
+    .notNull()
+    .default(sql`3000`),
   paymentTimeoutMinutes: integer('payment_timeout_minutes').notNull().default(30),
   telegramUrl: varchar('telegram_url', { length: 200 }),
   instagramUrl: varchar('instagram_url', { length: 200 }),
@@ -34,17 +42,17 @@ export const settings = pgTable('settings', {
   korBankName: text('kor_bank_name'),
   korBankHolder: text('kor_bank_holder'),
   korBankNumber: text('kor_bank_number'),
-  
+
   korE9payEnabled: boolean('kor_e9pay_enabled').notNull().default(false),
   korE9payName: text('kor_e9pay_name'),
   korE9payAccount: text('kor_e9pay_account'),
-  
+
   // Uzbek payment methods
   uzbBankEnabled: boolean('uzb_bank_enabled').notNull().default(false),
   uzbBankName: text('uzb_bank_name'),
   uzbBankHolder: text('uzb_bank_holder'),
   uzbBankNumber: text('uzb_bank_number'),
-  
+
   uzbE9payEnabled: boolean('uzb_e9pay_enabled').notNull().default(false),
   uzbE9payName: text('uzb_e9pay_name'),
   uzbE9payAccount: text('uzb_e9pay_account'),
@@ -53,17 +61,21 @@ export const settings = pgTable('settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const exchangeRateSnapshots = pgTable('exchange_rate_snapshots', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  krwToUzs: integer('krw_to_uzs').notNull(),
-  cargoRateKrwPerKg: integer('cargo_rate_krw_per_kg').notNull(),
-  note: text('note'),
-  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => ({
-  createdByIdx: index('exchange_rate_snapshots_created_by_idx').on(t.createdBy),
-  createdAtIdx: index('exchange_rate_snapshots_created_at_idx').on(t.createdAt),
-}));
+export const exchangeRateSnapshots = pgTable(
+  'exchange_rate_snapshots',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    krwToUzs: integer('krw_to_uzs').notNull(),
+    cargoRateKrwPerKg: integer('cargo_rate_krw_per_kg').notNull(),
+    note: text('note'),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  t => ({
+    createdByIdx: index('exchange_rate_snapshots_created_by_idx').on(t.createdBy),
+    createdAtIdx: index('exchange_rate_snapshots_created_at_idx').on(t.createdAt),
+  })
+);
 
 export const korShippingTiers = pgTable('kor_shipping_tiers', {
   id: uuid('id').primaryKey().defaultRandom(),

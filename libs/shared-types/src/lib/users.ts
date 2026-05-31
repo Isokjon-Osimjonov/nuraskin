@@ -21,14 +21,16 @@ export const updateUserSchema = z.object({
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
-export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(8),
-  confirmPassword: z.string().min(8),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Parollar mos kelmadi",
-  path: ["confirmPassword"],
-});
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8),
+    confirmPassword: z.string().min(8),
+  })
+  .refine(data => data.newPassword === data.confirmPassword, {
+    message: 'Parollar mos kelmadi',
+    path: ['confirmPassword'],
+  });
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 

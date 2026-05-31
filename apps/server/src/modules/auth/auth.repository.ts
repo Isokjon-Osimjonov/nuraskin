@@ -16,9 +16,7 @@ export async function findByTelegramId(telegramId: bigint): Promise<TelegramUser
   return rows[0] ?? null;
 }
 
-export async function createTelegramUser(
-  data: NewTelegramUser,
-): Promise<TelegramUser> {
+export async function createTelegramUser(data: NewTelegramUser): Promise<TelegramUser> {
   const [row] = await db.insert(telegramUsers).values(data).returning();
   return row;
 }

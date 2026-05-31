@@ -16,11 +16,14 @@ export const users = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => ({
+  t => ({
     emailIdx: index('users_email_idx').on(t.email),
     roleIdx: index('users_role_idx').on(t.role),
-    roleCheck: check('users_role_check', sql`${t.role} IN ('SUPER_ADMIN', 'ADMIN', 'WAREHOUSE', 'VIEWER')`),
-  }),
+    roleCheck: check(
+      'users_role_check',
+      sql`${t.role} IN ('SUPER_ADMIN', 'ADMIN', 'WAREHOUSE', 'VIEWER')`
+    ),
+  })
 );
 
 export type User = typeof users.$inferSelect;

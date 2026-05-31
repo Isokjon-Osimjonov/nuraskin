@@ -2,8 +2,14 @@ import { useEffect } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
 import {
-  Mail, LogOut, ShoppingBag, Settings, ChevronRight,
-  Ticket, MapPin, Bell,
+  Mail,
+  LogOut,
+  ShoppingBag,
+  Settings,
+  ChevronRight,
+  Ticket,
+  MapPin,
+  Bell,
 } from 'lucide-react';
 
 export const Route = createFileRoute('/_protected/profile')({
@@ -29,8 +35,18 @@ function Profile() {
   const displayEmail = user.email || (user.username ? `@${user.username}` : '');
 
   const menuItems = [
-    { icon: ShoppingBag, label: 'Buyurtmalarim', desc: "Barcha buyurtmalarni ko'rish", href: '/orders' },
-    { icon: Bell, label: "Kutish ro'yxati", desc: 'Omborda yo\'q mahsulotlar', href: '/waiting-list' },
+    {
+      icon: ShoppingBag,
+      label: 'Buyurtmalarim',
+      desc: "Barcha buyurtmalarni ko'rish",
+      href: '/orders',
+    },
+    {
+      icon: Bell,
+      label: "Kutish ro'yxati",
+      desc: "Omborda yo'q mahsulotlar",
+      href: '/waiting-list',
+    },
     { icon: Ticket, label: 'Kuponlarim', desc: 'Chegirma kuponlari', href: '/coupons' },
     { icon: MapPin, label: 'Manzillarim', desc: 'Yetkazib berish manzillari', href: '/addresses' },
     { icon: Settings, label: 'Sozlamalar', desc: 'Hisob sozlamalari', href: '/settings' },
@@ -64,7 +80,9 @@ function Profile() {
           {menuItems.map((item, i) => (
             <Link
               key={item.label}
-              to={item.href as "/orders" | "/waiting-list" | "/coupons" | "/addresses" | "/settings"}
+              to={
+                item.href as '/orders' | '/waiting-list' | '/coupons' | '/addresses' | '/settings'
+              }
               className={`flex items-center gap-4 px-8 py-5 hover:bg-stone-100 transition-colors ${
                 i !== menuItems.length - 1 ? 'border-b border-stone-200' : ''
               }`}

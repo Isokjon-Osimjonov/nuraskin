@@ -11,7 +11,7 @@ export const telegramScheduleQueue = new Queue('telegram-schedule', {
 
 export const telegramWorker = new Worker(
   'telegram-schedule',
-  async (job) => {
+  async job => {
     const { postId } = job.data;
     logger.info({ postId }, 'Processing scheduled telegram post');
     await telegramPostsService.sendPost(postId);

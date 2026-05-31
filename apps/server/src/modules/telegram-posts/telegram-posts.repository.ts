@@ -1,16 +1,25 @@
-import { db, telegramPosts, telegramPostChannels, telegramChannels, products } from '@nuraskin/database';
-import { eq, and, sql, desc, isNull, inArray } from 'drizzle-orm';
+import {
+  db,
+  telegramPosts,
+  telegramPostChannels,
+  telegramChannels,
+  products,
+} from '@nuraskin/database';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import type { NewTelegramPost, TelegramPost, NewTelegramPostChannel } from '@nuraskin/database';
 
 export async function create(postData: NewTelegramPost, channelIds: string[]) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const payload = {
       ...postData,
       scheduledAt: postData.scheduledAt ? new Date(postData.scheduledAt as any) : null,
       sentAt: postData.sentAt ? new Date(postData.sentAt as any) : null,
     };
-    
-    const [post] = await tx.insert(telegramPosts).values(payload as any).returning();
+
+    const [post] = await tx
+      .insert(telegramPosts)
+      .values(payload as any)
+      .returning();
     if (!post) throw new Error('Failed to create post');
 
     if (channelIds.length > 0) {
@@ -31,10 +40,14 @@ export async function update(id: string, data: Partial<TelegramPost>) {
     ...data,
     scheduledAt: data.scheduledAt ? new Date(data.scheduledAt as any) : null,
     sentAt: data.sentAt ? new Date(data.sentAt as any) : null,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
-  
-  const [row] = await db.update(telegramPosts).set(payload as any).where(eq(telegramPosts.id, id)).returning();
+
+  const [row] = await db
+    .update(telegramPosts)
+    .set(payload as any)
+    .where(eq(telegramPosts.id, id))
+    .returning();
   return row;
 }
 
@@ -80,7 +93,11 @@ export async function findAll(filters: { status?: string; page: number; limit: n
 }
 
 export async function findPostStatus(id: string) {
-  const [post] = await db.select({ status: telegramPosts.status }).from(telegramPosts).where(eq(telegramPosts.id, id)).limit(1);
+  const [post] = await db
+    .select({ status: telegramPosts.status })
+    .from(telegramPosts)
+    .where(eq(telegramPosts.id, id))
+    .limit(1);
   return post || null;
 }
 
@@ -115,11 +132,17 @@ export async function findById(id: string) {
   };
 }
 
-export async function updatePostChannel(postId: string, channelId: string, data: { status: string; messageId?: bigint; sentAt?: Date }) {
+export async function updatePostChannel(
+  postId: string,
+  channelId: string,
+  data: { status: string; messageId?: bigint; sentAt?: Date }
+) {
   await db
     .update(telegramPostChannels)
     .set(data)
-    .where(and(eq(telegramPostChannels.postId, postId), eq(telegramPostChannels.channelId, channelId)));
+    .where(
+      and(eq(telegramPostChannels.postId, postId), eq(telegramPostChannels.channelId, channelId))
+    );
 }
 
 export async function remove(id: string) {

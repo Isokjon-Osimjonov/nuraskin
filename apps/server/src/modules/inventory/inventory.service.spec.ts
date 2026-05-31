@@ -28,7 +28,7 @@ describe('InventoryService', () => {
       });
 
       const result = await repository.deductFIFO(productId, 15);
-      
+
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ batchId: 'batch-1', quantity: 10 });
       expect(result[1]).toEqual({ batchId: 'batch-2', quantity: 5 });
@@ -57,15 +57,20 @@ describe('InventoryService', () => {
       };
 
       vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
-      vi.mocked(repository.updateBatch).mockResolvedValue({ ...mockBatch, batchRef: 'new-ref' } as any);
+      vi.mocked(repository.updateBatch).mockResolvedValue({
+        ...mockBatch,
+        batchRef: 'new-ref',
+      } as any);
 
       const result = await inventoryService.updateBatch(batchId, { batch_ref: 'new-ref' }, adminId);
 
-      expect(repository.updateBatch).toHaveBeenCalledWith(
-        batchId,
-        { batchRef: 'new-ref' },
-        [expect.objectContaining({ fieldChanged: 'batch_ref', oldValue: 'old-ref', newValue: 'new-ref' })]
-      );
+      expect(repository.updateBatch).toHaveBeenCalledWith(batchId, { batchRef: 'new-ref' }, [
+        expect.objectContaining({
+          fieldChanged: 'batch_ref',
+          oldValue: 'old-ref',
+          newValue: 'new-ref',
+        }),
+      ]);
     });
 
     it('should throw error when changing initialQty if stock was already sold', async () => {
@@ -78,8 +83,9 @@ describe('InventoryService', () => {
 
       vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
 
-      await expect(inventoryService.updateBatch(batchId, { initial_qty: 110 }, 'admin-1'))
-        .rejects.toThrow("Sotilgan partiyaning dastlabki miqdorini o'zgartirib bo'lmaydi");
+      await expect(
+        inventoryService.updateBatch(batchId, { initial_qty: 110 }, 'admin-1')
+      ).rejects.toThrow("Sotilgan partiyaning dastlabki miqdorini o'zgartirib bo'lmaydi");
     });
   });
 
@@ -95,7 +101,11 @@ describe('InventoryService', () => {
 
       vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
 
-      await inventoryService.adjustQuantity(batchId, { adjustment: 10, reason: 'Found more' }, adminId);
+      await inventoryService.adjustQuantity(
+        batchId,
+        { adjustment: 10, reason: 'Found more' },
+        adminId
+      );
 
       expect(repository.adjustBatchQuantity).toHaveBeenCalledWith(
         batchId,
@@ -115,8 +125,9 @@ describe('InventoryService', () => {
 
       vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
 
-      await expect(inventoryService.adjustQuantity(batchId, { adjustment: -10, reason: 'Lost' }, 'admin-1'))
-        .rejects.toThrow("Miqdor manfiy bo'la olmaydi");
+      await expect(
+        inventoryService.adjustQuantity(batchId, { adjustment: -10, reason: 'Lost' }, 'admin-1')
+      ).rejects.toThrow("Miqdor manfiy bo'la olmaydi");
     });
   });
 
@@ -147,8 +158,9 @@ describe('InventoryService', () => {
 
       vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
 
-      await expect(inventoryService.deleteBatch(batchId))
-        .rejects.toThrow("Foydalanilgan partiyani o'chirib bo'lmaydi");
+      await expect(inventoryService.deleteBatch(batchId)).rejects.toThrow(
+        "Foydalanilgan partiyani o'chirib bo'lmaydi"
+      );
     });
   });
 });

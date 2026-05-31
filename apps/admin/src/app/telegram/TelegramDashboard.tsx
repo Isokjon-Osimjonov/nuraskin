@@ -1,4 +1,4 @@
-import { formatDate, formatDateTime } from '@nuraskin/shared-utils';
+import { formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { telegramApi } from './api/telegram.api';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Send, Clock, AlertCircle, Radio, Eye } from 'lucide-react';
-import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DataTable,
@@ -17,7 +16,7 @@ import {
   DataTableRow,
   DataTableHead,
   DataTableCell,
-  DataTableEmpty
+  DataTableEmpty,
 } from '@/components/ui/DataTable';
 import { TablePagination } from '@/components/ui/TablePagination';
 
@@ -52,11 +51,36 @@ export function TelegramDashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'SENT': return <Badge variant="success" className="rounded-full">Yuborildi</Badge>;
-      case 'SCHEDULED': return <Badge className="bg-blue-500 hover:bg-blue-500 border-none rounded-full">Rejalashtirildi</Badge>;
-      case 'FAILED': return <Badge variant="destructive" className="rounded-full">Xatolik</Badge>;
-      case 'DRAFT': return <Badge variant="secondary" className="rounded-full">Qoralama</Badge>;
-      default: return <Badge variant="outline" className="rounded-full">{status}</Badge>;
+      case 'SENT':
+        return (
+          <Badge variant="success" className="rounded-full">
+            Yuborildi
+          </Badge>
+        );
+      case 'SCHEDULED':
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-500 border-none rounded-full">
+            Rejalashtirildi
+          </Badge>
+        );
+      case 'FAILED':
+        return (
+          <Badge variant="destructive" className="rounded-full">
+            Xatolik
+          </Badge>
+        );
+      case 'DRAFT':
+        return (
+          <Badge variant="secondary" className="rounded-full">
+            Qoralama
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="rounded-full">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -138,11 +162,21 @@ export function TelegramDashboard() {
             {postsLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <DataTableRow key={i}>
-                  <DataTableCell><Skeleton className="h-4 w-[150px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[80px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-6 w-[80px] rounded-full" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[100px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-8 w-8 ml-auto rounded" /></DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[80px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-6 w-[80px] rounded-full" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-8 w-8 ml-auto rounded" />
+                  </DataTableCell>
                 </DataTableRow>
               ))
             ) : posts.length === 0 ? (
@@ -150,16 +184,27 @@ export function TelegramDashboard() {
             ) : (
               posts.map((post: any) => (
                 <DataTableRow key={post.id}>
-                  <DataTableCell className="font-medium text-stone-900">{post.productName || '—'}</DataTableCell>
-                  <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">{post.postType}</DataTableCell>
+                  <DataTableCell className="font-medium text-stone-900">
+                    {post.productName || '—'}
+                  </DataTableCell>
+                  <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">
+                    {post.postType}
+                  </DataTableCell>
                   <DataTableCell>{getStatusBadge(post.status)}</DataTableCell>
                   <DataTableCell className="text-sm text-stone-500">
-                    {post.sentAt ? formatDateTime(post.sentAt) : 
-                     post.scheduledAt ? formatDateTime(post.scheduledAt) : 
-                     formatDateTime(post.createdAt)}
+                    {post.sentAt
+                      ? formatDateTime(post.sentAt)
+                      : post.scheduledAt
+                        ? formatDateTime(post.scheduledAt)
+                        : formatDateTime(post.createdAt)}
                   </DataTableCell>
                   <DataTableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="text-stone-400 hover:text-stone-900" asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-stone-400 hover:text-stone-900"
+                      asChild
+                    >
                       <Link to="/telegram/posts/$postId" params={{ postId: post.id }}>
                         <Eye className="h-4 w-4" />
                       </Link>
@@ -172,12 +217,12 @@ export function TelegramDashboard() {
         </DataTable>
 
         {!postsLoading && (
-          <TablePagination 
-            currentPage={page} 
-            totalPages={totalPages} 
-            pageSize={limit} 
-            onPageChange={handlePageChange} 
-            onPageSizeChange={handlePageSizeChange} 
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            pageSize={limit}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         )}
       </div>

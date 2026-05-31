@@ -8,7 +8,8 @@ export async function getSettings() {
 
 export async function updateSettings(input: UpdateSettingsInput) {
   const data: any = {};
-  if (input.debtLimitDefault !== undefined) data.debtLimitDefault = BigInt(Math.round(input.debtLimitDefault)); 
+  if (input.debtLimitDefault !== undefined)
+    data.debtLimitDefault = BigInt(Math.round(input.debtLimitDefault));
   if (input.lowStockThreshold !== undefined) data.lowStockThreshold = input.lowStockThreshold;
   if (input.adminCardNumber !== undefined) data.adminCardNumber = input.adminCardNumber;
   if (input.adminCardHolder !== undefined) data.adminCardHolder = input.adminCardHolder;
@@ -17,7 +18,8 @@ export async function updateSettings(input: UpdateSettingsInput) {
   if (input.telegramUrl !== undefined) data.telegramUrl = input.telegramUrl;
   if (input.instagramUrl !== undefined) data.instagramUrl = input.instagramUrl;
   if (input.websiteUrl !== undefined) data.websiteUrl = input.websiteUrl;
-  if (input.paymentTimeoutMinutes !== undefined) data.paymentTimeoutMinutes = input.paymentTimeoutMinutes;
+  if (input.paymentTimeoutMinutes !== undefined)
+    data.paymentTimeoutMinutes = input.paymentTimeoutMinutes;
 
   if (input.korBankEnabled !== undefined) data.korBankEnabled = input.korBankEnabled;
   if (input.korBankName !== undefined) data.korBankName = input.korBankName;
@@ -34,29 +36,31 @@ export async function updateSettings(input: UpdateSettingsInput) {
   if (input.uzbE9payEnabled !== undefined) data.uzbE9payEnabled = input.uzbE9payEnabled;
   if (input.uzbE9payName !== undefined) data.uzbE9payName = input.uzbE9payName;
   if (input.uzbE9payAccount !== undefined) data.uzbE9payAccount = input.uzbE9payAccount;
-  
+
   // These are inputs from admin in whole units (som / KRW).
   // For UZS we convert to minor units (tiyin).
   // For KRW we keep as whole units.
-  if (input.minOrderUzbUzs !== undefined) data.minOrderUzbUzs = BigInt(Math.round(input.minOrderUzbUzs * 100));
-  if (input.minOrderKorKrw !== undefined) data.minOrderKorKrw = BigInt(Math.round(input.minOrderKorKrw));
+  if (input.minOrderUzbUzs !== undefined)
+    data.minOrderUzbUzs = BigInt(Math.round(input.minOrderUzbUzs * 100));
+  if (input.minOrderKorKrw !== undefined)
+    data.minOrderKorKrw = BigInt(Math.round(input.minOrderKorKrw));
 
   return await repository.update(data);
 }
 
 // Delegate shipping tiers to storefront service (where logic resides)
 export async function listShippingTiers() {
-    return await storefrontService.listShippingTiers();
+  return await storefrontService.listShippingTiers();
 }
 
 export async function createShippingTier(input: KorShippingTierInput) {
-    return await storefrontService.createShippingTier(input);
+  return await storefrontService.createShippingTier(input);
 }
 
 export async function updateShippingTier(id: string, input: Partial<KorShippingTierInput>) {
-    return await storefrontService.updateShippingTier(id, input);
+  return await storefrontService.updateShippingTier(id, input);
 }
 
 export async function deleteShippingTier(id: string) {
-    return await storefrontService.deleteShippingTier(id);
+  return await storefrontService.deleteShippingTier(id);
 }

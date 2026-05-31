@@ -18,8 +18,7 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
 
   const { data: categories = [] } = useQuery({
     queryKey: queryKeys.categories.all(),
-    queryFn: () =>
-      api.get<CategoryResponse[]>('/categories'),
+    queryFn: () => api.get<CategoryResponse[]>('/categories'),
   });
 
   const createMutation = useMutation({
@@ -41,12 +40,12 @@ export function ProductCreatePage({ prefilledBarcode }: ProductCreatePageProps) 
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Add New Product</h1>
       </div>
-      
+
       <div className="bg-card rounded-lg border p-6">
         <ProductFormPage
           prefilledBarcode={prefilledBarcode}
           categories={categories}
-          onSubmit={(data) => createMutation.mutate(data)}
+          onSubmit={data => createMutation.mutate(data)}
           isSubmitting={createMutation.isPending}
         />
       </div>

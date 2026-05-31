@@ -20,10 +20,8 @@ export function usePromotions() {
 
   // Filter by region: show if regionCode is null, ALL,
   // or matches current region
-  const filtered = data.filter(p =>
-    !p.regionCode ||
-    p.regionCode === 'ALL' ||
-    p.regionCode === region
+  const filtered = data.filter(
+    p => !p.regionCode || p.regionCode === 'ALL' || p.regionCode === region
   );
 
   return { promotions: filtered, region };

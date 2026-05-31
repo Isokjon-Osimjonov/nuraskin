@@ -1,12 +1,10 @@
 import { api } from '@/lib/api';
-import type { 
-  SettingsResponse, 
+import type {
+  SettingsResponse,
   UpdateSettingsInput,
   KorShippingTierResponse,
-  KorShippingTierInput
+  KorShippingTierInput,
 } from '@nuraskin/shared-types';
-
-
 
 export const settingsApi = {
   get: (): Promise<SettingsResponse> => api.get<any>('/settings'),
@@ -14,15 +12,17 @@ export const settingsApi = {
     api.patch<any>('/settings', data),
 
   // Korea Shipping Tiers
-  listShippingTiers: (): Promise<KorShippingTierResponse[]> => 
+  listShippingTiers: (): Promise<KorShippingTierResponse[]> =>
     api.get<any>('/settings/shipping-tiers'),
-  
+
   createShippingTier: (data: KorShippingTierInput): Promise<KorShippingTierResponse> =>
     api.post<any>('/settings/shipping-tiers', data),
-  
-  updateShippingTier: (id: string, data: Partial<KorShippingTierInput>): Promise<KorShippingTierResponse> =>
-    api.patch<any>(`/settings/shipping-tiers/${id}`, data),
-  
+
+  updateShippingTier: (
+    id: string,
+    data: Partial<KorShippingTierInput>
+  ): Promise<KorShippingTierResponse> => api.patch<any>(`/settings/shipping-tiers/${id}`, data),
+
   deleteShippingTier: (id: string): Promise<void> =>
     api.delete<any>(`/settings/shipping-tiers/${id}`),
 };

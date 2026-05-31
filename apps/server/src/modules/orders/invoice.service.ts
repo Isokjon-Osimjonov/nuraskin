@@ -32,7 +32,9 @@ export function generateInvoiceHtml(data: InvoiceData): string {
   const region = data.regionCode;
   const dateStr = format(data.createdAt, 'dd MMM yyyy, HH:mm');
 
-  const itemsHtml = data.items.map(item => `
+  const itemsHtml = data.items
+    .map(
+      item => `
     <tr style="border-bottom: 0.5px solid #eee;">
       <td style="padding: 8px; text-align: left;">
         <div style="font-size: 12px; font-weight: 500; color: #000;">${item.name}</div>
@@ -45,7 +47,9 @@ export function generateInvoiceHtml(data: InvoiceData): string {
       </td>
       <td style="padding: 8px; text-align: right; font-size: 12px; font-weight: 500;">${formatPrice(item.subtotal, region)}</td>
     </tr>
-  `).join('');
+  `
+    )
+    .join('');
 
   const totalDelivery = Number(data.cargoFee) + Number(data.deliveryFeeCharged);
 
@@ -198,28 +202,40 @@ export function generateInvoiceHtml(data: InvoiceData): string {
                 <span>${formatPrice(data.subtotal, region)}</span>
             </div>
             
-            ${data.couponCode && Number(data.couponDiscount) > 0 ? `
+            ${
+              data.couponCode && Number(data.couponDiscount) > 0
+                ? `
             <div class="total-row savings">
                 <span>Kupon (${data.couponCode})</span>
                 <span>-${formatPrice(data.couponDiscount!, region)}</span>
-            </div>` : ''}
+            </div>`
+                : ''
+            }
 
-            ${Number(data.wholesaleDiscount) > 0 ? `
+            ${
+              Number(data.wholesaleDiscount) > 0
+                ? `
             <div class="total-row savings">
                 <span>Ulgurji chegirma</span>
                 <span>-${formatPrice(data.wholesaleDiscount!, region)}</span>
-            </div>` : ''}
+            </div>`
+                : ''
+            }
 
             <div class="total-row">
                 <span>Kargo</span>
                 <span>${formatPrice(data.cargoFee, region)}</span>
             </div>
 
-            ${Number(data.deliveryFeeCharged) > 0 ? `
+            ${
+              Number(data.deliveryFeeCharged) > 0
+                ? `
             <div class="total-row">
                 <span>Yetkazib berish (ichki)</span>
                 <span>${formatPrice(data.deliveryFeeCharged, region)}</span>
-            </div>` : ''}
+            </div>`
+                : ''
+            }
 
             <div class="total-row main">
                 <span>JAMI</span>

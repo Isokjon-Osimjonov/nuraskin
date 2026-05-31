@@ -5,16 +5,20 @@ import { eq, asc } from 'drizzle-orm';
  * UZB pricing logic:
  * productUzs = priceKrw × krwToUzs
  * cargoUzs = (weightGrams / 1000) × cargoRateKrwPerKg × krwToUzs
- * 
+ *
  * INPUTS: priceKrw (whole KRW), weightGrams (integer)
  * OUTPUTS: Values in UZS minor units (tiyin, multiplied by 100)
  * Rounded to nearest 1,000 UZS (which is 100,000 in minor units)
  */
-export function calculateUzbPrice(priceKrw: bigint, weightGrams: number, rate: { krwToUzs: number; cargoRateKrwPerKg: number }) {
+export function calculateUzbPrice(
+  priceKrw: bigint,
+  weightGrams: number,
+  rate: { krwToUzs: number; cargoRateKrwPerKg: number }
+) {
   const krwToUzs = BigInt(rate.krwToUzs);
   const cargoRateKrw = BigInt(rate.cargoRateKrwPerKg);
 
-  // KRW is whole units in DB. 
+  // KRW is whole units in DB.
   // To get UZS minor units (tiyin), we multiply by krwToUzs and then by 100.
   const productUzsMinor = priceKrw * krwToUzs * 100n;
 
@@ -22,7 +26,8 @@ export function calculateUzbPrice(priceKrw: bigint, weightGrams: number, rate: {
   const cargoUzsMinor = (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
 
   // Rounding helper (nearest 1,000 UZS = 100,000 minor units)
-  const round1000UZS = (val: bigint) => (val / 100000n) * 100000n + (val % 100000n >= 50000n ? 100000n : 0n);
+  const round1000UZS = (val: bigint) =>
+    (val / 100000n) * 100000n + (val % 100000n >= 50000n ? 100000n : 0n);
 
   return {
     productPrice: round1000UZS(productUzsMinor),
@@ -33,7 +38,7 @@ export function calculateUzbPrice(priceKrw: bigint, weightGrams: number, rate: {
 /**
  * KOR pricing logic:
  * productKrw = priceKrw
- * 
+ *
  * INPUTS: priceKrw (whole KRW)
  * OUTPUTS: Values in whole KRW
  */

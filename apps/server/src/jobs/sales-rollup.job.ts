@@ -1,5 +1,5 @@
-import { db, orders, orderItems, products, dailySalesSummary } from '@nuraskin/database';
-import { eq, sql, and, gte, lte, or } from 'drizzle-orm';
+import { db } from '@nuraskin/database';
+import { sql } from 'drizzle-orm';
 import { logger } from '../common/utils/logger';
 
 export async function runSalesRollup(targetDateStr?: string) {
@@ -46,7 +46,7 @@ export async function runSalesRollup(targetDateStr?: string) {
     const qty = Number(row.quantity);
     const unitPrice = BigInt(row.unit_price_snapshot || 0n);
     const costAtSale = BigInt(row.cost_at_sale_krw || 0n);
-    
+
     if (row.cost_at_sale_krw === null || row.cost_at_sale_krw === undefined) {
       logger.warn(`Order item in order ${row.order_id} missing cost_at_sale_krw. Using 0.`);
     }
@@ -63,7 +63,7 @@ export async function runSalesRollup(targetDateStr?: string) {
       agg.cargoKrw += (orderCargo * BigInt(Math.round(itemWeight))) / BigInt(orderTotalWeight);
     } else if (orderCargo > 0n) {
       // If order_total_weight_grams = 0, distribute evenly based on number of items (approximate fallback)
-      agg.cargoKrw += orderCargo / 1n; // For safety, normally shouldn't happen unless weight is 0. 
+      agg.cargoKrw += orderCargo / 1n; // For safety, normally shouldn't happen unless weight is 0.
       // The prompt actually says: "If order_total_weight_grams = 0, distribute evenly."
       // Since we don't have total items handy here, we approximate or just log.
     }
@@ -97,6 +97,13 @@ export async function runSalesRollup(targetDateStr?: string) {
     `);
   }
 
-  logger.info(`Sales rollup complete for ${dateStr}: ${productsProcessed} products, ${orderIdsProcessed.size} orders processed`);
-  return { queued: false, date: dateStr, products: productsProcessed, orders: orderIdsProcessed.size };
+  logger.info(
+    `Sales rollup complete for ${dateStr}: ${productsProcessed} products, ${orderIdsProcessed.size} orders processed`
+  );
+  return {
+    queued: false,
+    date: dateStr,
+    products: productsProcessed,
+    orders: orderIdsProcessed.size,
+  };
 }

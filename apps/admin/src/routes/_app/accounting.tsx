@@ -2,41 +2,28 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { accountingApi } from '../../app/accounting/api/accounting.api';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { 
-  Button 
-} from '@/components/ui/button';
-import { 
-  Plus, 
-  Download, 
-  ChevronLeft, 
-  ChevronRight, 
-  CheckCircle, 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Plus,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
   ExternalLink,
   Loader2,
-  Eye
+  Eye,
 } from 'lucide-react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
   TableRow,
-  TableFooter
+  TableFooter,
 } from '@/components/ui/table';
-import { 
-  format, 
-  addMonths, 
-  subMonths, 
-  parseISO
-} from 'date-fns';
+import { format, addMonths, subMonths } from 'date-fns';
 import { uz } from 'date-fns/locale';
 import { AddExpenseSheet } from '../../app/accounting/components/AddExpenseSheet';
 import { ExpenseListDialog } from '../../app/accounting/components/ExpenseListDialog';
@@ -117,7 +104,7 @@ function AccountingPage() {
   const [isExpenseSheetOpen, setIsExpenseSheetOpen] = React.useState(false);
   const [defaultCategory, setDefaultCategory] = React.useState<string | undefined>();
   const [selectedExpense, setSelectedExpense] = React.useState<any>(null);
-  
+
   const [isListDialogOpen, setIsListDialogOpen] = React.useState(false);
   const [listCategory, setListCategory] = React.useState('');
   const [listCategoryLabel, setListCategoryLabel] = React.useState('');
@@ -131,7 +118,11 @@ function AccountingPage() {
   const startDate = `${year}-${monthNum}-01`;
   const endDate = new Date(Number(year), Number(monthNum), 0).toISOString().split('T')[0];
 
-  const { data: summary, isLoading, isError } = useQuery<AccountingSummary>({
+  const {
+    data: summary,
+    isLoading,
+    isError,
+  } = useQuery<AccountingSummary>({
     queryKey: ['accounting-summary', monthStr],
     queryFn: () => accountingApi.getSummary(monthStr),
   });
@@ -191,8 +182,8 @@ function AccountingPage() {
     );
   }
 
-  const inventoryItems = isInventoryExpanded 
-    ? summary.inventory.items 
+  const inventoryItems = isInventoryExpanded
+    ? summary.inventory.items
     : summary.inventory.items.slice(0, 10);
 
   return (
@@ -206,7 +197,7 @@ function AccountingPage() {
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" className="h-8 px-3 font-medium capitalize text-sm">
@@ -240,7 +231,11 @@ function AccountingPage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <Button variant="outline" className="flex-1 sm:flex-none h-9 text-xs" onClick={() => openExpenseSheet()}>
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none h-9 text-xs"
+              onClick={() => openExpenseSheet()}
+            >
               <Plus className="mr-2 h-3.5 w-3.5" /> Xarajat
             </Button>
             <Button className="flex-1 sm:flex-none h-9 text-xs" onClick={handleExport}>
@@ -254,13 +249,17 @@ function AccountingPage() {
       <Card className="overflow-hidden">
         <CardHeader className="bg-muted/30 border-b">
           <CardTitle>Daromad va zarar hisoboti</CardTitle>
-          <CardDescription>{format(selectedMonth, 'MMMM yyyy', { locale: uz })} davri uchun</CardDescription>
+          <CardDescription>
+            {format(selectedMonth, 'MMMM yyyy', { locale: uz })} davri uchun
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x border-b">
             {/* Left Column: Revenue */}
             <div className="p-6 space-y-4">
-              <h3 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Tushumlar</h3>
+              <h3 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
+                Tushumlar
+              </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
                   <span>Koreya savdosi (brutto)</span>
@@ -275,9 +274,14 @@ function AccountingPage() {
                   <span>Jami brutto daromad</span>
                   <span className="font-mono">{formatKrw(summary.gross_revenue.total_krw)}</span>
                 </div>
-                <div className="flex justify-between items-center text-[#dc2626]" title="Bu davr ichida berilgan jami kupon chegirmalari">
+                <div
+                  className="flex justify-between items-center text-[#dc2626]"
+                  title="Bu davr ichida berilgan jami kupon chegirmalari"
+                >
                   <span>Kupon chegirmalari</span>
-                  <span className="font-mono">-{formatKrw(summary.coupon_discounts.total_krw)}</span>
+                  <span className="font-mono">
+                    -{formatKrw(summary.coupon_discounts.total_krw)}
+                  </span>
                 </div>
                 <div className="h-px bg-border my-2" />
                 <div className="flex justify-between items-center text-lg font-bold">
@@ -307,23 +311,39 @@ function AccountingPage() {
 
             {/* Right Column: Expenses */}
             <div className="p-6 space-y-4 bg-muted/5">
-              <h3 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Operatsion xarajatlar</h3>
+              <h3 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
+                Operatsion xarajatlar
+              </h3>
               <div className="space-y-3 text-sm">
                 {[
-                  { label: 'Qadoqlash', value: summary.expenses.by_category.PACKAGING, cat: 'PACKAGING' },
-                  { label: 'Platforma to\'lovlari', value: summary.expenses.by_category.PLATFORM_FEE, cat: 'PLATFORM_FEE' },
-                  { label: 'Materiallar', value: summary.expenses.by_category.SUPPLIES, cat: 'SUPPLIES' },
+                  {
+                    label: 'Qadoqlash',
+                    value: summary.expenses.by_category.PACKAGING,
+                    cat: 'PACKAGING',
+                  },
+                  {
+                    label: "Platforma to'lovlari",
+                    value: summary.expenses.by_category.PLATFORM_FEE,
+                    cat: 'PLATFORM_FEE',
+                  },
+                  {
+                    label: 'Materiallar',
+                    value: summary.expenses.by_category.SUPPLIES,
+                    cat: 'SUPPLIES',
+                  },
                   { label: 'Ish haqi', value: summary.expenses.by_category.WAGES, cat: 'WAGES' },
                   { label: 'Boshqa', value: summary.expenses.by_category.OTHER, cat: 'OTHER' },
-                ].map((item) => (
+                ].map(item => (
                   <div key={item.cat} className="flex justify-between items-center group">
                     <span>{item.label}</span>
                     <div className="flex items-center gap-1">
-                      <span className="font-mono text-muted-foreground mr-1">{formatKrw(item.value)}</span>
-                      
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <span className="font-mono text-muted-foreground mr-1">
+                        {formatKrw(item.value)}
+                      </span>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => openExpenseSheet(item.cat)}
                         title="Yangi qo'shish"
@@ -332,9 +352,9 @@ function AccountingPage() {
                       </Button>
 
                       {Number(item.value) > 0 && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => openListDialog(item.cat, item.label)}
                           title="Batafsil ko'rish va tahrirlash"
@@ -346,20 +366,36 @@ function AccountingPage() {
                   </div>
                 ))}
 
-                <h4 className="font-medium text-xs text-muted-foreground mt-4 uppercase">Buyurtma xarajatlari</h4>
+                <h4 className="font-medium text-xs text-muted-foreground mt-4 uppercase">
+                  Buyurtma xarajatlari
+                </h4>
                 {[
-                  { label: 'Bepul yetkazish subsidiyasi', value: summary.expenses.order_linked.FREE_SHIPPING_SUBSIDY, cat: 'FREE_SHIPPING_SUBSIDY' },
-                  { label: 'Yuk oshiqchasi', value: summary.expenses.order_linked.CARGO_OVERAGE, cat: 'CARGO_OVERAGE' },
-                  { label: 'Boshqa', value: summary.expenses.order_linked.OTHER, cat: 'OTHER_ORDER_LINKED' },
-                ].map((item) => (
+                  {
+                    label: 'Bepul yetkazish subsidiyasi',
+                    value: summary.expenses.order_linked.FREE_SHIPPING_SUBSIDY,
+                    cat: 'FREE_SHIPPING_SUBSIDY',
+                  },
+                  {
+                    label: 'Yuk oshiqchasi',
+                    value: summary.expenses.order_linked.CARGO_OVERAGE,
+                    cat: 'CARGO_OVERAGE',
+                  },
+                  {
+                    label: 'Boshqa',
+                    value: summary.expenses.order_linked.OTHER,
+                    cat: 'OTHER_ORDER_LINKED',
+                  },
+                ].map(item => (
                   <div key={item.cat} className="flex justify-between items-center group">
                     <span>{item.label}</span>
                     <div className="flex items-center gap-1">
-                      <span className="font-mono text-muted-foreground mr-1">{formatKrw(item.value)}</span>
+                      <span className="font-mono text-muted-foreground mr-1">
+                        {formatKrw(item.value)}
+                      </span>
                       {Number(item.value) > 0 && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => openListDialog(item.cat, item.label, true)}
                           title="Batafsil ko'rish"
@@ -381,21 +417,25 @@ function AccountingPage() {
           </div>
 
           <div className="p-8 bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-             <div className="space-y-1">
-               <h2 className="text-3xl font-bold tracking-tight">Sof foyda</h2>
-               <p className="text-muted-foreground">Soliqlar va overhead xarajatlardan keyingi daromad</p>
-             </div>
-             <div className="text-right">
-               <div className={cn(
-                 "text-4xl font-extrabold font-mono",
-                 Number(summary.net_profit.total_krw) >= 0 ? "text-green-600" : "text-destructive"
-               )}>
-                 {formatKrw(summary.net_profit.total_krw)}
-               </div>
-               <div className="text-lg font-semibold text-muted-foreground mt-1">
-                 Marja: {formatPercent(summary.net_profit.margin_percent)}
-               </div>
-             </div>
+            <div className="space-y-1">
+              <h2 className="text-3xl font-bold tracking-tight">Sof foyda</h2>
+              <p className="text-muted-foreground">
+                Soliqlar va overhead xarajatlardan keyingi daromad
+              </p>
+            </div>
+            <div className="text-right">
+              <div
+                className={cn(
+                  'text-4xl font-extrabold font-mono',
+                  Number(summary.net_profit.total_krw) >= 0 ? 'text-green-600' : 'text-destructive'
+                )}
+              >
+                {formatKrw(summary.net_profit.total_krw)}
+              </div>
+              <div className="text-lg font-semibold text-muted-foreground mt-1">
+                Marja: {formatPercent(summary.net_profit.margin_percent)}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -425,16 +465,24 @@ function AccountingPage() {
                     <TableBody>
                       {inventoryItems.map((item, idx) => (
                         <TableRow key={idx}>
-                          <TableCell className="font-medium max-w-[200px] truncate">{item.product_name}</TableCell>
+                          <TableCell className="font-medium max-w-[200px] truncate">
+                            {item.product_name}
+                          </TableCell>
                           <TableCell className="text-right">{item.units_on_hand}</TableCell>
-                          <TableCell className="text-right font-mono text-xs">{formatKrw(item.cost_per_unit_krw)}</TableCell>
-                          <TableCell className="text-right font-mono font-semibold">{formatKrw(item.total_value_krw)}</TableCell>
+                          <TableCell className="text-right font-mono text-xs">
+                            {formatKrw(item.cost_per_unit_krw)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-semibold">
+                            {formatKrw(item.total_value_krw)}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                     <TableFooter>
                       <TableRow className="bg-muted/50">
-                        <TableCell colSpan={3} className="font-bold text-base">Jami</TableCell>
+                        <TableCell colSpan={3} className="font-bold text-base">
+                          Jami
+                        </TableCell>
                         <TableCell className="text-right font-mono font-bold text-base whitespace-nowrap">
                           {formatKrw(summary.inventory.grand_total_krw)}
                         </TableCell>
@@ -443,12 +491,12 @@ function AccountingPage() {
                   </Table>
                 </div>
                 {summary.inventory.items.length > 10 && (
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full text-xs h-8"
                     onClick={() => setIsInventoryExpanded(!isInventoryExpanded)}
                   >
-                    {isInventoryExpanded ? "Yopish" : "Ko'proq ko'rish"}
+                    {isInventoryExpanded ? 'Yopish' : "Ko'proq ko'rish"}
                   </Button>
                 )}
               </div>
@@ -478,9 +526,11 @@ function AccountingPage() {
                     {summary.outstanding_debt.customer_count} ta mijoz
                   </p>
                 </div>
-                <Button 
-                  className="w-full" 
-                  onClick={() => navigate({ to: '/customers', search: { filter: 'has_debt' } as any })}
+                <Button
+                  className="w-full"
+                  onClick={() =>
+                    navigate({ to: '/customers', search: { filter: 'has_debt' } as any })
+                  }
                 >
                   Mijozlarni ko'rish <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
@@ -494,13 +544,19 @@ function AccountingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Kuponlar statistikasi</CardTitle>
-          <CardDescription>Ushbu davrda ishlatilgan kuponlar va ular keltirgan daromad</CardDescription>
+          <CardDescription>
+            Ushbu davrda ishlatilgan kuponlar va ular keltirgan daromad
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isCouponsLoading ? (
-             <div className="py-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></div>
+            <div className="py-8 text-center">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+            </div>
           ) : couponsSummary.length === 0 ? (
-             <div className="py-8 text-center text-muted-foreground">Ushbu davrda kupon ishlatilmagan</div>
+            <div className="py-8 text-center text-muted-foreground">
+              Ushbu davrda kupon ishlatilmagan
+            </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">
               <Table>
@@ -519,22 +575,40 @@ function AccountingPage() {
                       <TableCell className="font-mono text-xs">{coupon.code}</TableCell>
                       <TableCell className="font-medium">{coupon.name}</TableCell>
                       <TableCell className="text-right">{coupon.usageCount} marta</TableCell>
-                      <TableCell className="text-right font-mono text-destructive">-{formatKrw(coupon.totalDiscountKrw)}</TableCell>
-                      <TableCell className="text-right font-mono font-semibold text-green-600">{formatKrw(coupon.revenueGeneratedKrw)}</TableCell>
+                      <TableCell className="text-right font-mono text-destructive">
+                        -{formatKrw(coupon.totalDiscountKrw)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-semibold text-green-600">
+                        {formatKrw(coupon.revenueGeneratedKrw)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
                 <TableFooter>
                   <TableRow className="bg-muted/50">
-                    <TableCell colSpan={2} className="font-bold text-base">Jami</TableCell>
+                    <TableCell colSpan={2} className="font-bold text-base">
+                      Jami
+                    </TableCell>
                     <TableCell className="text-right font-bold text-base">
-                      {couponsSummary.reduce((acc: number, curr: any) => acc + curr.usageCount, 0)} marta
+                      {couponsSummary.reduce((acc: number, curr: any) => acc + curr.usageCount, 0)}{' '}
+                      marta
                     </TableCell>
                     <TableCell className="text-right font-mono font-bold text-base text-destructive whitespace-nowrap">
-                      -{formatKrw(couponsSummary.reduce((acc: bigint, curr: any) => acc + BigInt(curr.totalDiscountKrw), 0n))}
+                      -
+                      {formatKrw(
+                        couponsSummary.reduce(
+                          (acc: bigint, curr: any) => acc + BigInt(curr.totalDiscountKrw),
+                          0n
+                        )
+                      )}
                     </TableCell>
                     <TableCell className="text-right font-mono font-bold text-base text-green-600 whitespace-nowrap">
-                      {formatKrw(couponsSummary.reduce((acc: bigint, curr: any) => acc + BigInt(curr.revenueGeneratedKrw), 0n))}
+                      {formatKrw(
+                        couponsSummary.reduce(
+                          (acc: bigint, curr: any) => acc + BigInt(curr.revenueGeneratedKrw),
+                          0n
+                        )
+                      )}
                     </TableCell>
                   </TableRow>
                 </TableFooter>
@@ -544,9 +618,9 @@ function AccountingPage() {
         </CardContent>
       </Card>
 
-      <AddExpenseSheet 
-        open={isExpenseSheetOpen} 
-        onOpenChange={setIsExpenseSheetOpen} 
+      <AddExpenseSheet
+        open={isExpenseSheetOpen}
+        onOpenChange={setIsExpenseSheetOpen}
         defaultCategory={defaultCategory}
         expense={selectedExpense}
       />

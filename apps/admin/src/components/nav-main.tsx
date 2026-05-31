@@ -1,6 +1,6 @@
-import { type LucideIcon } from "lucide-react"
-import { Link } from "@tanstack/react-router"
-import { cn } from "@/lib/utils"
+import { type LucideIcon } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { cn } from '@/lib/utils';
 
 import {
   SidebarGroup,
@@ -8,32 +8,32 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-  }[]
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+  }[];
 }) {
-  const { setOpenMobile, isMobile } = useSidebar()
+  const { setOpenMobile, isMobile } = useSidebar();
 
   return (
     <SidebarGroup>
       <SidebarMenu className="gap-2">
-        {items.map((item) => (
+        {items.map(item => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton tooltip={item.title} asChild size="lg">
               <Link
                 to={item.url}
-                activeOptions={{ exact: item.url === "/" }}
+                activeOptions={{ exact: item.url === '/' }}
                 className="group"
                 onClick={() => {
                   if (isMobile) {
-                    setOpenMobile(false)
+                    setOpenMobile(false);
                   }
                 }}
               >
@@ -42,19 +42,21 @@ export function NavMain({
                     {item.icon && (
                       <div
                         className={cn(
-                          "flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                          'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
                           isActive
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200"
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200'
                         )}
                       >
                         <item.icon className="size-5" />
                       </div>
                     )}
-                    <span className={cn(
-                      "font-medium transition-colors",
-                      isActive ? "text-primary" : "text-zinc-600"
-                    )}>
+                    <span
+                      className={cn(
+                        'font-medium transition-colors',
+                        isActive ? 'text-primary' : 'text-zinc-600'
+                      )}
+                    >
                       {item.title}
                     </span>
                   </>
@@ -65,5 +67,5 @@ export function NavMain({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

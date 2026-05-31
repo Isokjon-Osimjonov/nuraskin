@@ -38,7 +38,7 @@ interface AppState {
   addAddress: (address: Omit<Address, 'id'>) => void;
   removeAddress: (id: string) => void;
   setDefaultAddress: (id: string) => void;
-  
+
   favorites: any[];
   toggleFavorite: (product: any) => void;
 
@@ -63,56 +63,65 @@ export const useAppStore = create<AppState>()(
       user: null,
       isAuthenticated: false,
       setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false, favorites: [], addresses: [], selectedCouponCode: null }),
+      logout: () =>
+        set({
+          token: null,
+          user: null,
+          isAuthenticated: false,
+          favorites: [],
+          addresses: [],
+          selectedCouponCode: null,
+        }),
 
       // Coupon
       selectedCouponCode: null,
-      setSelectedCouponCode: (code) => set({ selectedCouponCode: code }),
+      setSelectedCouponCode: code => set({ selectedCouponCode: code }),
 
       // Region
       regionCode: null,
-      setRegion: (region) => {
+      setRegion: region => {
         set({ regionCode: region });
       },
       pendingRegion: null,
       showRegionConfirm: false,
-      setPendingRegion: (region) => set({ pendingRegion: region }),
-      setShowRegionConfirm: (show) => set({ showRegionConfirm: show }),
+      setPendingRegion: region => set({ pendingRegion: region }),
+      setShowRegionConfirm: show => set({ showRegionConfirm: show }),
 
       // Addresses
       addresses: [],
-      addAddress: (address) =>
-        set((state) => {
+      addAddress: address =>
+        set(state => {
           const newAddr = { ...address, id: Math.random().toString(36).substr(2, 9) };
           let newAddresses = [...state.addresses, newAddr];
           if (newAddr.isDefault) {
-            newAddresses = newAddresses.map((a) =>
+            newAddresses = newAddresses.map(a =>
               a.id === newAddr.id ? a : { ...a, isDefault: false }
             );
           }
           return { addresses: newAddresses };
         }),
-      removeAddress: (id) =>
-        set((state) => ({
-          addresses: state.addresses.filter((a) => a.id !== id),
+      removeAddress: id =>
+        set(state => ({
+          addresses: state.addresses.filter(a => a.id !== id),
         })),
-      setDefaultAddress: (id) =>
-        set((state) => ({
-          addresses: state.addresses.map((a) =>
+      setDefaultAddress: id =>
+        set(state => ({
+          addresses: state.addresses.map(a =>
             a.id === id ? { ...a, isDefault: true } : { ...a, isDefault: false }
           ),
         })),
 
       // Favorites
       favorites: [],
-      toggleFavorite: (product) => set((state) => {
-        const isFav = state.favorites.some((p) => p.id === product.id);
-        return {
-          favorites: isFav
-            ? state.favorites.filter((p) => p.id !== product.id)
-            : [...state.favorites, product]
-        };
-      }),
+      toggleFavorite: product =>
+        set(state => {
+          const isFav = state.favorites.some(p => p.id === product.id);
+          return {
+            favorites: isFav
+              ? state.favorites.filter(p => p.id !== product.id)
+              : [...state.favorites, product],
+          };
+        }),
     }),
     { name: STORAGE_KEYS.APP_STORE }
   )

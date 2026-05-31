@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react';
 import {
   LayoutDashboardIcon,
   PackageIcon,
@@ -14,12 +14,12 @@ import {
   BarChartIcon,
   RadioIcon,
   MailIcon,
-} from "lucide-react"
-import { useAuthStore } from "@/stores/auth.store"
-import { useShallow } from "zustand/shallow"
+} from 'lucide-react';
+import { useAuthStore } from '@/stores/auth.store';
+import { useShallow } from 'zustand/shallow';
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -28,114 +28,116 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 const navMain = [
   {
-    title: "Boshqaruv paneli",
-    url: "/",
+    title: 'Boshqaruv paneli',
+    url: '/',
     icon: LayoutDashboardIcon,
   },
   {
-    title: "Kategoriyalar",
-    url: "/categories",
+    title: 'Kategoriyalar',
+    url: '/categories',
     icon: TagsIcon,
   },
   {
-    title: "Mahsulotlar",
-    url: "/products",
+    title: 'Mahsulotlar',
+    url: '/products',
     icon: PackageIcon,
   },
   {
-    title: "Ombor",
-    url: "/inventory",
-    icon: PackageIcon, 
+    title: 'Ombor',
+    url: '/inventory',
+    icon: PackageIcon,
   },
   {
-    title: "Buyurtmalar",
-    url: "/orders/",
+    title: 'Buyurtmalar',
+    url: '/orders/',
     icon: ShoppingCartIcon,
     items: [
       {
-        title: "Barchasi",
-        url: "/orders/",
+        title: 'Barchasi',
+        url: '/orders/',
       },
       {
-        title: "Manual buyurtma",
-        url: "/orders/manual",
+        title: 'Manual buyurtma',
+        url: '/orders/manual',
       },
     ],
   },
   {
-    title: "Mijozlar",
-    url: "/customers",
+    title: 'Mijozlar',
+    url: '/customers',
     icon: UsersIcon,
   },
   {
-    title: "Jamoa",
-    url: "/settings/team",
+    title: 'Jamoa',
+    url: '/settings/team',
     icon: ShieldCheckIcon,
   },
   {
-    title: "Telegram",
-    url: "/telegram",
+    title: 'Telegram',
+    url: '/telegram',
     icon: SendIcon,
     items: [
       {
-        title: "Statistika",
-        url: "/telegram",
+        title: 'Statistika',
+        url: '/telegram',
         icon: BarChartIcon,
       },
       {
-        title: "Kanallar",
-        url: "/telegram/channels",
+        title: 'Kanallar',
+        url: '/telegram/channels',
         icon: RadioIcon,
       },
       {
-        title: "Yangi post",
-        url: "/telegram/posts/new",
+        title: 'Yangi post',
+        url: '/telegram/posts/new',
         icon: MailIcon,
       },
     ],
   },
   {
-    title: "Kuponlar",
-    url: "/coupons",
+    title: 'Kuponlar',
+    url: '/coupons',
     icon: TicketIcon,
   },
   {
-    title: "Sotuvlar",
-    url: "/sales",
+    title: 'Sotuvlar',
+    url: '/sales',
     icon: TrendingUpIcon,
   },
   {
-    title: "Buxgalteriya",
-    url: "/accounting",
+    title: 'Buxgalteriya',
+    url: '/accounting',
     icon: WalletIcon,
   },
   {
-    title: "Sozlamalar",
-    url: "/settings/",
+    title: 'Sozlamalar',
+    url: '/settings/',
     icon: SettingsIcon,
   },
   {
-    title: "Valyuta kurslari",
-    url: "/settings/rates",
+    title: 'Valyuta kurslari',
+    url: '/settings/rates',
     icon: TrendingUpIcon,
   },
   {
-    title: "Yetkazib berish",
-    url: "/settings/shipping-tiers",
+    title: 'Yetkazib berish',
+    url: '/settings/shipping-tiers',
     icon: ShoppingCartIcon,
   },
-]
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const user = useAuthStore(useShallow((s) => ({
-    name: (s.user as any)?.fullName || "Admin",
-    email: s.user?.email || "admin@nuraskin.uz",
-    avatar: "",
-  })))
+  const user = useAuthStore(
+    useShallow(s => ({
+      name: (s.user as any)?.fullName || 'Admin',
+      email: s.user?.email || 'admin@nuraskin.uz',
+      avatar: '',
+    }))
+  );
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -163,5 +165,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

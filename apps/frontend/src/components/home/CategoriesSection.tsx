@@ -17,9 +17,7 @@ export function CategoriesSection() {
         <div className="flex items-baseline justify-between mb-8">
           <div className="space-y-1">
             <p className={typography.sectionLabel}>Bo&apos;limlar</p>
-            <h2 className={typography.sectionTitle}>
-              Kategoriyalar
-            </h2>
+            <h2 className={typography.sectionTitle}>Kategoriyalar</h2>
           </div>
           <Link
             to="/products"
@@ -34,7 +32,10 @@ export function CategoriesSection() {
             /* Loading state — skeletons */
             <div className="flex gap-5 overflow-hidden">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="shrink-0 w-64 h-72 rounded-2xl bg-stone-100 animate-pulse" />
+                <div
+                  key={i}
+                  className="shrink-0 w-64 h-72 rounded-2xl bg-stone-100 animate-pulse"
+                />
               ))}
             </div>
           ) : activeCategories.length === 0 ? (
@@ -64,9 +65,7 @@ export function CategoriesSection() {
 
                   {/* Label bar */}
                   <div className="flex items-center justify-between px-5 py-4 border-t border-stone-100">
-                    <span className={typography.cardTitle}>
-                      {cat.name}
-                    </span>
+                    <span className={typography.cardTitle}>{cat.name}</span>
                     <span className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center group-hover:bg-[#4A1525] group-hover:text-white transition-colors duration-200 shrink-0">
                       <ArrowUpRight className="h-3.5 w-3.5" />
                     </span>

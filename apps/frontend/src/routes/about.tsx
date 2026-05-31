@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { ShieldCheck, Package, Truck, Layers, Building2 } from 'lucide-react';
+import { STORE_INFO } from '@nuraskin/shared-utils';
 
 export const Route = createFileRoute('/about')({
   component: AboutPage,
@@ -18,8 +19,8 @@ function AboutPage() {
               Koreya go'zallik sirlarini to'g'ridan-to'g'ri sizga yetkazamiz
             </h1>
             <p className="text-[#c49aaa] text-sm md:text-base max-w-[480px] mx-auto leading-relaxed">
-              Seoul markazidan Toshkentgacha — original mahsulotlar, adolatli
-              narxlar, ishonchli xizmat.
+              Seoul markazidan Toshkentgacha — original mahsulotlar, adolatli narxlar, ishonchli
+              xizmat.
             </p>
           </div>
           {/* Subtle background decoration */}
@@ -34,9 +35,7 @@ function AboutPage() {
             data-placeholder="true"
           >
             <Building2 size={48} strokeWidth={1} />
-            <span className="text-xs mt-2 font-normal tracking-wide">
-              Seoul do'koni rasmi
-            </span>
+            <span className="text-xs mt-2 font-normal tracking-wide">Seoul do'koni rasmi</span>
           </div>
 
           <div className="bg-white border border-[#f0d0d8] rounded-3xl p-8 md:p-10 flex flex-col justify-center">
@@ -45,13 +44,12 @@ function AboutPage() {
             </p>
             <div className="space-y-4">
               <p className="text-[15px] text-[#3A0311] leading-relaxed">
-                NuraSkin — Seulda joylashgan koreya kosmetika do'koni. Biz
-                O'zbekiston va Koreyadagi mijozlarga K-Beauty brendlarining
-                original mahsulotlarini bevosita yetkazib beramiz.
+                NuraSkin — Seulda joylashgan koreya kosmetika do'koni. Biz O'zbekiston va Koreyadagi
+                mijozlarga K-Beauty brendlarining original mahsulotlarini bevosita yetkazib beramiz.
               </p>
               <p className="text-[15px] text-[#3A0311] leading-relaxed">
-                Yakka xaridorlar uchun ham, ulgurji xaridorlar uchun ham qulay
-                sharoitlar yaratganmiz.
+                Yakka xaridorlar uchun ham, ulgurji xaridorlar uchun ham qulay sharoitlar
+                yaratganmiz.
               </p>
             </div>
           </div>
@@ -89,9 +87,7 @@ function AboutPage() {
               <h3 className="font-normal text-[13px] md:text-sm text-[#3A0311] mb-2 leading-tight">
                 {item.title}
               </h3>
-              <p className="text-[11px] text-stone-400 leading-relaxed">
-                {item.text}
-              </p>
+              <p className="text-[11px] text-stone-400 leading-relaxed">{item.text}</p>
             </div>
           ))}
         </div>
@@ -130,9 +126,7 @@ function AboutPage() {
                   <h3 className="font-normal text-sm md:text-base text-[#3A0311] mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-xs md:text-sm text-stone-500 leading-relaxed">
-                    {item.text}
-                  </p>
+                  <p className="text-xs md:text-sm text-stone-500 leading-relaxed">{item.text}</p>
                 </div>
               </div>
             ))}
@@ -143,7 +137,7 @@ function AboutPage() {
         <section className="bg-[#3A0311] rounded-3xl p-10 md:p-14 text-center mt-8">
           <p className="text-[#c49aaa] text-sm mb-2">Savollaringiz bormi?</p>
           <h2 className="text-white text-xl md:text-2xl font-normal mb-8">
-            Biz Telegram orqali doim aloqadamiz
+            Biz {STORE_INFO.SOCIAL.TELEGRAM.name} orqali doim aloqadamiz
           </h2>
           <a
             href="https://t.me/nuraskin_manager_bot"

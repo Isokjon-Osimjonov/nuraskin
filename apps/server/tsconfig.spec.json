@@ -6,10 +6,5 @@
     "moduleResolution": "node",
     "types": ["vitest/globals", "node"]
   },
-  "include": [
-    "vitest.config.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
-  ]
+  "include": ["vitest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts"]
 }

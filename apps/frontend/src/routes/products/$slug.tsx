@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Star, ChevronRight, Plus, Minus, ShoppingBag, ShieldCheck, Truck, Heart, Bell, BellOff, Info, CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import {
+  ChevronRight,
+  Plus,
+  Minus,
+  ShoppingBag,
+  ShieldCheck,
+  Truck,
+  Bell,
+  BellOff,
+} from 'lucide-react';
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
@@ -30,7 +39,7 @@ function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
 
   const isOnWaitlist = waitlistIds.includes(product?.id || '');
-  const isInCart = cartData?.items?.some((i) => i.productId === product?.id);
+  const isInCart = cartData?.items?.some(i => i.productId === product?.id);
 
   if (isLoading) {
     return (
@@ -51,13 +60,18 @@ function ProductPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <h2 className="text-xl font-light text-[#4A1525]">Mahsulot topilmadi</h2>
-        <Link to="/products" className="mt-4 text-stone-500 underline underline-offset-4">Katalogga qaytish</Link>
+        <Link to="/products" className="mt-4 text-stone-500 underline underline-offset-4">
+          Katalogga qaytish
+        </Link>
       </div>
     );
   }
 
   const handleWaitlistToggle = () => {
-    if (!isAuthenticated) { navigate({ to: '/login' }); return; }
+    if (!isAuthenticated) {
+      navigate({ to: '/login' });
+      return;
+    }
     if (isOnWaitlist) {
       removeWaitlist.mutate(product.id);
     } else {
@@ -65,17 +79,20 @@ function ProductPage() {
     }
   };
 
-  const displayPrice = (val: string) =>
-    formatPrice(val, regionCode as 'UZB' | 'KOR');
+  const displayPrice = (val: string) => formatPrice(val, regionCode as 'UZB' | 'KOR');
 
   return (
     <div className="bg-white min-h-screen pb-20">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 md:px-16 py-6 sm:py-10">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-[12px] text-stone-400 font-light mb-8 overflow-x-auto whitespace-nowrap pb-2 md:pb-0">
-          <Link to="/" className="hover:text-[#4A1525] transition-colors">Bosh sahifa</Link>
+          <Link to="/" className="hover:text-[#4A1525] transition-colors">
+            Bosh sahifa
+          </Link>
           <ChevronRight className="w-3 h-3" />
-          <Link to="/products" className="hover:text-[#4A1525] transition-colors">Katalog</Link>
+          <Link to="/products" className="hover:text-[#4A1525] transition-colors">
+            Katalog
+          </Link>
           <ChevronRight className="w-3 h-3" />
           <span className="text-stone-300">{product.categoryName}</span>
           <ChevronRight className="w-3 h-3" />
@@ -92,7 +109,7 @@ function ProductPage() {
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             {product.imageUrls.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
                 {product.imageUrls.map((img, i) => (
@@ -100,13 +117,15 @@ function ProductPage() {
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={cn(
-                      "shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
-                      activeImage === i
-                        ? "border-[#4A1525]"
-                        : "border-transparent"
+                      'shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors',
+                      activeImage === i ? 'border-[#4A1525]' : 'border-transparent'
                     )}
                   >
-                    <img src={img} className="w-full h-full object-cover" alt={`${product.name} thumbnail ${i}`} />
+                    <img
+                      src={img}
+                      className="w-full h-full object-cover"
+                      alt={`${product.name} thumbnail ${i}`}
+                    />
                   </button>
                 ))}
               </div>
@@ -117,15 +136,21 @@ function ProductPage() {
           <div className="w-full">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-[14px] text-stone-400 font-light tracking-wide mb-1 uppercase">{product.brandName}</p>
-                <h1 className="text-2xl md:text-3xl font-light text-[#4A1525] leading-tight">{product.name}</h1>
+                <p className="text-[14px] text-stone-400 font-light tracking-wide mb-1 uppercase">
+                  {product.brandName}
+                </p>
+                <h1 className="text-2xl md:text-3xl font-light text-[#4A1525] leading-tight">
+                  {product.name}
+                </h1>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 mb-8">
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl font-normal text-[#4A1525]">
-                  {quantity >= product.minWholesaleQty ? displayPrice(product.wholesalePrice) : displayPrice(product.calculatedPrice)}
+                  {quantity >= product.minWholesaleQty
+                    ? displayPrice(product.wholesalePrice)
+                    : displayPrice(product.calculatedPrice)}
                 </span>
                 {quantity >= product.minWholesaleQty && (
                   <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
@@ -133,13 +158,17 @@ function ProductPage() {
                   </span>
                 )}
                 {regionCode === 'UZB' && (
-                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-normal uppercase tracking-tight">Kargo ichida</span>
+                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-normal uppercase tracking-tight">
+                    Kargo ichida
+                  </span>
                 )}
               </div>
               <div className="flex flex-col gap-1 text-sm text-stone-500">
                 <p>1 ta: {displayPrice(product.calculatedPrice)}</p>
                 {Number(product.wholesalePrice) > 0 && product.minWholesaleQty > 1 && (
-                  <p>{product.minWholesaleQty}+ ta: {displayPrice(product.wholesalePrice)} (ulgurji)</p>
+                  <p>
+                    {product.minWholesaleQty}+ ta: {displayPrice(product.wholesalePrice)} (ulgurji)
+                  </p>
                 )}
               </div>
             </div>
@@ -147,11 +176,17 @@ function ProductPage() {
             {/* Stock Badge */}
             <div className="mb-4">
               {product.availableStock > 10 ? (
-                <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">MAVJUD</span>
+                <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                  MAVJUD
+                </span>
               ) : product.availableStock > 0 ? (
-                <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">Kam qoldi: {product.availableStock} ta</span>
+                <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
+                  Kam qoldi: {product.availableStock} ta
+                </span>
               ) : (
-                <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">Tugadi</span>
+                <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">
+                  Tugadi
+                </span>
               )}
             </div>
 
@@ -170,7 +205,7 @@ function ProductPage() {
                     <span className="font-normal text-lg w-8 text-center">{quantity}</span>
                     <button
                       onClick={() => {
-                        const cartItem = cartData?.items?.find((i) => i.productId === product.id);
+                        const cartItem = cartData?.items?.find(i => i.productId === product.id);
                         const currentCartQty = cartItem ? cartItem.quantity : 0;
                         if (currentCartQty + quantity >= product.availableStock) {
                           toast.warning(`Maksimal: ${product.availableStock} ta`);
@@ -187,11 +222,16 @@ function ProductPage() {
                   <button
                     className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-[#4A1525] text-white text-sm font-normal tracking-wide hover:opacity-90 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => {
-                      if (!isAuthenticated) { navigate({ to: '/login' }); return; }
-                      const cartItem = cartData?.items?.find((i) => i.productId === product.id);
+                      if (!isAuthenticated) {
+                        navigate({ to: '/login' });
+                        return;
+                      }
+                      const cartItem = cartData?.items?.find(i => i.productId === product.id);
                       const currentCartQty = cartItem ? cartItem.quantity : 0;
                       if (currentCartQty + quantity > product.availableStock) {
-                        toast.warning(`Savatchada allaqachon ${currentCartQty} ta bor. Maksimal: ${product.availableStock} ta`);
+                        toast.warning(
+                          `Savatchada allaqachon ${currentCartQty} ta bor. Maksimal: ${product.availableStock} ta`
+                        );
                         return;
                       }
 
@@ -203,7 +243,7 @@ function ProductPage() {
                     }}
                   >
                     <ShoppingBag className="w-4 h-4" />
-                    {isInCart ? 'Savatchada bor' : 'Savatchaga qo\'shish'}
+                    {isInCart ? 'Savatchada bor' : "Savatchaga qo'shish"}
                   </button>
                 </>
               ) : (
@@ -239,13 +279,17 @@ function ProductPage() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`pb-3 text-[13px] font-light tracking-wide transition-all relative ${
-                      activeTab === tab ? 'text-[#4A1525] font-normal' : 'text-stone-400 hover:text-stone-600'
+                      activeTab === tab
+                        ? 'text-[#4A1525] font-normal'
+                        : 'text-stone-400 hover:text-stone-600'
                     }`}
                   >
-                    {tab === 'info' && 'Ma\'lumot'}
-                    {tab === 'use' && 'Qo\'llash usuli'}
+                    {tab === 'info' && "Ma'lumot"}
+                    {tab === 'use' && "Qo'llash usuli"}
                     {tab === 'ingredients' && 'Tarkibi'}
-                    {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4A1525]" />}
+                    {activeTab === tab && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4A1525]" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -253,26 +297,39 @@ function ProductPage() {
               <div className="text-[14px] text-stone-500 font-light leading-relaxed min-h-[100px]">
                 {activeTab === 'info' && (
                   <div className="space-y-4">
-                    <p>{product.descriptionUz || 'Mahsulot haqida batafsil ma\'lumot tez orada qo\'shiladi.'}</p>
+                    <p>
+                      {product.descriptionUz ||
+                        "Mahsulot haqida batafsil ma'lumot tez orada qo'shiladi."}
+                    </p>
                     <div className="flex flex-wrap gap-2 pt-2">
                       {product.benefits.map((b, i) => (
-                        <span key={i} className="text-[11px] bg-[#f8f7f5] text-stone-600 px-3 py-1 rounded-full">{b}</span>
+                        <span
+                          key={i}
+                          className="text-[11px] bg-[#f8f7f5] text-stone-600 px-3 py-1 rounded-full"
+                        >
+                          {b}
+                        </span>
                       ))}
                     </div>
                   </div>
                 )}
                 {activeTab === 'use' && (
-                   <p>{product.howToUseUz || 'Qo\'llash bo\'yicha maxsus ko\'rsatmalar mavjud emas.'}</p>
+                  <p>
+                    {product.howToUseUz || "Qo'llash bo'yicha maxsus ko'rsatmalar mavjud emas."}
+                  </p>
                 )}
                 {activeTab === 'ingredients' && (
                   <div className="flex flex-wrap gap-2">
-                    {product.ingredients.length > 0 ? (
-                      product.ingredients.map((ing, i) => (
-                        <span key={i} className="text-[12px] text-stone-500 bg-stone-50 border border-stone-100 px-3 py-1 rounded-md">{ing}</span>
-                      ))
-                    ) : (
-                      'Tarkibi haqida ma\'lumot mavjud emas.'
-                    )}
+                    {product.ingredients.length > 0
+                      ? product.ingredients.map((ing, i) => (
+                          <span
+                            key={i}
+                            className="text-[12px] text-stone-500 bg-stone-50 border border-stone-100 px-3 py-1 rounded-md"
+                          >
+                            {ing}
+                          </span>
+                        ))
+                      : "Tarkibi haqida ma'lumot mavjud emas."}
                   </div>
                 )}
               </div>
@@ -286,7 +343,9 @@ function ProductPage() {
                 </div>
                 <div>
                   <h4 className="text-[12px] font-normal text-[#4A1525]">100% Original</h4>
-                  <p className="text-[10px] text-stone-400 font-light">Sertifikatlangan mahsulotlar</p>
+                  <p className="text-[10px] text-stone-400 font-light">
+                    Sertifikatlangan mahsulotlar
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -295,7 +354,9 @@ function ProductPage() {
                 </div>
                 <div>
                   <h4 className="text-[12px] font-normal text-[#4A1525]">Koreyadan</h4>
-                  <p className="text-[10px] text-stone-400 font-light">To'g'ridan-to'g'ri yetkazib berish</p>
+                  <p className="text-[10px] text-stone-400 font-light">
+                    To'g'ridan-to'g'ri yetkazib berish
+                  </p>
                 </div>
               </div>
             </div>

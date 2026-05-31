@@ -1,72 +1,61 @@
 import { api } from '@/lib/api';
-import { useState } from "react"
-import { useNavigate, useSearch } from "@tanstack/react-router"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Loader2 } from "lucide-react"
+import { useState } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuthStore } from "@/stores/auth.store"
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuthStore } from '@/stores/auth.store';
 
 const LoginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-})
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
 
-type LoginInput = z.infer<typeof LoginSchema>
+type LoginInput = z.infer<typeof LoginSchema>;
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
-  const [isPending, setIsPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const setAuth = useAuthStore((s) => s.setAuth)
-  const navigate = useNavigate()
-  const search = useSearch({ from: '/login' })
+export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const setAuth = useAuthStore(s => s.setAuth);
+  const navigate = useNavigate();
+  const search = useSearch({ from: '/login' });
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
-    defaultValues: { email: "", password: "" },
-  })
+    defaultValues: { email: '', password: '' },
+  });
 
   async function onSubmit(data: LoginInput) {
-    setIsPending(true)
-    setError(null)
+    setIsPending(true);
+    setError(null);
     try {
-      const json = await api.post<any>('/auth/login', data)
-      setAuth(json.token, json.user)
-      navigate({ to: search.redirect || "/" })
+      const json = await api.post<any>('/auth/login', data);
+      setAuth(json.token, json.user);
+      navigate({ to: search.redirect || '/' });
     } catch (err: any) {
       if (err?.status === 401) {
-        setError("Email yoki parol noto'g'ri")
+        setError("Email yoki parol noto'g'ri");
       } else {
-        setError(err.message || "Server xatosi yuz berdi")
+        setError(err.message || 'Server xatosi yuz berdi');
       }
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
+          <CardDescription>Enter your email below to login to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -82,12 +71,10 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  {...form.register("email")}
+                  {...form.register('email')}
                 />
                 {form.formState.errors.email && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.email.message}
-                  </p>
+                  <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
                 )}
               </div>
               <div className="grid gap-2">
@@ -100,7 +87,7 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" {...form.register("password")} />
+                <Input id="password" type="password" {...form.register('password')} />
                 {form.formState.errors.password && (
                   <p className="text-xs text-destructive">
                     {form.formState.errors.password.message}
@@ -116,7 +103,7 @@ export function LoginForm({
               </Button>
             </div>
             <div className="mt-4 text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
+              Don&apos;t have an account?{' '}
               <a href="#" className="underline underline-offset-4 hover:text-primary">
                 Sign up
               </a>
@@ -125,5 +112,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

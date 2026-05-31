@@ -47,9 +47,7 @@ function HeroPage() {
           className="absolute inset-x-0 flex justify-center pointer-events-none z-0 px-4"
           style={{ top: 'clamp(15%, 25%, 35%)' }}
         >
-          <span
-            className="font-normal text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100 text-[clamp(40px,12vw,180px)] tracking-tight"
-          >
+          <span className="font-normal text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100 text-[clamp(40px,12vw,180px)] tracking-tight">
             SKIN ESSENCE
           </span>
         </div>

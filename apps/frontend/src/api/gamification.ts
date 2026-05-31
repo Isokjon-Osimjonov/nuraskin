@@ -1,4 +1,3 @@
-import { api } from '@/lib/api';
 export interface CouponValidation {
   discountAmount: number;
   couponCode: string;

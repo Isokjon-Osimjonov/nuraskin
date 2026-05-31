@@ -5,9 +5,9 @@ import { NotFoundError } from '../../common/errors/AppError';
 export async function get() {
   const [row] = await db.select().from(settings).limit(1);
   if (!row) throw new NotFoundError('Settings not found');
-  
+
   const { freeShippingThresholdKrw, standardShippingFeeKrw, ...rest } = row;
-  
+
   return {
     ...rest,
     debtLimitDefault: row.debtLimitDefault.toString(),
@@ -21,7 +21,8 @@ export async function update(data: any) {
   if (!row) throw new NotFoundError('Settings not found');
 
   const updateData = { ...data, updatedAt: new Date() };
-  if (data.debtLimitDefault !== undefined) updateData.debtLimitDefault = BigInt(data.debtLimitDefault);
+  if (data.debtLimitDefault !== undefined)
+    updateData.debtLimitDefault = BigInt(data.debtLimitDefault);
   if (data.minOrderUzbUzs !== undefined) updateData.minOrderUzbUzs = BigInt(data.minOrderUzbUzs);
   if (data.minOrderKorKrw !== undefined) updateData.minOrderKorKrw = BigInt(data.minOrderKorKrw);
 

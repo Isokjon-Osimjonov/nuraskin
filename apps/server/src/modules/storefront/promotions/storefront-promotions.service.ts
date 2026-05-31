@@ -1,10 +1,10 @@
 import { db, coupons } from '@nuraskin/database';
-import { eq, and, or, isNull, gt, lte, sql } from 'drizzle-orm';
+import { eq, and, or, isNull, gt, lte } from 'drizzle-orm';
 import type { PromotionBannerItem } from '@nuraskin/shared-types';
 
 export async function getActivePromotions(): Promise<PromotionBannerItem[]> {
   const now = new Date();
-  
+
   const results = await db
     .select()
     .from(coupons)

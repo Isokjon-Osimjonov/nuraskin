@@ -5,7 +5,7 @@ NuraSkin is a Korean cosmetics e-commerce platform targeting Uzbekistan, managed
 ## Project Overview
 
 - **Core Mission:** Facilitate Korean cosmetics sales in Uzbekistan with localized language (Uzbek Latin) and logistics (Korea to Uzbekistan shipping).
-- **Architecture:** 
+- **Architecture:**
   - **Apps:** `admin` (Admin SPA), `frontend` (Customer Storefront), `server` (Express API).
   - **Libs:** `database` (Drizzle schema/client), `shared-types` (Zod schemas), `ui` (Shared React components), `validation` (Shared validation logic).
 - **Tech Stack:**
@@ -17,11 +17,13 @@ NuraSkin is a Korean cosmetics e-commerce platform targeting Uzbekistan, managed
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 20+
 - pnpm
 - Docker (for local infra)
 
 ### Commands
+
 - **Install:** `pnpm install`
 - **Infra (Postgres/Redis):** `npm run infra:up`
 - **Start Apps:**
@@ -36,8 +38,10 @@ NuraSkin is a Korean cosmetics e-commerce platform targeting Uzbekistan, managed
 ## Development Guidelines
 
 ### Backend Layering (Express)
+
 Follow the strict request flow:
 `routes → controllers → services → repositories → drizzle → database`
+
 - **Services:** Framework-agnostic (no Express imports).
 - **Controllers:** Thin (< 15 lines), parse request -> call service -> respond.
 - **Validation:** Every mutation route must validate input with Zod.
@@ -45,6 +49,7 @@ Follow the strict request flow:
 - **Logging:** Use Pino via `req.log`. No `console.log`.
 
 ### Frontend Patterns
+
 - **Server State:** TanStack Query.
 - **Client State:** Zustand (one store per concern).
 - **Forms:** React Hook Form + Zod.
@@ -52,12 +57,14 @@ Follow the strict request flow:
 - **Responsive:** Mobile-first (iPhone SE 375px baseline).
 
 ### Database (Drizzle)
+
 - Tables must have: `id` (UUID), `created_at`, `updated_at`.
 - Money: Use `bigint` (minor units like UZS tiyin) + `currency` column.
 - Migrations: Immutable once committed.
 - Soft Delete: Only for `products` and `categories`.
 
 ### Domain Specifics
+
 - **Qarz (Debt Limit):** Tiered behavior based on debt usage percentage (80%, 100%, 120%).
 - **Price Calculation:** Derived from base export price (USD) + cargo weight + exchange rate snippet.
 - **Order Flow:** `DRAFT → PENDING_PAYMENT → PAID → PACKING → SHIPPED → DELIVERED`.
@@ -65,17 +72,21 @@ Follow the strict request flow:
 ## AI Interaction Protocol
 
 ### Before Any Change
+
 1. Read `CLAUDE.md` and `GEMINI.md`.
 2. Grep for existing patterns; consistency over cleverness.
 3. Verify directory/file existence before proposing changes.
 
 ### When Writing Code
+
 - **No Barrel Files:** Inside app domains, avoid `index.ts` re-exports.
 - **Co-locate Tests:** Keep `.spec.ts` files next to their source.
 - **Types:** Avoid `any`. Use strict TypeScript.
 - **DRY Libs:** Move shared logic to `libs/`.
 
 ### Validation
+
 Always run before completion:
+
 1. `npx nx affected:typecheck`
 2. `npx nx affected:test`

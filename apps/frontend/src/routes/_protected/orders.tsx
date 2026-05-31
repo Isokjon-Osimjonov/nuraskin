@@ -1,4 +1,3 @@
-import { api } from '@/lib/api';
 import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -8,9 +7,20 @@ import { getPaymentInfo } from '@/api/settings';
 import { formatPrice } from '@/lib/utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
-  ArrowLeft, Package, Truck, CheckCircle2, Clock, CreditCard,
-  XCircle, AlertCircle, Send, Loader2, Camera, ExternalLink,
-  MapPin, Phone
+  ArrowLeft,
+  Package,
+  Truck,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  XCircle,
+  AlertCircle,
+  Send,
+  Loader2,
+  Camera,
+  ExternalLink,
+  MapPin,
+  Phone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,10 +29,18 @@ export const Route = createFileRoute('/_protected/orders')({
 });
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Package }> = {
-  PENDING_PAYMENT: { label: 'To\'lov kutilmoqda', color: 'text-amber-600 bg-amber-50', icon: CreditCard },
-  PAID: { label: 'To\'lov tasdiqlandi', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
+  PENDING_PAYMENT: {
+    label: "To'lov kutilmoqda",
+    color: 'text-amber-600 bg-amber-50',
+    icon: CreditCard,
+  },
+  PAID: {
+    label: "To'lov tasdiqlandi",
+    color: 'text-emerald-600 bg-emerald-50',
+    icon: CheckCircle2,
+  },
   PACKING: { label: 'Tayyorlanmoqda', color: 'text-blue-600 bg-blue-50', icon: Package },
-  SHIPPED: { label: 'Yo\'lda', color: 'text-purple-600 bg-purple-50', icon: Truck },
+  SHIPPED: { label: "Yo'lda", color: 'text-purple-600 bg-purple-50', icon: Truck },
   DELIVERED: { label: 'Yetkazilgan', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
   CANCELED: { label: 'Bekor qilindi', color: 'text-stone-500 bg-stone-100', icon: XCircle },
 };
@@ -58,7 +76,9 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
   if (!timeLeft) return null;
 
   return (
-    <span className={`text-[11px] font-normal flex items-center gap-1 ${isExpired ? 'text-red-500' : 'text-amber-600'}`}>
+    <span
+      className={`text-[11px] font-normal flex items-center gap-1 ${isExpired ? 'text-red-500' : 'text-amber-600'}`}
+    >
       <Clock className="w-3 h-3" />
       {timeLeft}
     </span>
@@ -92,14 +112,14 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
     },
     onError: () => {
-      toast.error('Buyurtmani bekor qilib bo\'lmaydi');
-    }
+      toast.error("Buyurtmani bekor qilib bo'lmaydi");
+    },
   });
 
   const canCancel = order.status === 'PENDING_PAYMENT' || order.status === 'PAYMENT_SUBMITTED';
 
   function handleCancelOrder() {
-    if (confirm('Buyurtmani bekor qilmoqchimisiz? Bu amalni qaytarib bo\'lmaydi.')) {
+    if (confirm("Buyurtmani bekor qilmoqchimisiz? Bu amalni qaytarib bo'lmaydi.")) {
       cancelMutation.mutate();
     }
   }
@@ -111,7 +131,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
     setSelectedFile(file);
 
     const reader = new FileReader();
-    reader.onload = (ev) => setPreview(ev.target?.result as string);
+    reader.onload = ev => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
   }
 
@@ -140,13 +160,13 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       const imageUrl = data.secure_url || data.url;
 
       await uploadReceipt(order.id, imageUrl);
-      
-      toast.success("Chek muvaffaqiyatli yuborildi");
+
+      toast.success('Chek muvaffaqiyatli yuborildi');
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       handleRemoveFile();
     } catch (err) {
       console.error(err);
-      setError('Chek yuborishda xatolik. Qayta urinib ko\'ring.');
+      setError("Chek yuborishda xatolik. Qayta urinib ko'ring.");
     } finally {
       setUploading(false);
     }
@@ -162,7 +182,9 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-normal ${cfg.color}`}>
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-normal ${cfg.color}`}
+          >
             <StatusIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
             {cfg.label}
           </span>
@@ -178,7 +200,11 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
           <div key={idx} className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-stone-200 flex items-center justify-center shrink-0 overflow-hidden border border-stone-100">
               {item.imageUrls?.[0] ? (
-                <img src={item.imageUrls[0]} alt={item.productName} className="w-full h-full object-cover" />
+                <img
+                  src={item.imageUrls[0]}
+                  alt={item.productName}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <Package className="w-4 h-4 text-stone-400" strokeWidth={1.5} />
               )}
@@ -186,7 +212,8 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-normal text-stone-700 truncate">{item.productName}</p>
               <p className="text-[12px] font-light text-stone-400">
-                {item.quantity} dona × {displayPrice(item.unitPriceSnapshot || item.unitPrice, order.currency)}
+                {item.quantity} dona ×{' '}
+                {displayPrice(item.unitPriceSnapshot || item.unitPrice, order.currency)}
               </p>
             </div>
           </div>
@@ -196,7 +223,9 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       {/* Delivery Address */}
       {order.deliveryFullName && (
         <div className="mb-4 pt-4 border-t border-stone-100">
-          <h4 className="text-[11px] font-normal text-stone-400 uppercase tracking-wider mb-2">Yetkazib berish manzili:</h4>
+          <h4 className="text-[11px] font-normal text-stone-400 uppercase tracking-wider mb-2">
+            Yetkazib berish manzili:
+          </h4>
           <div className="bg-white/50 rounded-xl p-3 space-y-0.5 border border-stone-50">
             <p className="text-[13px] font-normal text-[#4A1525]">{order.deliveryFullName}</p>
             <p className="text-[12px] text-stone-500 flex items-center gap-1.5">
@@ -223,28 +252,50 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       {/* Receipt upload for pending_payment */}
       {needsReceipt && (
         <div className="mb-4">
-          
           {/* Payment Info */}
           {paymentInfo && (paymentInfo.bank?.enabled || paymentInfo.e9pay?.enabled) && (
             <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 mb-4 space-y-3">
               <h4 className="text-[12px] font-normal text-[#4A1525] mb-2">To'lov ma'lumotlari:</h4>
-              
+
               {paymentInfo.bank?.enabled && (
                 <div className="space-y-1">
-                  <p className="text-[11px] font-normal text-stone-700 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Bank kartasi</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Bank:</span> {paymentInfo.bank.bankName}</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta egasi:</span> {paymentInfo.bank.holderName}</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Karta raqami:</span> <span className="font-mono select-all font-normal">{paymentInfo.bank.accountNumber}</span></p>
+                  <p className="text-[11px] font-normal text-stone-700 flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5" /> Bank kartasi
+                  </p>
+                  <p className="text-[11px] text-stone-600 pl-5">
+                    <span className="text-stone-400">Bank:</span> {paymentInfo.bank.bankName}
+                  </p>
+                  <p className="text-[11px] text-stone-600 pl-5">
+                    <span className="text-stone-400">Karta egasi:</span>{' '}
+                    {paymentInfo.bank.holderName}
+                  </p>
+                  <p className="text-[11px] text-stone-600 pl-5">
+                    <span className="text-stone-400">Karta raqami:</span>{' '}
+                    <span className="font-mono select-all font-normal">
+                      {paymentInfo.bank.accountNumber}
+                    </span>
+                  </p>
                 </div>
               )}
-              
-              {paymentInfo.bank?.enabled && paymentInfo.e9pay?.enabled && <div className="border-t border-stone-100 my-2"></div>}
-              
+
+              {paymentInfo.bank?.enabled && paymentInfo.e9pay?.enabled && (
+                <div className="border-t border-stone-100 my-2"></div>
+              )}
+
               {paymentInfo.e9pay?.enabled && (
                 <div className="space-y-1">
-                  <p className="text-[11px] font-normal text-stone-700 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> E9 Pay</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Ism:</span> {paymentInfo.e9pay.name}</p>
-                  <p className="text-[11px] text-stone-600 pl-5"><span className="text-stone-400">Hisob:</span> <span className="font-mono select-all font-normal">{paymentInfo.e9pay.account}</span></p>
+                  <p className="text-[11px] font-normal text-stone-700 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5" /> E9 Pay
+                  </p>
+                  <p className="text-[11px] text-stone-600 pl-5">
+                    <span className="text-stone-400">Ism:</span> {paymentInfo.e9pay.name}
+                  </p>
+                  <p className="text-[11px] text-stone-600 pl-5">
+                    <span className="text-stone-400">Hisob:</span>{' '}
+                    <span className="font-mono select-all font-normal">
+                      {paymentInfo.e9pay.account}
+                    </span>
+                  </p>
                 </div>
               )}
             </div>
@@ -318,7 +369,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
               <p className="text-[12px] text-emerald-700">Chek yuborildi. Tasdiqlash kutilmoqda.</p>
             </div>
             {order.paymentReceiptUrl && (
-              <button 
+              <button
                 onClick={() => window.open(order.paymentReceiptUrl!, '_blank')}
                 className="text-[11px] text-emerald-600 underline flex items-center gap-1"
               >
@@ -326,7 +377,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
               </button>
             )}
           </div>
-          <button 
+          <button
             onClick={() => fileRef.current?.click()}
             className="text-[11px] text-stone-400 underline mt-2 ml-1"
           >
@@ -349,7 +400,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
           {displayPrice(order.totalAmount, order.currency)}
         </p>
         {order.cargoFee && Number(order.cargoFee) > 0 && (
-           <p className="text-[10px] text-stone-400">Yetkazib berish bilan</p>
+          <p className="text-[10px] text-stone-400">Yetkazib berish bilan</p>
         )}
       </div>
 
@@ -360,7 +411,11 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
             disabled={cancelMutation.isPending}
             className="w-full flex items-center justify-center gap-2 bg-white border border-red-200 text-red-500 text-[12px] font-normal py-2.5 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-40"
           >
-            {cancelMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />}
+            {cancelMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <XCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
+            )}
             Buyurtmani bekor qilish
           </button>
         </div>
@@ -406,13 +461,16 @@ function Orders() {
           <div className="bg-[#f8f7f5] rounded-2xl p-12 text-center">
             <Package className="w-12 h-12 text-stone-300 mx-auto mb-4" strokeWidth={1.2} />
             <p className="text-[14px] font-light text-stone-500">Hali buyurtmalar yo'q</p>
-            <Link to="/products" className="inline-block mt-4 text-[13px] font-normal text-[#4A1525] hover:underline">
+            <Link
+              to="/products"
+              className="inline-block mt-4 text-[13px] font-normal text-[#4A1525] hover:underline"
+            >
               Xarid qilish →
             </Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {ordersList.map((order) => (
+            {ordersList.map(order => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>

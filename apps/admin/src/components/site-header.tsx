@@ -1,12 +1,8 @@
-import { Search, User, LogOut, Settings } from "lucide-react"
-import { useLocation, useNavigate } from '@tanstack/react-router'
-import { useAuthStore } from "@/stores/auth.store"
-import { useShallow } from "zustand/shallow"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Search, User, LogOut, Settings } from 'lucide-react';
+import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useAuthStore } from '@/stores/auth.store';
+import { useShallow } from 'zustand/shallow';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,42 +11,44 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
 
 export function SiteHeader() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuthStore(useShallow((s) => ({
-    user: s.user,
-    logout: s.logout,
-  })))
-  
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore(
+    useShallow(s => ({
+      user: s.user,
+      logout: s.logout,
+    }))
+  );
+
   const handleLogout = () => {
-    logout()
-    navigate({ to: '/login' })
-  }
+    logout();
+    navigate({ to: '/login' });
+  };
 
   const getTitle = () => {
-    const path = location.pathname
-    if (path === '/') return 'Boshqaruv paneli'
-    if (path.startsWith('/products')) return 'Mahsulotlar'
-    if (path.startsWith('/orders')) return 'Buyurtmalar'
-    if (path.startsWith('/categories')) return 'Kategoriyalar'
-    if (path.startsWith('/inventory')) return 'Ombor'
-    if (path.startsWith('/customers')) return 'Mijozlar'
-    if (path.startsWith('/coupons')) return 'Kuponlar'
-    if (path.startsWith('/sales')) return 'Sotuvlar'
-    if (path.startsWith('/accounting')) return 'Buxgalteriya'
-    if (path.startsWith('/telegram')) return 'Telegram'
-    if (path.startsWith('/settings')) return 'Sozlamalar'
-    return 'NuraSkin Admin'
-  }
+    const path = location.pathname;
+    if (path === '/') return 'Boshqaruv paneli';
+    if (path.startsWith('/products')) return 'Mahsulotlar';
+    if (path.startsWith('/orders')) return 'Buyurtmalar';
+    if (path.startsWith('/categories')) return 'Kategoriyalar';
+    if (path.startsWith('/inventory')) return 'Ombor';
+    if (path.startsWith('/customers')) return 'Mijozlar';
+    if (path.startsWith('/coupons')) return 'Kuponlar';
+    if (path.startsWith('/sales')) return 'Sotuvlar';
+    if (path.startsWith('/accounting')) return 'Buxgalteriya';
+    if (path.startsWith('/telegram')) return 'Telegram';
+    if (path.startsWith('/settings')) return 'Sozlamalar';
+    return 'NuraSkin Admin';
+  };
 
-  const userName = user?.fullName || "Admin"
-  const userEmail = user?.email || "admin@nuraskin.uz"
+  const userName = user?.fullName || 'Admin';
+  const userEmail = user?.email || 'admin@nuraskin.uz';
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur px-4 transition-[width,height] ease-linear">
@@ -81,9 +79,7 @@ export function SiteHeader() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{userName}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {userEmail}
-                </p>
+                <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -106,5 +102,5 @@ export function SiteHeader() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

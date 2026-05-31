@@ -12,35 +12,35 @@
 The founder (based in Daejeon, Korea) ships products from Korea to Uzbekistan.
 The system has three apps and shared libraries managed in an **Nx monorepo**.
 
-| Fact | Value |
-|---|---|
-| Tenancy | Single client — no `tenant_id` anywhere in schema |
-| Launch language | Uzbek (Latin); i18n keys structured for RU/KO as translation files later |
-| Target scale (year 1) | ~10k products · ~1k active customers · 3–5 admin users |
-| Deployment | Single Ubuntu 22.04 VPS + Docker + Nginx |
+| Fact                  | Value                                                                    |
+| --------------------- | ------------------------------------------------------------------------ |
+| Tenancy               | Single client — no `tenant_id` anywhere in schema                        |
+| Launch language       | Uzbek (Latin); i18n keys structured for RU/KO as translation files later |
+| Target scale (year 1) | ~10k products · ~1k active customers · 3–5 admin users                   |
+| Deployment            | Single Ubuntu 22.04 VPS + Docker + Nginx                                 |
 
 ---
 
 ## 2. Tech Stack — Locked
 
-| Layer | Choice | Do NOT substitute |
-|---|---|---|
-| Monorepo | Nx + pnpm | No Turborepo, no Yarn, no Lerna |
-| Backend | Node 20 + Express + TypeScript | No NestJS, no Fastify, no plain JS |
-| ORM | **Drizzle** | No Prisma, no TypeORM |
-| Database | PostgreSQL 16 | No MongoDB, no SQLite (dev or prod) |
-| Cache / Queue | Redis 7 + BullMQ | No RabbitMQ, no SQS |
-| Admin UI | React 19 + Vite + TanStack Router + TanStack Query + Zustand | No Next.js for admin |
-| Frontend UI | React 19 + Vite + TanStack Router + TanStack Query + Zustand | Not a Next.js / SSR app |
-| Styling | Tailwind v4 + Shadcn UI (defaults) | No CSS-in-JS, no styled-components |
-| Forms | React Hook Form + Zod resolver | No Formik |
-| Icons | Lucide React | No mixing other icon sets |
-| Charts | Recharts | No Chart.js |
-| Logging | Pino | No Winston, no `console.log` in committed code |
-| Testing | Vitest + Supertest + Playwright | **No Jest** — Jest is not used in this project |
-| Auth | JWT (admin) + Telegram Login Widget (frontend) | No Auth0, no NextAuth |
-| Payments | Manual receipt upload only (v1) | No payment gateway in v1 |
-| Storage | Cloudinary | No alternative until justified |
+| Layer         | Choice                                                       | Do NOT substitute                              |
+| ------------- | ------------------------------------------------------------ | ---------------------------------------------- |
+| Monorepo      | Nx + pnpm                                                    | No Turborepo, no Yarn, no Lerna                |
+| Backend       | Node 20 + Express + TypeScript                               | No NestJS, no Fastify, no plain JS             |
+| ORM           | **Drizzle**                                                  | No Prisma, no TypeORM                          |
+| Database      | PostgreSQL 16                                                | No MongoDB, no SQLite (dev or prod)            |
+| Cache / Queue | Redis 7 + BullMQ                                             | No RabbitMQ, no SQS                            |
+| Admin UI      | React 19 + Vite + TanStack Router + TanStack Query + Zustand | No Next.js for admin                           |
+| Frontend UI   | React 19 + Vite + TanStack Router + TanStack Query + Zustand | Not a Next.js / SSR app                        |
+| Styling       | Tailwind v4 + Shadcn UI (defaults)                           | No CSS-in-JS, no styled-components             |
+| Forms         | React Hook Form + Zod resolver                               | No Formik                                      |
+| Icons         | Lucide React                                                 | No mixing other icon sets                      |
+| Charts        | Recharts                                                     | No Chart.js                                    |
+| Logging       | Pino                                                         | No Winston, no `console.log` in committed code |
+| Testing       | Vitest + Supertest + Playwright                              | **No Jest** — Jest is not used in this project |
+| Auth          | JWT (admin) + Telegram Login Widget (frontend)               | No Auth0, no NextAuth                          |
+| Payments      | Manual receipt upload only (v1)                              | No payment gateway in v1                       |
+| Storage       | Cloudinary                                                   | No alternative until justified                 |
 
 Library scope: `@nuraskin/*`
 
@@ -81,12 +81,12 @@ Request flow — **never skip layers:**
 routes → controllers → services → repositories → drizzle → database
 ```
 
-| Layer | Can import | Cannot import |
-|---|---|---|
-| routes | controllers, schema, middleware | services, repositories, drizzle |
-| controllers | services, schema, errors | repositories, drizzle |
-| services | other services, repositories, infrastructure, errors | express, req, res (**NEVER**) |
-| repositories | drizzle, schema | services, controllers, express |
+| Layer        | Can import                                           | Cannot import                   |
+| ------------ | ---------------------------------------------------- | ------------------------------- |
+| routes       | controllers, schema, middleware                      | services, repositories, drizzle |
+| controllers  | services, schema, errors                             | repositories, drizzle           |
+| services     | other services, repositories, infrastructure, errors | express, req, res (**NEVER**)   |
+| repositories | drizzle, schema                                      | services, controllers, express  |
 
 **Hard rules:**
 
@@ -101,13 +101,13 @@ routes → controllers → services → repositories → drizzle → database
 
 ## 5. Frontend Rules (Admin + Frontend)
 
-| Concern | Solution | Never use |
-|---|---|---|
-| Server state | TanStack Query | Zustand or `useState` for API responses |
-| Client state | Zustand (one store per concern: auth, theme, ui) | — |
-| Forms | React Hook Form + Zod | `useState` for ≥3 fields |
-| URL state | Router search params | Component state for filters / pagination / sort |
-| Data fetching | `@nuraskin/api-client` | `fetch()` directly in components |
+| Concern       | Solution                                         | Never use                                       |
+| ------------- | ------------------------------------------------ | ----------------------------------------------- |
+| Server state  | TanStack Query                                   | Zustand or `useState` for API responses         |
+| Client state  | Zustand (one store per concern: auth, theme, ui) | —                                               |
+| Forms         | React Hook Form + Zod                            | `useState` for ≥3 fields                        |
+| URL state     | Router search params                             | Component state for filters / pagination / sort |
+| Data fetching | `@nuraskin/api-client`                           | `fetch()` directly in components                |
 
 - Components **≤ 120 lines**. Extract sub-components or hooks if larger.
 - Dark mode + mobile must work from day one — not retrofitted.
@@ -142,6 +142,7 @@ routes → controllers → services → repositories → drizzle → database
 ### 6.5 Replacement Rule
 
 When replacing a component:
+
 1. Delete the old version in the same commit.
 2. Grep for all references and update every call site.
 3. No two versions of the same navbar / filter / layout may exist in the tree simultaneously.
@@ -171,12 +172,12 @@ All database code lives in `libs/database/`.
 
 Effective limit per user = `users.debt_limit_override ?? settings.debt_limit_default`
 
-| `outstanding_debt / effective_limit` | Behavior |
-|---|---|
-| `< 80%` | Normal checkout |
-| `80–99%` | Soft warning banner; checkout allowed; Telegram nudge to user |
-| `100–119%` | Frontend blocks checkout; admin gets Telegram alert; admin can override |
-| `≥ 120%` | Hard block everywhere; only `orders:override_debt_limit` permission bypasses; every override logged |
+| `outstanding_debt / effective_limit` | Behavior                                                                                            |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `< 80%`                              | Normal checkout                                                                                     |
+| `80–99%`                             | Soft warning banner; checkout allowed; Telegram nudge to user                                       |
+| `100–119%`                           | Frontend blocks checkout; admin gets Telegram alert; admin can override                             |
+| `≥ 120%`                             | Hard block everywhere; only `orders:override_debt_limit` permission bypasses; every override logged |
 
 ### 8.2 Pick & Pack Barcode Fallback
 
@@ -269,43 +270,43 @@ CANCELED    CANCELED   (auto-restock blocked if SHIPPED)
 
 ### 12.5 Forbidden Behaviors
 
-| ❌ | Why |
-|---|---|
-| Empty folders with `.gitkeep` "for structure" | Violates rule 3.1 |
-| `any` types to silence TypeScript | Masks real bugs |
-| Duplicate components / layouts in the tree | Violates rule 6.5 |
-| Inventing new custom CSS variables or token files | Violates rule 6.1 |
-| Creating or editing `tailwind.config.js` | Does not exist in Tailwind v4 |
-| `console.log` in committed code | Use Pino |
-| Using Jest in any form | This project uses Vitest only |
-| Editing shipped migrations | Migrations are immutable |
-| DB calls in controllers | Violates layer rules (§4) |
-| Business logic in controllers | Violates layer rules (§4) |
-| `req` / `res` in services | Services must be framework-agnostic |
-| Writing code outside the folder specified in the task | Stay in scope |
+| ❌                                                    | Why                                 |
+| ----------------------------------------------------- | ----------------------------------- |
+| Empty folders with `.gitkeep` "for structure"         | Violates rule 3.1                   |
+| `any` types to silence TypeScript                     | Masks real bugs                     |
+| Duplicate components / layouts in the tree            | Violates rule 6.5                   |
+| Inventing new custom CSS variables or token files     | Violates rule 6.1                   |
+| Creating or editing `tailwind.config.js`              | Does not exist in Tailwind v4       |
+| `console.log` in committed code                       | Use Pino                            |
+| Using Jest in any form                                | This project uses Vitest only       |
+| Editing shipped migrations                            | Migrations are immutable            |
+| DB calls in controllers                               | Violates layer rules (§4)           |
+| Business logic in controllers                         | Violates layer rules (§4)           |
+| `req` / `res` in services                             | Services must be framework-agnostic |
+| Writing code outside the folder specified in the task | Stay in scope                       |
 
 ---
 
 ## 13. Performance Budgets
 
-| Metric | Budget |
-|---|---|
-| Admin initial JS bundle | < 300 KB gzip |
-| Frontend landing LCP (mobile, 4G) | < 2.5 s |
-| API p95 latency (simple queries) | < 150 ms |
-| DB query p95 (dashboard aggregates) | < 500 ms |
+| Metric                              | Budget        |
+| ----------------------------------- | ------------- |
+| Admin initial JS bundle             | < 300 KB gzip |
+| Frontend landing LCP (mobile, 4G)   | < 2.5 s       |
+| API p95 latency (simple queries)    | < 150 ms      |
+| DB query p95 (dashboard aggregates) | < 500 ms      |
 
 ---
 
 ## 14. Glossary (Uzbek Terms Used in Code)
 
-| Term | Meaning |
-|---|---|
-| **Qarz** | Debt / outstanding balance owed to NuraSkin |
-| **Sof foyda** | Net profit |
-| **Tan narx** | Cost price (before cargo) |
-| **Done narx** | Single-unit retail price |
-| **Optom narx** | Wholesale price |
-| **Yuborildi** | Shipped |
-| **Rate snippet** | Locked KRW/USD/UZS exchange rate captured at batch purchase time |
-| **Bunch / Batch** | Single wholesale purchase from Korea (multiple SKUs together) |
+| Term              | Meaning                                                          |
+| ----------------- | ---------------------------------------------------------------- |
+| **Qarz**          | Debt / outstanding balance owed to NuraSkin                      |
+| **Sof foyda**     | Net profit                                                       |
+| **Tan narx**      | Cost price (before cargo)                                        |
+| **Done narx**     | Single-unit retail price                                         |
+| **Optom narx**    | Wholesale price                                                  |
+| **Yuborildi**     | Shipped                                                          |
+| **Rate snippet**  | Locked KRW/USD/UZS exchange rate captured at batch purchase time |
+| **Bunch / Batch** | Single wholesale purchase from Korea (multiple SKUs together)    |

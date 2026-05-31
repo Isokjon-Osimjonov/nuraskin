@@ -8,8 +8,7 @@ export async function sendContactMessage(data: {
   message: string;
   region: string;
 }) {
-  const regionLabel = data.region === 'KOR'
-    ? '🇰🇷 Koreya' : '🇺🇿 O\'zbekiston';
+  const regionLabel = data.region === 'KOR' ? '🇰🇷 Koreya' : "🇺🇿 O'zbekiston";
 
   const text = [
     '📩 *Yangi aloqa xabari*',
@@ -23,16 +22,12 @@ export async function sendContactMessage(data: {
     data.message,
     '',
     `🕐 ${new Date().toLocaleString('uz-UZ', {
-      timeZone: 'Asia/Tashkent'
-    })}`
+      timeZone: 'Asia/Tashkent',
+    })}`,
   ].join('\n');
 
   if (env.TELEGRAM_ADMIN_CHAT_ID) {
-    await adminBot.api.sendMessage(
-      env.TELEGRAM_ADMIN_CHAT_ID,
-      text,
-      { parse_mode: 'Markdown' }
-    );
+    await adminBot.api.sendMessage(env.TELEGRAM_ADMIN_CHAT_ID, text, { parse_mode: 'Markdown' });
   }
 
   return { success: true };

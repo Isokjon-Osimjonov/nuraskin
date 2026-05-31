@@ -1,5 +1,18 @@
 import { PAID_STATUSES } from '@nuraskin/shared-utils';
-import { db, expenses, users, orderExpenses, orders, orderItems, customers, products, inventoryBatches, exchangeRateSnapshots, coupons, couponRedemptions } from '@nuraskin/database';
+import {
+  db,
+  expenses,
+  users,
+  orderExpenses,
+  orders,
+  orderItems,
+  customers,
+  products,
+  inventoryBatches,
+  exchangeRateSnapshots,
+  coupons,
+  couponRedemptions,
+} from '@nuraskin/database';
 import { eq, and, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import type { NewExpense } from '@nuraskin/database';
 
@@ -9,11 +22,7 @@ export async function create(data: NewExpense) {
 }
 
 export async function update(id: string, data: Partial<NewExpense>) {
-  const [row] = await db
-    .update(expenses)
-    .set(data)
-    .where(eq(expenses.id, id))
-    .returning();
+  const [row] = await db.update(expenses).set(data).where(eq(expenses.id, id)).returning();
   return row;
 }
 
@@ -33,7 +42,7 @@ export async function findAll(month: string, category?: string) {
 
   const whereClauses: any[] = [
     gte(expenses.expenseDate, startDate),
-    lte(expenses.expenseDate, endDate)
+    lte(expenses.expenseDate, endDate),
   ];
 
   if (category) {
@@ -50,7 +59,7 @@ export async function findAll(month: string, category?: string) {
     .where(and(...whereClauses))
     .orderBy(desc(expenses.expenseDate));
 
-  return rows.map((r) => ({
+  return rows.map(r => ({
     ...r.expense,
     amountKrw: r.expense.amountKrw.toString(),
     createdByName: r.createdByName,
@@ -64,10 +73,7 @@ export async function getStandaloneSummary(startDate: string, endDate: string) {
       total: sql<number>`coalesce(sum(${expenses.amountKrw})::bigint, 0)`,
     })
     .from(expenses)
-    .where(and(
-      gte(expenses.expenseDate, startDate),
-      lte(expenses.expenseDate, endDate)
-    ))
+    .where(and(gte(expenses.expenseDate, startDate), lte(expenses.expenseDate, endDate)))
     .groupBy(expenses.category);
   return rows;
 }
@@ -79,10 +85,12 @@ export async function getOrderExpensesSummary(startDate: string, endDate: string
       total: sql<number>`coalesce(sum(${orderExpenses.amountKrw})::bigint, 0)`,
     })
     .from(orderExpenses)
-    .where(and(
-      gte(orderExpenses.createdAt, new Date(startDate)),
-      lte(orderExpenses.createdAt, new Date(`${endDate}T23:59:59.999Z`))
-    ))
+    .where(
+      and(
+        gte(orderExpenses.createdAt, new Date(startDate)),
+        lte(orderExpenses.createdAt, new Date(`${endDate}T23:59:59.999Z`))
+      )
+    )
     .groupBy(orderExpenses.type);
   return rows;
 }
@@ -114,11 +122,13 @@ export async function getAccountingOrders(startDate: string, endDate: string) {
     .leftJoin(customers, eq(orders.customerId, customers.id))
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
-    .where(and(
-      inArray(orders.status, PAID_STATUSES),
-      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
-      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
-    ))
+    .where(
+      and(
+        inArray(orders.status, PAID_STATUSES),
+        sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+        sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
+      )
+    )
     .groupBy(orders.id, customers.fullName, exchangeRateSnapshots.krwToUzs);
 
   return rows;
@@ -172,12 +182,9 @@ export async function getAllExpensesForMonth(startDate: string, endDate: string)
     })
     .from(expenses)
     .leftJoin(users, eq(expenses.createdBy, users.id))
-    .where(and(
-      gte(expenses.expenseDate, startDate),
-      lte(expenses.expenseDate, endDate)
-    ))
+    .where(and(gte(expenses.expenseDate, startDate), lte(expenses.expenseDate, endDate)))
     .orderBy(desc(expenses.expenseDate));
-  
+
   return rows;
 }
 
@@ -195,12 +202,14 @@ export async function getOrderExpensesForMonth(startDate: string, endDate: strin
     .from(orderExpenses)
     .leftJoin(users, eq(orderExpenses.createdBy, users.id))
     .leftJoin(orders, eq(orderExpenses.orderId, orders.id))
-    .where(and(
-      gte(orderExpenses.createdAt, new Date(startDate)),
-      lte(orderExpenses.createdAt, new Date(`${endDate}T23:59:59.999Z`))
-    ))
+    .where(
+      and(
+        gte(orderExpenses.createdAt, new Date(startDate)),
+        lte(orderExpenses.createdAt, new Date(`${endDate}T23:59:59.999Z`))
+      )
+    )
     .orderBy(desc(orderExpenses.createdAt));
-  
+
   return rows;
 }
 
@@ -229,17 +238,19 @@ export async function getCouponSummary(startDate: string, endDate: string) {
     .innerJoin(coupons, eq(couponRedemptions.couponId, coupons.id))
     .innerJoin(orders, eq(couponRedemptions.orderId, orders.id))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
-    .where(and(
-      inArray(orders.status, PAID_STATUSES),
-      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
-      sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
-    ))
+    .where(
+      and(
+        inArray(orders.status, PAID_STATUSES),
+        sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+        sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`
+      )
+    )
     .groupBy(coupons.id, coupons.code, coupons.name)
     .orderBy(sql`4 desc`);
 
   return rows.map(r => ({
     ...r,
     totalDiscountKrw: r.totalDiscountKrw.toString(),
-    revenueGeneratedKrw: r.revenueGeneratedKrw.toString()
+    revenueGeneratedKrw: r.revenueGeneratedKrw.toString(),
   }));
 }

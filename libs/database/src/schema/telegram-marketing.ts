@@ -5,7 +5,6 @@ import {
   text,
   boolean,
   timestamp,
-  index,
   uniqueIndex,
   jsonb,
   bigint,
@@ -14,19 +13,23 @@ import { relations } from 'drizzle-orm';
 import { users } from './users';
 import { products } from './products';
 
-export const telegramChannels = pgTable('telegram_channels', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: varchar('name', { length: 100 }).notNull(),
-  chatId: varchar('chat_id', { length: 100 }).notNull().unique(),
-  chatType: varchar('chat_type', { length: 20 }).notNull(), // CHANNEL | GROUP
-  language: varchar('language', { length: 5 }).notNull().default('UZB'),
-  isActive: boolean('is_active').notNull().default(true),
-  addedBy: uuid('added_by').references(() => users.id),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => ({
-  chatIdIdx: uniqueIndex('telegram_channels_chat_id_idx').on(t.chatId),
-}));
+export const telegramChannels = pgTable(
+  'telegram_channels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 100 }).notNull(),
+    chatId: varchar('chat_id', { length: 100 }).notNull().unique(),
+    chatType: varchar('chat_type', { length: 20 }).notNull(), // CHANNEL | GROUP
+    language: varchar('language', { length: 5 }).notNull().default('UZB'),
+    isActive: boolean('is_active').notNull().default(true),
+    addedBy: uuid('added_by').references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  t => ({
+    chatIdIdx: uniqueIndex('telegram_channels_chat_id_idx').on(t.chatId),
+  })
+);
 
 export const telegramPosts = pgTable('telegram_posts', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -63,16 +66,24 @@ export const telegramPosts = pgTable('telegram_posts', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const telegramPostChannels = pgTable('telegram_post_channels', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  postId: uuid('post_id').notNull().references(() => telegramPosts.id, { onDelete: 'cascade' }),
-  channelId: uuid('channel_id').notNull().references(() => telegramChannels.id, { onDelete: 'cascade' }),
-  messageId: bigint('message_id', { mode: 'bigint' }),
-  status: varchar('status', { length: 20 }).notNull().default('PENDING'),
-  sentAt: timestamp('sent_at', { withTimezone: true }),
-}, (t) => ({
-  postChannelIdx: uniqueIndex('telegram_post_channels_unique_idx').on(t.postId, t.channelId),
-}));
+export const telegramPostChannels = pgTable(
+  'telegram_post_channels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    postId: uuid('post_id')
+      .notNull()
+      .references(() => telegramPosts.id, { onDelete: 'cascade' }),
+    channelId: uuid('channel_id')
+      .notNull()
+      .references(() => telegramChannels.id, { onDelete: 'cascade' }),
+    messageId: bigint('message_id', { mode: 'bigint' }),
+    status: varchar('status', { length: 20 }).notNull().default('PENDING'),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+  },
+  t => ({
+    postChannelIdx: uniqueIndex('telegram_post_channels_unique_idx').on(t.postId, t.channelId),
+  })
+);
 
 // Relations
 export const telegramChannelsRelations = relations(telegramChannels, ({ many, one }) => ({

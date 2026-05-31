@@ -3,7 +3,6 @@ import { login } from '../auth.service';
 import * as repository from '../auth.repository';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { env } from '../../../common/config/env';
 import { UnauthorizedError } from '../../../common/errors/AppError';
 
 vi.mock('../auth.repository');

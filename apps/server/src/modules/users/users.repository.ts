@@ -1,14 +1,10 @@
 import { db, users } from '@nuraskin/database';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import type { AdminUserResponse } from '@nuraskin/shared-types';
 
 export async function findAllAdmin() {
-  const rows = await db
-    .select()
-    .from(users)
-    .where(isNull(users.deletedAt))
-    .orderBy(users.fullName);
-  
+  const rows = await db.select().from(users).where(isNull(users.deletedAt)).orderBy(users.fullName);
+
   return rows.map(r => ({
     id: r.id,
     fullName: r.fullName,
@@ -31,19 +27,12 @@ export async function findById(id: string) {
 }
 
 export async function findByEmail(email: string) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return user || null;
 }
 
 export async function create(data: any) {
-  const [user] = await db
-    .insert(users)
-    .values(data)
-    .returning();
+  const [user] = await db.insert(users).values(data).returning();
   return user;
 }
 
@@ -59,10 +48,10 @@ export async function update(id: string, data: any) {
 export async function updatePassword(id: string, passwordHash: string) {
   await db
     .update(users)
-    .set({ 
-      passwordHash, 
+    .set({
+      passwordHash,
       mustChangePassword: false,
-      updatedAt: new Date() 
+      updatedAt: new Date(),
     })
     .where(eq(users.id, id));
 }

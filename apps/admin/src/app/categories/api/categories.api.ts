@@ -1,10 +1,15 @@
 import { api } from '@/lib/api';
-import type { CategoryResponse, CreateCategoryInput, UpdateCategoryInput } from '@nuraskin/shared-types';
-
-
+import type {
+  CategoryResponse,
+  CreateCategoryInput,
+  UpdateCategoryInput,
+} from '@nuraskin/shared-types';
 
 export const categoriesApi = {
-  getAll: (params?: { page?: number; limit?: number }): Promise<{ data: CategoryResponse[]; total: number; page: number; limit: number }> => {
+  getAll: (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: CategoryResponse[]; total: number; page: number; limit: number }> => {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
@@ -15,10 +20,13 @@ export const categoriesApi = {
     api.post<any>('/categories', data),
   update: ({ id, data }: { id: string; data: UpdateCategoryInput }): Promise<CategoryResponse> =>
     api.put<any>(`/categories/${id}`, data),
-  delete: (id: string): Promise<void> =>
-    api.delete<any>(`/categories/${id}`),
-  getUploadUrl: (): Promise<{ url: string; timestamp: number; signature: string; apiKey: string }> =>
-    api.post<any>('/categories/upload-url', {}),
+  delete: (id: string): Promise<void> => api.delete<any>(`/categories/${id}`),
+  getUploadUrl: (): Promise<{
+    url: string;
+    timestamp: number;
+    signature: string;
+    apiKey: string;
+  }> => api.post<any>('/categories/upload-url', {}),
 };
 
 // Mock products api for the multi-select

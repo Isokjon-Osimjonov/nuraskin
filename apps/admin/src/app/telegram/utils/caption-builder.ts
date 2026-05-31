@@ -3,7 +3,7 @@ import { tiyinToSom } from '@nuraskin/shared-utils';
 export function buildCaptionPreview(
   form: any,
   product: any,
-  rate: any, // Exchange rate snapshot
+  rate: any // Exchange rate snapshot
 ): string {
   let caption = form.captionText || '';
 
@@ -14,31 +14,27 @@ export function buildCaptionPreview(
   const uzsBlock: string[] = [];
 
   if (product && product.regionalConfigs) {
-    const korConfig = product.regionalConfigs.find(
-      (c: any) => c.regionCode === 'KOR',
-    );
+    const korConfig = product.regionalConfigs.find((c: any) => c.regionCode === 'KOR');
 
     if (korConfig) {
       if (form.showKrwRetail) {
         const formattedKrwRetail = new Intl.NumberFormat('en-US').format(
-          Number(BigInt(korConfig.retailPrice)),
+          Number(BigInt(korConfig.retailPrice))
         );
         krwBlock.push(`🇰🇷 Narx: ₩${formattedKrwRetail} / dona`);
       }
 
       if (form.showKrwWholesale) {
         const formattedKrwWholesale = new Intl.NumberFormat('en-US').format(
-          Number(BigInt(korConfig.wholesalePrice)),
+          Number(BigInt(korConfig.wholesalePrice))
         );
         krwBlock.push(
-          `🇰🇷 Narx: ₩${formattedKrwWholesale} dan — ${korConfig.minWholesaleQty || 5} tadan`,
+          `🇰🇷 Narx: ₩${formattedKrwWholesale} dan — ${korConfig.minWholesaleQty || 5} tadan`
         );
       }
     }
 
-    const uzbConfig = product.regionalConfigs.find(
-      (c: any) => c.regionCode === 'UZB',
-    );
+    const uzbConfig = product.regionalConfigs.find((c: any) => c.regionCode === 'UZB');
     if (uzbConfig && rate) {
       const weightGrams = product.weightGrams || 0;
 
@@ -52,14 +48,9 @@ export function buildCaptionPreview(
       if (form.showUzsRetail) {
         const retailKrw = BigInt(uzbConfig.retailPrice);
         const retailProductUzsMinor = retailKrw * krwToUzs * 100n;
-        const retailCargoUzsMinor =
-          (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
-        const retailUzs =
-          round1000UZS(retailProductUzsMinor) +
-          round1000UZS(retailCargoUzsMinor);
-        const formattedUzsRetail = new Intl.NumberFormat('en-US').format(
-          tiyinToSom(retailUzs),
-        );
+        const retailCargoUzsMinor = (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
+        const retailUzs = round1000UZS(retailProductUzsMinor) + round1000UZS(retailCargoUzsMinor);
+        const formattedUzsRetail = new Intl.NumberFormat('en-US').format(tiyinToSom(retailUzs));
         uzsBlock.push(`🇺🇿 Narx: ${formattedUzsRetail} so'm / dona`);
       }
 
@@ -70,13 +61,12 @@ export function buildCaptionPreview(
         const wholesaleCargoUzsMinor =
           (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
         const wholesaleUzs =
-          round1000UZS(wholesaleProductUzsMinor) +
-          round1000UZS(wholesaleCargoUzsMinor);
+          round1000UZS(wholesaleProductUzsMinor) + round1000UZS(wholesaleCargoUzsMinor);
         const formattedUzsWholesale = new Intl.NumberFormat('en-US').format(
-          tiyinToSom(wholesaleUzs),
+          tiyinToSom(wholesaleUzs)
         );
         uzsBlock.push(
-          `🇺🇿 Narx: ${formattedUzsWholesale} so'm dan — ${uzbConfig.minWholesaleQty || 5} tadan`,
+          `🇺🇿 Narx: ${formattedUzsWholesale} so'm dan — ${uzbConfig.minWholesaleQty || 5} tadan`
         );
       }
     }

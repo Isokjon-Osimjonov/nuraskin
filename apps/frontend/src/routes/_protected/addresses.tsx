@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
-import { ArrowLeft, MapPin, Plus, Star, Trash2, Phone, User, X, Loader2, Edit2 } from 'lucide-react';
-import { useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses';
-import { AddressForm } from '@/components/addresses/AddressForm';
+import { ArrowLeft, MapPin, Plus, Star, Trash2, Phone, User, Loader2, Edit2 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  useAddresses,
+  useCreateAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+  useSetDefaultAddress,
+} from '@/hooks/useAddresses';
+import { AddressForm } from '@/components/addresses/AddressForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +30,7 @@ export const Route = createFileRoute('/_protected/addresses')({
 function Addresses() {
   const { isAuthenticated, regionCode } = useAppStore();
   const navigate = useNavigate();
-  
+
   const { data: addresses = [], isLoading } = useAddresses();
   const createMutation = useCreateAddress();
   const updateMutation = useUpdateAddress();
@@ -112,11 +113,13 @@ function Addresses() {
           </div>
         ) : (
           <div className="space-y-4">
-            {addresses.map((addr) => (
+            {addresses.map(addr => (
               <div
                 key={addr.id}
                 className={`bg-[#f8f7f5] rounded-3xl p-6 border-2 transition-all ${
-                  addr.isDefault ? 'border-[#4A1525]/10 shadow-sm' : 'border-transparent hover:border-stone-100'
+                  addr.isDefault
+                    ? 'border-[#4A1525]/10 shadow-sm'
+                    : 'border-transparent hover:border-stone-100'
                 }`}
               >
                 <div className="flex items-start justify-between mb-4">
@@ -166,11 +169,18 @@ function Addresses() {
                     <MapPin className="w-4 h-4 text-stone-300 mt-0.5" strokeWidth={1.5} />
                     <div className="text-[13px] leading-relaxed">
                       {addr.regionCode === 'UZB' ? (
-                        <p>{addr.uzbStreet}, {addr.uzbCity}, {addr.uzbRegion}</p>
+                        <p>
+                          {addr.uzbStreet}, {addr.uzbCity}, {addr.uzbRegion}
+                        </p>
                       ) : (
                         <div>
-                          <p>[{addr.korPostalCode}] {addr.korRoadAddress}</p>
-                          <p>{addr.korBuilding && `${addr.korBuilding}, `}{addr.korDetail}</p>
+                          <p>
+                            [{addr.korPostalCode}] {addr.korRoadAddress}
+                          </p>
+                          <p>
+                            {addr.korBuilding && `${addr.korBuilding}, `}
+                            {addr.korDetail}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -178,7 +188,7 @@ function Addresses() {
                 </div>
               </div>
             ))}
-            
+
             {addresses.length >= 5 && (
               <p className="text-[11px] text-stone-400 text-center mt-6">
                 Maksimal 5 ta manzil saqlash mumkin.
@@ -192,7 +202,7 @@ function Addresses() {
           <DialogContent className="max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="text-xl font-light text-[#4A1525]">
-                {editingAddress ? 'Manzilni tahrirlash' : 'Yangi manzil qo\'shish'}
+                {editingAddress ? 'Manzilni tahrirlash' : "Yangi manzil qo'shish"}
               </DialogTitle>
             </DialogHeader>
             <AddressForm
@@ -206,7 +216,10 @@ function Addresses() {
         </Dialog>
 
         {/* Delete Confirmation */}
-        <AlertDialog open={!!addressToDelete} onOpenChange={(open) => !open && setAddressToDelete(null)}>
+        <AlertDialog
+          open={!!addressToDelete}
+          onOpenChange={open => !open && setAddressToDelete(null)}
+        >
           <AlertDialogContent className="max-w-sm">
             <AlertDialogHeader>
               <AlertDialogTitle>Manzilni o'chirish</AlertDialogTitle>

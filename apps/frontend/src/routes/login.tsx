@@ -1,4 +1,5 @@
 import { api } from '@/lib/api';
+import { STORE_INFO } from '@nuraskin/shared-utils';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { createFileRoute, useNavigate, Link, redirect } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
@@ -11,8 +12,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 declare global {
   interface Window {
@@ -38,8 +39,8 @@ export const Route = createFileRoute('/login')({
 function LoginPage() {
   const navigate = useNavigate();
   const { redirect: redirectUrl } = Route.useSearch();
-  const setAuth = useAppStore((s) => s.setAuth);
-  const setRegion = useAppStore((s) => s.setRegion);
+  const setAuth = useAppStore(s => s.setAuth);
+  const setRegion = useAppStore(s => s.setRegion);
   const [error, setError] = useState<string | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -49,46 +50,48 @@ function LoginPage() {
   const [pendingRedirect, setPendingRedirect] = useState('/');
 
   const clearCartMutation = useMutation({
-    mutationFn: () => api.delete<any>('/storefront/cart')
+    mutationFn: () => api.delete<any>('/storefront/cart'),
   });
   const clearCart = () => clearCartMutation.mutateAsync();
 
   const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nuraskin_manager_bot';
 
-  const handleAuth = useCallback(async (user: any) => {
-    setError(null);
-    try {
-      const data = await api.post<any>('/auth/telegram', user);
-      
-      const { token, user: userData } = data;
-      setAuth(token, userData);
+  const handleAuth = useCallback(
+    async (user: any) => {
+      setError(null);
+      try {
+        const data = await api.post<any>('/auth/telegram', user);
 
-      const guestRegion = useAppStore.getState().regionCode;
-      const profileRegion = userData.regionCode || userData.region;
-      const cartData = queryClient.getQueryData(['cart']);
-      const hasCartItems = (cartData as any)?.items?.length > 0;
+        const { token, user: userData } = data;
+        setAuth(token, userData);
 
-      if (guestRegion === profileRegion || !profileRegion) {
-        navigate({ to: redirectUrl || '/', replace: true });
-        return;
+        const guestRegion = useAppStore.getState().regionCode;
+        const profileRegion = userData.regionCode || userData.region;
+        const cartData = queryClient.getQueryData(['cart']);
+        const hasCartItems = (cartData as any)?.items?.length > 0;
+
+        if (guestRegion === profileRegion || !profileRegion) {
+          navigate({ to: redirectUrl || '/', replace: true });
+          return;
+        }
+
+        if (!hasCartItems) {
+          setRegion(profileRegion);
+          await updateRegion(profileRegion);
+          navigate({ to: redirectUrl || '/', replace: true });
+          return;
+        }
+
+        setPendingProfileRegion(profileRegion);
+        setPendingRedirect(redirectUrl || '/');
+        setShowRegionConflict(true);
+      } catch (err: any) {
+        console.error('Auth error:', err);
+        setError(err.message || 'Login failed. Please try again.');
       }
-
-      if (!hasCartItems) {
-        setRegion(profileRegion);
-        await updateRegion(profileRegion);
-        navigate({ to: redirectUrl || '/', replace: true });
-        return;
-      }
-
-      setPendingProfileRegion(profileRegion);
-      setPendingRedirect(redirectUrl || '/');
-      setShowRegionConflict(true);
-
-    } catch (err: any) {
-      console.error('Auth error:', err);
-      setError(err.message || 'Login failed. Please try again.');
-    }
-  }, [setAuth, navigate, redirectUrl, queryClient, setRegion]);
+    },
+    [setAuth, navigate, redirectUrl, queryClient, setRegion]
+  );
 
   const handleKeepGuestRegion = async () => {
     const guestRegion = useAppStore.getState().regionCode;
@@ -103,8 +106,8 @@ function LoginPage() {
     setRegion(pendingProfileRegion as 'UZB' | 'KOR');
     await clearCart();
     queryClient.setQueryData(['cart'], null);
-    queryClient.invalidateQueries({ 
-      queryKey: ['products', pendingProfileRegion] 
+    queryClient.invalidateQueries({
+      queryKey: ['products', pendingProfileRegion],
     });
     setShowRegionConflict(false);
     navigate({ to: pendingRedirect, replace: true });
@@ -112,7 +115,7 @@ function LoginPage() {
 
   useEffect(() => {
     // Set global callback for Telegram
-    window.onTelegramAuth = (user) => handleAuth(user);
+    window.onTelegramAuth = user => handleAuth(user);
 
     if (widgetRef.current) {
       widgetRef.current.innerHTML = '';
@@ -158,47 +161,41 @@ function LoginPage() {
           <div className="flex justify-center min-h-[44px]" ref={widgetRef} />
 
           <p className="text-white/30 text-[11px] text-center mt-6 leading-relaxed">
-            Xavfsiz kirish uchun Telegram akkauntingizdan foydalaniladi
+            Xavfsiz kirish uchun {STORE_INFO.SOCIAL.TELEGRAM.name} akkauntingizdan foydalaniladi
           </p>
 
           <div className="text-center mt-10">
-            <Link
-              to="/"
-              className="text-white/40 text-xs hover:text-white/70 transition-colors"
-            >
+            <Link to="/" className="text-white/40 text-xs hover:text-white/70 transition-colors">
               ← Bosh sahifaga qaytish
             </Link>
           </div>
         </div>
       </div>
 
-      <Dialog 
+      <Dialog
         open={showRegionConflict}
         onOpenChange={() => {
           // Intentionally empty
-        }} 
+        }}
       >
-        <DialogContent 
+        <DialogContent
           className="sm:max-w-md"
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={e => e.preventDefault()}
+          onEscapeKeyDown={e => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>Mintaqani tanlang</DialogTitle>
             <DialogDescription>
-              Siz {guestRegion === 'UZB' ? "O'zbekiston" : 'Koreya'} mintaqasida ko'rmoqda edingiz, lekin profilingiz{' '}
-              {pendingProfileRegion === 'UZB' ? "O'zbekiston" : 'Koreya'} mintaqasida.
+              Siz {guestRegion === 'UZB' ? "O'zbekiston" : 'Koreya'} mintaqasida ko'rmoqda edingiz,
+              lekin profilingiz {pendingProfileRegion === 'UZB' ? "O'zbekiston" : 'Koreya'}{' '}
+              mintaqasida.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-3 mt-4">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={handleKeepGuestRegion}
-            >
+            <Button variant="outline" className="flex-1" onClick={handleKeepGuestRegion}>
               {guestRegion === 'UZB' ? "O'zbekiston" : 'Koreya'}da davom eting
             </Button>
-            <Button 
+            <Button
               className="flex-1 bg-[#E8472A] hover:bg-[#d63d22] text-white"
               onClick={handleUseProfileRegion}
             >

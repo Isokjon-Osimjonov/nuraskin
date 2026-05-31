@@ -48,6 +48,7 @@ Shared primitives go in `@nura/ui`, not duplicated across apps.
 ## Standard patterns
 
 ### Query hook
+
 ```ts
 export function useOrders(filters: OrderFilters) {
   return useQuery({
@@ -58,6 +59,7 @@ export function useOrders(filters: OrderFilters) {
 ```
 
 ### Mutation hook
+
 ```ts
 export function useShipOrder() {
   const qc = useQueryClient();
@@ -71,6 +73,7 @@ export function useShipOrder() {
 ```
 
 ### Form
+
 ```tsx
 const form = useForm<CheckoutInput>({
   resolver: zodResolver(CheckoutSchema),
@@ -79,6 +82,7 @@ const form = useForm<CheckoutInput>({
 ```
 
 ### Route (TanStack Router)
+
 ```ts
 export const Route = createFileRoute('/_app/orders/')({
   validateSearch: OrderFiltersSchema.parse,

@@ -7,7 +7,7 @@ const productSearchSchema = z.object({
 });
 
 export const Route = createFileRoute('/_app/products/new')({
-  validateSearch: (search) => productSearchSchema.parse(search),
+  validateSearch: search => productSearchSchema.parse(search),
   component: NewProductPage,
 });
 

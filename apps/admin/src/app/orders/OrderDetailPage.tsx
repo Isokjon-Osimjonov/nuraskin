@@ -5,13 +5,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from './api/orders.api';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { 
-  ArrowLeft, 
-  PackageCheck, 
-  Truck, 
-  CheckCircle2, 
-  XCircle, 
-  Printer, 
+import {
+  ArrowLeft,
+  PackageCheck,
+  Truck,
+  CheckCircle2,
+  XCircle,
+  Printer,
   ExternalLink,
   Info,
   Clock,
@@ -27,13 +27,7 @@ import { PackingScanner } from './components/PackingScanner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatPrice } from '@/lib/utils';
 
 export function OrderDetailPage() {
@@ -52,7 +46,8 @@ export function OrderDetailPage() {
 
   React.useEffect(() => {
     if (orderId) {
-      ordersApi.getReceipt(orderId)
+      ordersApi
+        .getReceipt(orderId)
         .then(res => setReceiptUrl(res.receipt_url))
         .catch(() => setReceiptUrl(null));
     }
@@ -88,7 +83,7 @@ export function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
       if (variables === 'CANCELED') {
-        toast.success("Buyurtma bekor qilindi");
+        toast.success('Buyurtma bekor qilindi');
       } else {
         toast.success(`Holat o'zgartirildi: ${variables}`);
       }
@@ -105,7 +100,7 @@ export function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] });
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all() });
-      toast.success("Buyurtma tayyorlandi");
+      toast.success('Buyurtma tayyorlandi');
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Xatolik yuz berdi';
@@ -147,7 +142,9 @@ export function OrderDetailPage() {
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
               Order {order.orderNumber}
               {order.orderSource === 'MANUAL' && (
-                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-indigo-200">MANUAL</span>
+                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-indigo-200">
+                  MANUAL
+                </span>
               )}
               <OrderStatusBadge status={order.status} />
             </h1>
@@ -156,12 +153,9 @@ export function OrderDetailPage() {
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleDownloadInvoice}
-          >
+          <Button variant="outline" onClick={handleDownloadInvoice}>
             <Printer className="mr-2 h-4 w-4" />
             Faktura yuklab olish
           </Button>
@@ -172,13 +166,17 @@ export function OrderDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Timeout Banner */}
           {order.status === 'PENDING_PAYMENT' && timeLeft && (
-            <Card className={`border-none ${timeLeft === 'EXPIRED' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+            <Card
+              className={`border-none ${timeLeft === 'EXPIRED' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}
+            >
               <CardContent className="flex items-center justify-between py-3 px-4">
                 <div className="flex items-center gap-2 font-medium">
                   <Clock className="h-4 w-4" />
                   {timeLeft === 'EXPIRED' ? "To'lov muddati tugagan" : "To'lov kutish vaqti"}
                 </div>
-                <div className={`text-xl font-mono font-bold ${timeLeft !== 'EXPIRED' && (timeLeft.startsWith('0:') || timeLeft.startsWith('1:') || timeLeft.startsWith('2:') || timeLeft.startsWith('3:') || timeLeft.startsWith('4:')) ? 'text-red-600 animate-pulse' : ''}`}>
+                <div
+                  className={`text-xl font-mono font-bold ${timeLeft !== 'EXPIRED' && (timeLeft.startsWith('0:') || timeLeft.startsWith('1:') || timeLeft.startsWith('2:') || timeLeft.startsWith('3:') || timeLeft.startsWith('4:')) ? 'text-red-600 animate-pulse' : ''}`}
+                >
                   {timeLeft === 'EXPIRED' ? '00:00' : timeLeft}
                 </div>
               </CardContent>
@@ -207,12 +205,16 @@ export function OrderDetailPage() {
           {/* Customer Info */}
           <Card>
             <CardHeader className="py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Mijoz</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Mijoz
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <div className="font-bold text-lg">{order.customerName}</div>
-                <div className="text-sm text-muted-foreground uppercase">{order.regionCode} Region</div>
+                <div className="text-sm text-muted-foreground uppercase">
+                  {order.regionCode} Region
+                </div>
               </div>
               <div className="pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
@@ -221,18 +223,28 @@ export function OrderDetailPage() {
                     {formatPrice(order.subtotal, order.currency === 'UZS' ? 'UZB' : 'KOR')}
                   </span>
                 </div>
-                
+
                 {order.couponCode && BigInt(order.couponDiscount || '0') > 0n && (
                   <div className="flex justify-between text-sm text-emerald-600">
-                    <span className="text-muted-foreground font-medium">Kupon ({order.couponCode}):</span>
-                    <span>-{formatPrice(order.couponDiscount, order.currency === 'UZS' ? 'UZB' : 'KOR')}</span>
+                    <span className="text-muted-foreground font-medium">
+                      Kupon ({order.couponCode}):
+                    </span>
+                    <span>
+                      -{formatPrice(order.couponDiscount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
+                    </span>
                   </div>
                 )}
 
                 {BigInt(order.wholesaleDiscount || '0') > 0n && (
                   <div className="flex justify-between text-sm text-emerald-600">
                     <span className="text-muted-foreground font-medium">Ulgurji chegirma:</span>
-                    <span>-{formatPrice(order.wholesaleDiscount, order.currency === 'UZS' ? 'UZB' : 'KOR')}</span>
+                    <span>
+                      -
+                      {formatPrice(
+                        order.wholesaleDiscount,
+                        order.currency === 'UZS' ? 'UZB' : 'KOR'
+                      )}
+                    </span>
                   </div>
                 )}
 
@@ -256,7 +268,9 @@ export function OrderDetailPage() {
           {/* Delivery Address Card */}
           <Card>
             <CardHeader className="py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Yetkazib berish manzili</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Yetkazib berish manzili
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {order.deliveryFullName ? (
@@ -268,17 +282,19 @@ export function OrderDetailPage() {
                   </p>
                   <div className="pt-2 border-t mt-2 space-y-1 text-stone-600 font-light">
                     <p className="flex items-start gap-2">
-                        <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                        <span>
-                            {order.deliveryAddressLine1}
-                            {order.deliveryAddressLine2 && `, ${order.deliveryAddressLine2}`}
-                        </span>
+                      <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      <span>
+                        {order.deliveryAddressLine1}
+                        {order.deliveryAddressLine2 && `, ${order.deliveryAddressLine2}`}
+                      </span>
                     </p>
                     <p className="ml-5">
                       {order.deliveryPostalCode && `[${order.deliveryPostalCode}] `}
                       {order.deliveryCity}
                     </p>
-                    <p className="ml-5 uppercase text-[10px] font-bold text-stone-400 tracking-widest">{order.deliveryRegionCode}</p>
+                    <p className="ml-5 uppercase text-[10px] font-bold text-stone-400 tracking-widest">
+                      {order.deliveryRegionCode}
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -292,7 +308,9 @@ export function OrderDetailPage() {
           {/* Receipt Section */}
           <Card>
             <CardHeader className="py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Kvitansiya</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Kvitansiya
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {!receiptUrl ? (
@@ -312,9 +330,9 @@ export function OrderDetailPage() {
                       Kattalashtirish uchun bosing
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full"
                     onClick={() => window.open(receiptUrl, '_blank')}
                   >
@@ -329,7 +347,9 @@ export function OrderDetailPage() {
           {/* Action Card */}
           <Card className="border-primary/20 bg-primary/5">
             <CardHeader className="py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider">Harakatlar</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider">
+                Harakatlar
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {order.status === 'DRAFT' && (
@@ -339,8 +359,11 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {(order.status === 'PAYMENT_CONFIRMED') && (
-                <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => statusMutation.mutate('PACKING')}>
+              {order.status === 'PAYMENT_CONFIRMED' && (
+                <Button
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  onClick={() => statusMutation.mutate('PACKING')}
+                >
                   <PackageCheck className="mr-2 h-4 w-4" />
                   Tayyorlashni boshlash
                 </Button>
@@ -352,14 +375,16 @@ export function OrderDetailPage() {
                     <Scan className="mr-2 h-5 w-5" />
                     Skanerlashni davom etish
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     variant="secondary"
-                    className="w-full" 
+                    className="w-full"
                     disabled={!allScanned || completePackingMutation.isPending}
                     onClick={() => completePackingMutation.mutate()}
                   >
-                    {completePackingMutation.isPending ? 'Yakunlanmoqda...' : 'Tayyorlashni yakunlash'}
+                    {completePackingMutation.isPending
+                      ? 'Yakunlanmoqda...'
+                      : 'Tayyorlashni yakunlash'}
                   </Button>
                 </>
               )}
@@ -371,8 +396,18 @@ export function OrderDetailPage() {
                 </Button>
               )}
 
-              {['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'].includes(order.status) && (
-                <Button variant="ghost" className="w-full text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => statusMutation.mutate('CANCELED')}>
+              {[
+                'DRAFT',
+                'PENDING_PAYMENT',
+                'PAYMENT_SUBMITTED',
+                'PAYMENT_CONFIRMED',
+                'PACKING',
+              ].includes(order.status) && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => statusMutation.mutate('CANCELED')}
+                >
                   <XCircle className="mr-2 h-4 w-4" />
                   Bekor qilish
                 </Button>
@@ -392,9 +427,7 @@ export function OrderDetailPage() {
         </div>
       </div>
 
-      {isScannerOpen && (
-        <PackingScanner order={order} onClose={() => setIsScannerOpen(false)} />
-      )}
+      {isScannerOpen && <PackingScanner order={order} onClose={() => setIsScannerOpen(false)} />}
     </div>
   );
 }

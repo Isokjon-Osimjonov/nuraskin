@@ -1,6 +1,6 @@
-import { api } from '@/lib/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Bell, ChevronRight, Trash2, ShoppingBag, AlertCircle } from 'lucide-react';
+import { STORE_INFO } from '@nuraskin/shared-utils';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlist, useToggleWaitlist } from '@/hooks/useWaitlist';
 import { useAddToCart } from '@/hooks/useCart';
@@ -24,7 +24,9 @@ function WaitingListPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center py-24 px-6 text-center">
         <Bell className="w-12 h-12 text-stone-300 mb-4" strokeWidth={1} />
         <h2 className="text-xl font-normal text-[#4A1525] mb-3">Tizimga kiring</h2>
-        <p className="text-[13px] font-light text-stone-500 mb-6">Kutish ro'yxatini ko'rish uchun tizimga kiring</p>
+        <p className="text-[13px] font-light text-stone-500 mb-6">
+          Kutish ro'yxatini ko'rish uchun tizimga kiring
+        </p>
         <button
           onClick={() => navigate({ to: '/login' })}
           className="px-6 py-2.5 bg-[#4A1525] text-white text-[13px] font-light rounded-full hover:bg-[#6B2540] transition-colors"
@@ -35,26 +37,23 @@ function WaitingListPage() {
     );
   }
 
-  const displayPrice = (price: number | string) =>
-    formatPrice(price, regionCode as 'UZB' | 'KOR');
+  const displayPrice = (price: number | string) => formatPrice(price, regionCode as 'UZB' | 'KOR');
 
   return (
     <div className="bg-white min-h-screen py-10">
       <div className="max-w-[1280px] mx-auto px-6">
-
         {/* Breadcrumb */}
         <nav className="flex items-center text-[13px] font-light text-stone-400 mb-8">
-          <Link to="/" className="hover:text-[#4A1525] transition-colors">Bosh sahifa</Link>
+          <Link to="/" className="hover:text-[#4A1525] transition-colors">
+            Bosh sahifa
+          </Link>
           <ChevronRight className="w-3 h-3 mx-2" />
-          <Link to="/profile" className="hover:text-[#4A1525] transition-colors">Profil</Link>
+          <Link to="/profile" className="hover:text-[#4A1525] transition-colors">
+            Profil
+          </Link>
           <ChevronRight className="w-3 h-3 mx-2" />
           <span className="text-stone-700 font-normal">Kutish ro'yxati</span>
         </nav>
-
-        <div className="flex items-center gap-3 mb-8">
-          <Bell className="w-6 h-6 text-[#4A1525]" strokeWidth={1.5} />
-          <h1 className="text-2xl font-normal text-[#4A1525]">Kutish ro'yxati</h1>
-        </div>
 
         {isLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -99,16 +98,20 @@ function WaitingListPage() {
         {!isLoading && entries.length > 0 && (
           <>
             <p className="text-[13px] font-light text-stone-500 mb-6">
-              Quyidagi mahsulotlar omborda paydo bo'lganda Telegram orqali xabardor qilinasiz.
+              Quyidagi mahsulotlar omborda paydo bo'lganda {STORE_INFO.SOCIAL.TELEGRAM.name} orqali
+              xabardor qilinasiz.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {entries.map((entry) => {
+              {entries.map(entry => {
                 const product = entry?.product;
                 if (!product) return null;
                 const isAvailable = product.inStock;
 
                 return (
-                  <div key={entry.id} className="flex gap-3 p-3 bg-white rounded-xl border border-stone-100 hover:border-stone-200 transition-colors shadow-sm">
+                  <div
+                    key={entry.id}
+                    className="flex gap-3 p-3 bg-white rounded-xl border border-stone-100 hover:border-stone-200 transition-colors shadow-sm"
+                  >
                     {/* Image: fixed small square */}
                     <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-stone-100 p-1">
                       <img
@@ -117,17 +120,23 @@ function WaitingListPage() {
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    
+
                     {/* Content: flex-1 */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                       <div className="space-y-0.5">
-                        <p className="text-[10px] text-stone-400 uppercase tracking-tight truncate">{product.brandName}</p>
+                        <p className="text-[10px] text-stone-400 uppercase tracking-tight truncate">
+                          {product.brandName}
+                        </p>
                         <Link to="/products/$slug" params={{ slug: product.slug }}>
-                          <p className="text-sm font-normal text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">{product.name}</p>
+                          <p className="text-sm font-normal text-[#4A1525] truncate hover:text-[#6B2540] transition-colors">
+                            {product.name}
+                          </p>
                         </Link>
-                        <p className="text-sm font-normal text-[#4A1525]">{displayPrice(product.calculatedPrice)}</p>
+                        <p className="text-sm font-normal text-[#4A1525]">
+                          {displayPrice(product.calculatedPrice)}
+                        </p>
                       </div>
-                      
+
                       {/* Status badge */}
                       <div>
                         {isAvailable ? (
@@ -141,10 +150,10 @@ function WaitingListPage() {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Actions: right side */}
                     <div className="flex flex-col gap-2 items-end justify-between">
-                      <button 
+                      <button
                         onClick={() => remove.mutate(product.id)}
                         disabled={remove.isPending}
                         className="text-stone-300 hover:text-red-500 transition-colors"
@@ -152,10 +161,15 @@ function WaitingListPage() {
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      
+
                       {isAvailable && (
-                        <button 
-                          onClick={() => addToCart.mutate({ productId: product.id, quantity: 1 })}
+                        <button
+                          onClick={() =>
+                            addToCart.mutate({
+                              productId: product.id,
+                              quantity: 1,
+                            })
+                          }
                           disabled={addToCart.isPending}
                           className="h-8 px-3 bg-[#4A1525] text-white text-[11px] font-normal rounded-lg hover:bg-[#6B2540] transition-colors flex items-center gap-1.5"
                         >

@@ -9,24 +9,24 @@ const router = Router();
 // Middleware to resolve customer from authenticated user
 const resolveCustomer = asyncHandler(async (req, res, next) => {
   if (!req.user) return next();
-  
+
   const sub = req.user.sub;
   const telegramId = BigInt(sub);
-  
+
   let customer = await storefrontService.findCustomerByTelegramId(telegramId);
-  
+
   if (!customer) {
     const firstName = req.user.firstName || '';
     const lastName = req.user.lastName || '';
     const username = req.user.username || '';
-    
+
     customer = await storefrontService.createCustomerFromTelegram({
       telegramId,
       fullName: `${firstName} ${lastName}`.trim() || username || 'Mijoz',
       regionCode: 'UZB',
     });
   }
-  
+
   (req as any).customer = customer;
   next();
 });

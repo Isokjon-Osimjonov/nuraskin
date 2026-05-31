@@ -31,15 +31,12 @@ export function TablePagination({
     <div className="flex items-center justify-between px-2 py-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <p>Qatorda:</p>
-        <Select
-          value={pageSize.toString()}
-          onValueChange={(v) => onPageSizeChange(Number(v))}
-        >
+        <Select value={pageSize.toString()} onValueChange={v => onPageSizeChange(Number(v))}>
           <SelectTrigger className="h-8 w-[70px]">
             <SelectValue placeholder={pageSize.toString()} />
           </SelectTrigger>
           <SelectContent side="top">
-            {[10, 20, 50].map((size) => (
+            {[10, 20, 50].map(size => (
               <SelectItem key={size} value={size.toString()}>
                 {size}
               </SelectItem>

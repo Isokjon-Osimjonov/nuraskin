@@ -1,11 +1,28 @@
-import { db, products, inventoryBatches, stockMovements, stockReservations, productWaitlist, batchAdjustments } from '@nuraskin/database';
+import {
+  db,
+  products,
+  inventoryBatches,
+  stockMovements,
+  stockReservations,
+  productWaitlist,
+  batchAdjustments,
+} from '@nuraskin/database';
 import { eq, and, sql, asc, isNull, isNotNull, gt } from 'drizzle-orm';
-import type { InventoryBatch, NewInventoryBatch, StockMovement, NewStockMovement, NewBatchAdjustment } from '@nuraskin/database';
+import type {
+  InventoryBatch,
+  NewInventoryBatch,
+  NewStockMovement,
+  NewBatchAdjustment,
+} from '@nuraskin/database';
 import { NotFoundError } from '../../common/errors/AppError';
 
 export async function getBatchById(batchId: string, tx?: any) {
   const d = tx || db;
-  const [batch] = await d.select().from(inventoryBatches).where(eq(inventoryBatches.id, batchId)).limit(1);
+  const [batch] = await d
+    .select()
+    .from(inventoryBatches)
+    .where(eq(inventoryBatches.id, batchId))
+    .limit(1);
   return batch;
 }
 
@@ -14,7 +31,7 @@ export async function updateBatch(
   data: Partial<InventoryBatch>,
   adjustments: NewBatchAdjustment[]
 ) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const [updated] = await tx
       .update(inventoryBatches)
       .set({ ...data, updatedAt: new Date() })
@@ -41,7 +58,7 @@ export async function adjustBatchQuantity(
   adminId: string,
   reason: string
 ) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const [batch] = await tx
       .select()
       .from(inventoryBatches)
@@ -92,7 +109,7 @@ export async function deleteBatch(batchId: string) {
 
 export async function getAvailableStock(productId: string, tx?: any) {
   const d = tx || db;
-  
+
   const [stockRow] = await d
     .select({ total: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)` })
     .from(inventoryBatches)
@@ -101,25 +118,23 @@ export async function getAvailableStock(productId: string, tx?: any) {
   const [reservedRow] = await d
     .select({ total: sql<number>`coalesce(sum(${stockReservations.quantity})::int, 0)` })
     .from(stockReservations)
-    .where(and(
-      eq(stockReservations.productId, productId),
-      eq(stockReservations.status, 'ACTIVE'),
-      gt(stockReservations.expiresAt, new Date())
-    ));
+    .where(
+      and(
+        eq(stockReservations.productId, productId),
+        eq(stockReservations.status, 'ACTIVE'),
+        gt(stockReservations.expiresAt, new Date())
+      )
+    );
 
   const physical = stockRow?.total ?? 0;
   const reserved = reservedRow?.total ?? 0;
-  
+
   return Math.max(0, physical - reserved);
 }
 
 export async function findByBarcodeOrSku(input: string) {
   // Try exact barcode match first
-  let [product] = await db
-    .select()
-    .from(products)
-    .where(eq(products.barcode, input))
-    .limit(1);
+  let [product] = await db.select().from(products).where(eq(products.barcode, input)).limit(1);
 
   if (!product && input.length >= 6) {
     // Try SKU suffix match (last 6 chars)
@@ -144,7 +159,7 @@ export async function createBatch(
   batchData: NewInventoryBatch,
   movementData: Omit<NewStockMovement, 'batchId' | 'qtyBefore' | 'qtyAfter'>
 ) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const [batch] = await tx.insert(inventoryBatches).values(batchData).returning();
     if (!batch) throw new Error('Failed to create batch');
 
@@ -191,7 +206,7 @@ export async function getBatchesByProductId(productId: string) {
     .where(eq(inventoryBatches.productId, productId))
     .orderBy(asc(inventoryBatches.receivedAt));
 
-  return batches.map((b) => ({
+  return batches.map(b => ({
     ...b,
     costPrice: b.costPrice.toString(),
   }));
@@ -202,11 +217,13 @@ export async function getBatchesByProductId(productId: string) {
  * Returns the list of batches and quantities used.
  */
 export async function deductFIFO(productId: string, quantity: number, orderId?: string) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const batches = await tx
       .select()
       .from(inventoryBatches)
-      .where(and(eq(inventoryBatches.productId, productId), sql`${inventoryBatches.currentQty} > 0`))
+      .where(
+        and(eq(inventoryBatches.productId, productId), sql`${inventoryBatches.currentQty} > 0`)
+      )
       .orderBy(asc(inventoryBatches.receivedAt));
 
     let remainingToDeduct = quantity;
@@ -238,13 +255,16 @@ export async function deductFIFO(productId: string, quantity: number, orderId?: 
     }
 
     if (remainingToDeduct > 0) {
-      throw new Error(`Insufficient stock for product ${productId}. Missing ${remainingToDeduct} units.`);
+      throw new Error(
+        `Insufficient stock for product ${productId}. Missing ${remainingToDeduct} units.`
+      );
     }
 
     // Reset waitlist notifications if stock is exhausted
     const available = await getAvailableStock(productId, tx);
     if (available === 0) {
-      await tx.update(productWaitlist)
+      await tx
+        .update(productWaitlist)
         .set({ notifiedAt: null })
         .where(eq(productWaitlist.productId, productId));
     }

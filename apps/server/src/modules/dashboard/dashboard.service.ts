@@ -1,7 +1,14 @@
 import { PAID_STATUSES } from '@nuraskin/shared-utils';
-import { db, orders, orderItems, products, inventoryBatches, settings, exchangeRateSnapshots } from '@nuraskin/database';
-import { eq, sql, and, gte, lte, desc, sum, count, countDistinct, inArray } from 'drizzle-orm';
-import { logger } from '../../common/utils/logger';
+import {
+  db,
+  orders,
+  orderItems,
+  products,
+  inventoryBatches,
+  settings,
+  exchangeRateSnapshots,
+} from '@nuraskin/database';
+import { eq, sql, and, desc, sum, count, inArray } from 'drizzle-orm';
 
 export async function getKPIs(region: string) {
   const isAll = region === 'ALL';
@@ -31,11 +38,13 @@ export async function getKPIs(region: string) {
     .from(orders)
     .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
-    .where(and(
-      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
-      inArray(orders.status, PAID_STATUSES),
-      isAll ? sql`1=1` : eq(orders.regionCode, region)
-    ))
+    .where(
+      and(
+        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
+        inArray(orders.status, PAID_STATUSES),
+        isAll ? sql`1=1` : eq(orders.regionCode, region)
+      )
+    )
     .then(res => res[0]);
 
   const rev = BigInt(todayStats?.revenue ?? '0');
@@ -44,11 +53,13 @@ export async function getKPIs(region: string) {
   const cogs = BigInt(todayStats?.cogs ?? '0');
   const cargo = BigInt(todayStats?.cargo ?? '0');
   const grossProfit = rev - cogs - cargo;
-  const margin = rev > 0n ? Number(grossProfit * 10000n / rev) / 100 : 0;
+  const margin = rev > 0n ? Number((grossProfit * 10000n) / rev) / 100 : 0;
 
   // 2. Inventory Value (Live)
   const inventoryValue = await db
-    .select({ value: sql<bigint>`sum(${inventoryBatches.currentQty} * ${inventoryBatches.costPrice})::bigint` })
+    .select({
+      value: sql<bigint>`sum(${inventoryBatches.currentQty} * ${inventoryBatches.costPrice})::bigint`,
+    })
     .from(inventoryBatches)
     .where(sql`${inventoryBatches.currentQty} > 0`)
     .then(res => res[0]?.value || 0n);
@@ -65,12 +76,14 @@ export async function getKPIs(region: string) {
   const pendingVerification = await db
     .select({ count: count(orders.id) })
     .from(orders)
-    .where(and(
-      sql`${orders.status} IN ('PAYMENT_SUBMITTED', 'PENDING_PAYMENT')`,
-      sql`${orders.paymentReceiptUrl} IS NOT NULL`,
-      sql`${orders.paymentVerifiedAt} IS NULL`,
-      sql`${orders.paymentRejectedAt} IS NULL`
-    ))
+    .where(
+      and(
+        sql`${orders.status} IN ('PAYMENT_SUBMITTED', 'PENDING_PAYMENT')`,
+        sql`${orders.paymentReceiptUrl} IS NOT NULL`,
+        sql`${orders.paymentVerifiedAt} IS NULL`,
+        sql`${orders.paymentRejectedAt} IS NULL`
+      )
+    )
     .then(res => res[0]?.count || 0);
 
   const readyToPack = await db
@@ -82,12 +95,14 @@ export async function getKPIs(region: string) {
   const expiringSoon = await db
     .select({ count: count(orders.id) })
     .from(orders)
-    .where(and(
-      sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`,
-      sql`${orders.paymentVerifiedAt} IS NULL`,
-      sql`${orders.paymentRejectedAt} IS NULL`,
-      sql`${orders.createdAt} < NOW() - INTERVAL '48 hours'`
-    ))
+    .where(
+      and(
+        sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`,
+        sql`${orders.paymentVerifiedAt} IS NULL`,
+        sql`${orders.paymentRejectedAt} IS NULL`,
+        sql`${orders.createdAt} < NOW() - INTERVAL '48 hours'`
+      )
+    )
     .then(res => res[0]?.count || 0);
 
   const [settingsRow] = await db.select().from(settings).limit(1);
@@ -117,7 +132,7 @@ export async function getKPIs(region: string) {
       ready_to_pack: readyToPack,
       reservations_expiring_soon: expiringSoon,
       low_stock_skus: lowStockProducts.length,
-    }
+    },
   };
 }
 
@@ -143,13 +158,19 @@ export async function getTrend(region: string) {
     })
     .from(orders)
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
-    .where(and(
-      inArray(orders.status, PAID_STATUSES),
-      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
-      isAll ? sql`1=1` : eq(orders.regionCode, region)
-    ))
-    .groupBy(sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`)
-    .orderBy(sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`);
+    .where(
+      and(
+        inArray(orders.status, PAID_STATUSES),
+        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+        isAll ? sql`1=1` : eq(orders.regionCode, region)
+      )
+    )
+    .groupBy(
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`
+    )
+    .orderBy(
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`
+    );
 
   const revenueMap = new Map(summaryDays.map(d => [d.date, d]));
 
@@ -181,11 +202,13 @@ export async function getTrend(region: string) {
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .innerJoin(products, eq(orderItems.productId, products.id))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
-    .where(and(
-      inArray(orders.status, PAID_STATUSES),
-      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
-      isAll ? sql`1=1` : eq(orders.regionCode, region)
-    ))
+    .where(
+      and(
+        inArray(orders.status, PAID_STATUSES),
+        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+        isAll ? sql`1=1` : eq(orders.regionCode, region)
+      )
+    )
     .groupBy(orderItems.productId, products.name, exchangeRateSnapshots.krwToUzs)
     .orderBy(desc(sql`sum(${orderItems.subtotalSnapshot})`))
     .limit(5);

@@ -35,9 +35,12 @@ export async function login(email: string, pass: string): Promise<AuthTokenRespo
   const token = jwt.sign(
     { sub: user.id, email: user.email, role: user.role, fullName: user.fullName },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] },
+    { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
   );
-  return { token, user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName } };
+  return {
+    token,
+    user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName },
+  };
 }
 
 export async function adminLogin({ input }: { input: LoginInput }): Promise<AuthTokenResponse> {
@@ -80,7 +83,7 @@ export async function telegramAuth({
       role: 'customer',
     },
     env.JWT_SECRET,
-    { expiresIn: '90d' },
+    { expiresIn: '90d' }
   );
 
   return {
@@ -98,14 +101,14 @@ function validateTelegramHash(input: TelegramAuthInput): void {
     .map(([k, v]) => `${k}=${v}`)
     .join('\n');
 
-  logger.debug({ botTokenPrefix: env.TELEGRAM_BOT_TOKEN.slice(0, 10) }, '[Auth] Validating Telegram hash');
+  logger.debug(
+    { botTokenPrefix: env.TELEGRAM_BOT_TOKEN.slice(0, 10) },
+    '[Auth] Validating Telegram hash'
+  );
   logger.debug({ dataCheckString }, '[Auth] Data check string');
-  
+
   const secretKey = crypto.createHash('sha256').update(env.TELEGRAM_BOT_TOKEN).digest();
-  const expectedHash = crypto
-    .createHmac('sha256', secretKey)
-    .update(dataCheckString)
-    .digest('hex');
+  const expectedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
   if (
     expectedHash.length !== hash.length ||

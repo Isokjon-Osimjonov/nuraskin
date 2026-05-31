@@ -72,7 +72,7 @@ export function InventoryDetailPage() {
     if (!selectedBatch) return;
     try {
       await inventoryApi.deleteBatch(selectedBatch.id);
-      toast.success('Partiya o\'chirildi');
+      toast.success("Partiya o'chirildi");
       handleSuccess();
       setIsDeleteDialogOpen(false);
     } catch (error: any) {
@@ -104,11 +104,7 @@ export function InventoryDetailPage() {
   return (
     <div className="p-6 space-y-6 ">
       <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => navigate({ to: '/inventory' })}
-          className="gap-2"
-        >
+        <Button variant="ghost" onClick={() => navigate({ to: '/inventory' })} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Orqaga
         </Button>
@@ -142,9 +138,7 @@ export function InventoryDetailPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <Package className="h-4 w-4 text-primary" />
-              <span className="font-bold">
-                Jami qoldiq: {product.totalStock}
-              </span>
+              <span className="font-bold">Jami qoldiq: {product.totalStock}</span>
             </div>
           </div>
         </div>
@@ -158,12 +152,8 @@ export function InventoryDetailPage() {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left font-medium">Batch Ref</th>
-                <th className="px-4 py-3 text-center font-medium">
-                  Initial Qty
-                </th>
-                <th className="px-4 py-3 text-center font-medium">
-                  Current Qty
-                </th>
+                <th className="px-4 py-3 text-center font-medium">Initial Qty</th>
+                <th className="px-4 py-3 text-center font-medium">Current Qty</th>
                 <th className="px-4 py-3 text-right font-medium">Cost Price</th>
                 <th className="px-4 py-3 text-center font-medium">Currency</th>
                 <th className="px-4 py-3 text-left font-medium">Expiry Date</th>
@@ -174,30 +164,19 @@ export function InventoryDetailPage() {
             <tbody>
               {batches?.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-8 text-center text-muted-foreground"
-                  >
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     Hozircha partiyalar yo'q.
                   </td>
                 </tr>
               ) : (
-                batches?.map((batch) => (
-                  <tr
-                    key={batch.id}
-                    className="border-b last:border-0 hover:bg-muted/30"
-                  >
-                    <td className="px-4 py-3 font-mono">
-                      {batch.batchRef || '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {batch.initialQty}
-                    </td>
-                    <td className="px-4 py-3 text-center font-bold">
-                      {batch.currentQty}
-                    </td>
+                batches?.map(batch => (
+                  <tr key={batch.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="px-4 py-3 font-mono">{batch.batchRef || '—'}</td>
+                    <td className="px-4 py-3 text-center">{batch.initialQty}</td>
+                    <td className="px-4 py-3 text-center font-bold">{batch.currentQty}</td>
                     <td className="px-4 py-3 text-right">
-                      {Number(BigInt(batch.costPrice)).toLocaleString()} {batch.costCurrency === 'KRW' ? '₩' : batch.costCurrency}
+                      {Number(BigInt(batch.costPrice)).toLocaleString()}{' '}
+                      {batch.costCurrency === 'KRW' ? '₩' : batch.costCurrency}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <Badge variant="outline">{batch.costCurrency}</Badge>
@@ -228,21 +207,25 @@ export function InventoryDetailPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedBatch(batch);
-                            setIsEditSheetOpen(true);
-                          }}>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedBatch(batch);
+                              setIsEditSheetOpen(true);
+                            }}
+                          >
                             <Pencil className="mr-2 h-4 w-4" />
                             Tahrirlash
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedBatch(batch);
-                            setIsAdjustDialogOpen(true);
-                          }}>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedBatch(batch);
+                              setIsAdjustDialogOpen(true);
+                            }}
+                          >
                             <Scale className="mr-2 h-4 w-4" />
                             Miqdorni to'g'irlash
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => {
                               setSelectedBatch(batch);
@@ -295,7 +278,10 @@ export function InventoryDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               O'chirish
             </AlertDialogAction>
           </AlertDialogFooter>

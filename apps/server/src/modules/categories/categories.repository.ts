@@ -6,7 +6,9 @@ export interface CategoryWithProductCount extends Category {
   productCount: number;
 }
 
-export async function findAll(options: { limit?: number; offset?: number } = {}): Promise<CategoryWithProductCount[]> {
+export async function findAll(
+  options: { limit?: number; offset?: number } = {}
+): Promise<CategoryWithProductCount[]> {
   const query = db
     .select({
       id: categories.id,

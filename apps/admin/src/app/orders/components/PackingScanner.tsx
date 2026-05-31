@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '../api/orders.api';
 import { toast } from 'sonner';
-import { X, CheckCircle2, AlertCircle, Scan, Keyboard } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle, Keyboard } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
-  DialogFooter,
-  DialogClose
 } from '@/components/ui/dialog';
 
 interface PackingScannerProps {
@@ -28,9 +26,9 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
   const [isDone, setIsDone] = React.useState(false);
 
   const scanMutation = useMutation({
-    mutationFn: (input: { barcode?: string; skuSuffix?: string }) => 
+    mutationFn: (input: { barcode?: string; skuSuffix?: string }) =>
       ordersApi.scanItem(order.id, input),
-    onSuccess: (res) => {
+    onSuccess: res => {
       if (res.success) {
         if (res.alreadyScanned) {
           toast.warning(res.message);
@@ -83,9 +81,9 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
           <span className="text-xs text-white/60 font-mono">{order.orderNumber}</span>
           <span className="text-sm font-bold">Pick & Pack Rejimi</span>
         </div>
-        
+
         <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/10">
-          <div className={allScanned ? "text-green-400" : "text-primary"}>
+          <div className={allScanned ? 'text-green-400' : 'text-primary'}>
             <span className="text-lg font-black">{scannedCount}</span>
             <span className="text-xs opacity-60 mx-1">/</span>
             <span className="text-sm opacity-80">{totalCount}</span>
@@ -99,10 +97,10 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
 
       {/* Scanner Area */}
       <div className="flex-1 relative">
-        <BarcodeScanner 
-          isActive={!allScanned && !isManualOpen} 
+        <BarcodeScanner
+          isActive={!allScanned && !isManualOpen}
           onScan={handleScan}
-          onError={(err) => toast.error(err.message || "Xatolik yuz berdi")}
+          onError={err => toast.error(err.message || 'Xatolik yuz berdi')}
         />
 
         {allScanned && (
@@ -111,9 +109,11 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
               <CheckCircle2 className="text-green-600 w-12 h-12" />
             </div>
             <h3 className="text-3xl font-black mb-2">TAYYOR!</h3>
-            <p className="text-white/80 mb-8 max-w-xs">Hamma mahsulotlar muvaffaqiyatli skanerlandi.</p>
-            <Button 
-              size="lg" 
+            <p className="text-white/80 mb-8 max-w-xs">
+              Hamma mahsulotlar muvaffaqiyatli skanerlandi.
+            </p>
+            <Button
+              size="lg"
               className="w-full max-w-xs bg-white text-green-700 hover:bg-white/90 font-bold h-14 text-lg rounded-xl shadow-lg"
               onClick={onClose}
             >
@@ -128,7 +128,10 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
         {!allScanned && (
           <Dialog open={isManualOpen} onOpenChange={setIsManualOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-14 px-6 rounded-2xl bg-white/10 border-white/20 text-white backdrop-blur-md hover:bg-white/20">
+              <Button
+                variant="outline"
+                className="h-14 px-6 rounded-2xl bg-white/10 border-white/20 text-white backdrop-blur-md hover:bg-white/20"
+              >
                 <Keyboard className="mr-2 h-5 w-5" />
                 SKU kiritish
               </Button>
@@ -141,14 +144,18 @@ export function PackingScanner({ order, onClose }: PackingScannerProps) {
                 <p className="text-sm text-muted-foreground">
                   Shtrix-kod o'qimasa, mahsulot SKU'sining oxirgi 6 ta belgisini kiriting:
                 </p>
-                <Input 
-                  placeholder="Masalan: 123456" 
+                <Input
+                  placeholder="Masalan: 123456"
                   value={manualSku}
                   onChange={e => setManualSku(e.target.value)}
                   autoFocus
                   className="text-lg font-mono tracking-widest text-center h-12"
                 />
-                <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={!manualSku}>
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-lg font-bold"
+                  disabled={!manualSku}
+                >
                   Tasdiqlash
                 </Button>
               </form>

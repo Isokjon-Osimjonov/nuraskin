@@ -41,7 +41,7 @@ export async function createProduct(input: CreateProductInput) {
     isActive: true,
   };
 
-  const regionalConfigs = input.regionalConfigs.map((rc) => ({
+  const regionalConfigs = input.regionalConfigs.map(rc => ({
     productId: '' as unknown as string,
     regionCode: rc.regionCode,
     // KRW has no cents, store as whole units
@@ -82,7 +82,7 @@ export async function updateProduct(id: string, input: UpdateProductInput) {
       rcData.currency = 'KRW';
       if (rc.minWholesaleQty !== undefined) rcData.minWholesaleQty = rc.minWholesaleQty;
       if (rc.minOrderQty !== undefined) rcData.minOrderQty = rc.minOrderQty;
-      
+
       await updateRegionalConfig(id, rc.regionCode, rcData);
     }
   }
@@ -110,12 +110,13 @@ export async function updateRegionalConfig(
     minWholesaleQty?: number;
     minOrderQty?: number;
     isAvailable?: boolean;
-  },
+  }
 ) {
   const data: Partial<ProductRegionalConfig> = {};
   // KRW has no cents, store as whole units
   if (input.retailPrice !== undefined) data.retailPrice = BigInt(Math.round(input.retailPrice));
-  if (input.wholesalePrice !== undefined) data.wholesalePrice = BigInt(Math.round(input.wholesalePrice));
+  if (input.wholesalePrice !== undefined)
+    data.wholesalePrice = BigInt(Math.round(input.wholesalePrice));
   data.currency = 'KRW';
   if (input.minWholesaleQty !== undefined) data.minWholesaleQty = input.minWholesaleQty;
   if (input.minOrderQty !== undefined) data.minOrderQty = input.minOrderQty;

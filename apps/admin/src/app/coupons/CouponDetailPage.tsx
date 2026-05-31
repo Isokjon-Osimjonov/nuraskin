@@ -1,4 +1,4 @@
-import {  queryKeys , formatDateTime } from '@nuraskin/shared-utils';
+import { queryKeys, formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { formatUzs } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,11 +6,17 @@ import { couponsApi } from './api/coupons.api';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { ArrowLeft, Edit, Trash2, Users, ShoppingBag, Percent, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 export function CouponDetailPage() {
   const { id } = useParams({ strict: false }) as { id: string };
@@ -50,8 +56,10 @@ export function CouponDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-                {coupon.code}
-                <Badge variant="outline" className="text-xs uppercase">{coupon.status}</Badge>
+              {coupon.code}
+              <Badge variant="outline" className="text-xs uppercase">
+                {coupon.status}
+              </Badge>
             </h1>
             <p className="text-muted-foreground">{coupon.name}</p>
           </div>
@@ -61,7 +69,12 @@ export function CouponDetailPage() {
             <Edit className="mr-2 h-4 w-4" />
             Tahrirlash
           </Button>
-          <Button variant="destructive" onClick={() => { if(confirm("O'chirishni tasdiqlaysizmi?")) deleteMutation.mutate(); }}>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (confirm("O'chirishni tasdiqlaysizmi?")) deleteMutation.mutate();
+            }}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -75,7 +88,9 @@ export function CouponDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{coupon.usageCount} ta</div>
-            {coupon.maxUsesTotal && <p className="text-xs text-muted-foreground">Limit: {coupon.maxUsesTotal}</p>}
+            {coupon.maxUsesTotal && (
+              <p className="text-xs text-muted-foreground">Limit: {coupon.maxUsesTotal}</p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -101,7 +116,9 @@ export function CouponDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card>
-            <CardHeader><CardTitle className="text-lg">Foydalanish tarixi (Redemptions)</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Foydalanish tarixi (Redemptions)</CardTitle>
+            </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
@@ -113,12 +130,16 @@ export function CouponDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {coupon.redemptions.map((r) => (
+                  {coupon.redemptions.map(r => (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.customerName}</TableCell>
                       <TableCell>
-                        <Button variant="link" className="p-0" onClick={() => navigate({ to: `/orders/${r.orderId}` } as any)}>
-                            {r.orderNumber}
+                        <Button
+                          variant="link"
+                          className="p-0"
+                          onClick={() => navigate({ to: `/orders/${r.orderId}` } as any)}
+                        >
+                          {r.orderNumber}
                         </Button>
                       </TableCell>
                       <TableCell className="text-right font-medium text-green-600">
@@ -130,7 +151,14 @@ export function CouponDetailPage() {
                     </TableRow>
                   ))}
                   {coupon.redemptions.length === 0 && (
-                    <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground italic">Hali foydalanilmagan</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center h-24 text-muted-foreground italic"
+                      >
+                        Hali foydalanilmagan
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -139,42 +167,46 @@ export function CouponDetailPage() {
         </div>
 
         <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-sm flex items-center gap-2"><Calendar className="h-4 w-4" /> Sozlamalar</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm space-y-4">
-                    <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Turi:</span>
-                        <span className="font-medium">{coupon.type}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Qiymati:</span>
-                        <span className="font-medium">
-                            {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : formatUzs(coupon.value)}
-                        </span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Mintaqa:</span>
-                        <Badge variant="secondary">{coupon.regionCode || 'Barchasi'}</Badge>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Min. summa:</span>
-                        <span className="font-medium">{formatUzs(coupon.minOrderAmount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Kishi boshiga limit:</span>
-                        <span className="font-medium">{coupon.maxUsesPerCustomer} marta</span>
-                    </div>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Calendar className="h-4 w-4" /> Sozlamalar
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-4">
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Turi:</span>
+                <span className="font-medium">{coupon.type}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Qiymati:</span>
+                <span className="font-medium">
+                  {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : formatUzs(coupon.value)}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Mintaqa:</span>
+                <Badge variant="secondary">{coupon.regionCode || 'Barchasi'}</Badge>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Min. summa:</span>
+                <span className="font-medium">{formatUzs(coupon.minOrderAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Kishi boshiga limit:</span>
+                <span className="font-medium">{coupon.maxUsesPerCustomer} marta</span>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-                <CardHeader><CardTitle className="text-sm">Tavsif</CardTitle></CardHeader>
-                <CardContent className="text-sm italic text-muted-foreground">
-                    {coupon.description || 'Tavsif mavjud emas'}
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Tavsif</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm italic text-muted-foreground">
+              {coupon.description || 'Tavsif mavjud emas'}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

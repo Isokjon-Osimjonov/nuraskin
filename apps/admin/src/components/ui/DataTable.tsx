@@ -26,7 +26,7 @@ export function DataTableHeader({
     <thead
       className={cn(
         'bg-white text-black text-xs font-bold uppercase tracking-wide border-b border-stone-200',
-        className,
+        className
       )}
       {...props}
     />
@@ -37,24 +37,11 @@ export function DataTableBody({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return (
-    <tbody
-      className={cn('divide-y divide-stone-100 bg-white', className)}
-      {...props}
-    />
-  );
+  return <tbody className={cn('divide-y divide-stone-100 bg-white', className)} {...props} />;
 }
 
-export function DataTableRow({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLTableRowElement>) {
-  return (
-    <tr
-      className={cn('hover:bg-stone-50 transition-colors', className)}
-      {...props}
-    />
-  );
+export function DataTableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
+  return <tr className={cn('hover:bg-stone-50 transition-colors', className)} {...props} />;
 }
 
 export function DataTableHead({
@@ -63,10 +50,7 @@ export function DataTableHead({
 }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn(
-        'px-4 py-3 align-middle font-medium whitespace-nowrap',
-        className,
-      )}
+      className={cn('px-4 py-3 align-middle font-medium whitespace-nowrap', className)}
       {...props}
     />
   );
@@ -76,12 +60,7 @@ export function DataTableCell({
   className,
   ...props
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return (
-    <td
-      className={cn('px-4 py-3 align-middle text-stone-600', className)}
-      {...props}
-    />
-  );
+  return <td className={cn('px-4 py-3 align-middle text-stone-600', className)} {...props} />;
 }
 
 export function DataTableEmpty({

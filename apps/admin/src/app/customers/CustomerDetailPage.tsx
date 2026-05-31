@@ -7,13 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Save, ShoppingBag, Clock, Bell, AlertTriangle } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ArrowLeft, Save, Clock, Bell, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { UZ, translateServerError } from '@/lib/uz';
-import { formatPrice, formatUzs } from '@/lib/utils';
+import { formatUzs } from '@/lib/utils';
 
 export function CustomerDetailPage() {
   const { id } = useParams({ from: '/_app/customers/$id' as any });
@@ -50,7 +56,7 @@ export function CustomerDetailPage() {
 
   const debtValue = BigInt(customer.stats.outstandingDebt);
   const limitValue = customer.debtLimitOverride ? BigInt(customer.debtLimitOverride) : 100000000n; // fallback to dummy or actual default if we had it
-  const debtUsagePercent = limitValue > 0n ? Number(debtValue * 100n / limitValue) : 0;
+  const debtUsagePercent = limitValue > 0n ? Number((debtValue * 100n) / limitValue) : 0;
 
   const getProgressColor = (percent: number) => {
     if (percent >= 100) return 'bg-red-500';
@@ -97,36 +103,42 @@ export function CustomerDetailPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.customers.totalOrders}</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold">
+                  {UZ.customers.totalOrders}
+                </p>
                 <p className="text-2xl font-bold">{customer.stats.orderCount}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.customers.totalSpent}</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold">
+                  {UZ.customers.totalSpent}
+                </p>
                 <div className="space-y-1">
-                  {(Number(customer.totalSpentKrw) ?? 0) > 0 && (
+                  {Number(customer.totalSpentKrw) > 0 && (
                     <p className="text-2xl font-normal">
                       {Number(customer.totalSpentKrw).toLocaleString()} ₩
                     </p>
                   )}
-                  {(Number(customer.totalSpentUzs) ?? 0) > 0 && (
+                  {Number(customer.totalSpentUzs) > 0 && (
                     <p className="text-2xl font-normal">
                       {displayUzs(customer.totalSpentUzs).toLocaleString()} so&apos;m
                     </p>
                   )}
                   {(!customer.totalSpentKrw || Number(customer.totalSpentKrw) === 0) &&
-                   (!customer.totalSpentUzs || Number(customer.totalSpentUzs) === 0) && (
-                    <p className="text-2xl font-normal text-muted-foreground">—</p>
-                  )}
+                    (!customer.totalSpentUzs || Number(customer.totalSpentUzs) === 0) && (
+                      <p className="text-2xl font-normal text-muted-foreground">—</p>
+                    )}
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase font-bold">{UZ.accounting.outstandingDebt}</p>
+                <p className="text-xs text-muted-foreground uppercase font-bold">
+                  {UZ.accounting.outstandingDebt}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
-                    {formatUzs(customer.stats.outstandingDebt)}
+                  {formatUzs(customer.stats.outstandingDebt)}
                 </p>
               </CardContent>
             </Card>
@@ -139,7 +151,9 @@ export function CustomerDetailPage() {
           </div>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">Buyurtmalar tarixi</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Buyurtmalar tarixi</CardTitle>
+            </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
@@ -156,17 +170,27 @@ export function CustomerDetailPage() {
                     <TableRow key={o.id}>
                       <TableCell className="font-medium">{o.orderNumber}</TableCell>
                       <TableCell>{formatDateTime(o.createdAt)}</TableCell>
-                      <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
-                      <TableCell className="text-right">
-                        {formatUzs(o.totalAmount)}
+                      <TableCell>
+                        <Badge variant="outline">{o.status}</Badge>
                       </TableCell>
+                      <TableCell className="text-right">{formatUzs(o.totalAmount)}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/orders/${o.id}` } as any)}>{UZ.common.view}</Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate({ to: `/orders/${o.id}` } as any)}
+                        >
+                          {UZ.common.view}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {customer.orders.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center h-24">{UZ.customers.noOrders}</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center h-24">
+                        {UZ.customers.noOrders}
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -190,9 +214,9 @@ export function CustomerDetailPage() {
                   <span className="font-bold">{debtUsagePercent}%</span>
                 </div>
                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full transition-all ${getProgressColor(debtUsagePercent)}`} 
-                    style={{ width: `${Math.min(100, debtUsagePercent)}%` }} 
+                  <div
+                    className={`h-full transition-all ${getProgressColor(debtUsagePercent)}`}
+                    style={{ width: `${Math.min(100, debtUsagePercent)}%` }}
                   />
                 </div>
               </div>
@@ -200,12 +224,17 @@ export function CustomerDetailPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Individual Limit (BigInt string)</label>
                 <div className="flex gap-2">
-                  <Input 
-                    placeholder="Masalan: 50000000" 
+                  <Input
+                    placeholder="Masalan: 50000000"
                     value={limitOverride}
                     onChange={e => setLimitOverride(e.target.value)}
                   />
-                  <Button size="icon" onClick={() => updateMutation.mutate({ debtLimitOverride: limitOverride || null })}>
+                  <Button
+                    size="icon"
+                    onClick={() =>
+                      updateMutation.mutate({ debtLimitOverride: limitOverride || null })
+                    }
+                  >
                     <Save className="h-4 w-4" />
                   </Button>
                 </div>
@@ -217,55 +246,77 @@ export function CustomerDetailPage() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Clock className="h-5 w-5" /> Zaxiralar</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="h-5 w-5" /> Zaxiralar
+              </CardTitle>
+            </CardHeader>
             <CardContent className="p-0">
-               <Table>
-                 <TableBody>
-                   {customer.reservations.map((r: any) => (
-                     <TableRow key={r.id}>
-                        <TableCell className="py-3">
-                          <p className="text-sm font-medium">{r.productName}</p>
-                          <p className="text-[10px] text-muted-foreground">Muddati: {format(new Date(r.expiresAt), 'dd.MM HH:mm')}</p>
-                        </TableCell>
-                        <TableCell className="text-right font-bold">{r.quantity} ta</TableCell>
-                     </TableRow>
-                   ))}
-                   {customer.reservations.length === 0 && (
-                     <TableRow><TableCell className="text-center py-6 text-muted-foreground text-sm italic">Faol zaxiralar yo'q</TableCell></TableRow>
-                   )}
-                 </TableBody>
-               </Table>
+              <Table>
+                <TableBody>
+                  {customer.reservations.map((r: any) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="py-3">
+                        <p className="text-sm font-medium">{r.productName}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Muddati: {format(new Date(r.expiresAt), 'dd.MM HH:mm')}
+                        </p>
+                      </TableCell>
+                      <TableCell className="text-right font-bold">{r.quantity} ta</TableCell>
+                    </TableRow>
+                  ))}
+                  {customer.reservations.length === 0 && (
+                    <TableRow>
+                      <TableCell className="text-center py-6 text-muted-foreground text-sm italic">
+                        Faol zaxiralar yo'q
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Bell className="h-5 w-5" /> Kutish listi</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Bell className="h-5 w-5" /> Kutish listi
+              </CardTitle>
+            </CardHeader>
             <CardContent className="p-0">
-               <Table>
-                 <TableBody>
-                   {customer.waitlist.map((w: any) => (
-                     <TableRow key={w.id}>
-                        <TableCell className="py-3">
-                          <p className="text-sm font-medium">{w.productName}</p>
-                          <p className="text-[10px] text-muted-foreground">Qo'shildi: {formatDate(w.createdAt)}</p>
-                        </TableCell>
-                     </TableRow>
-                   ))}
-                   {customer.waitlist.length === 0 && (
-                     <TableRow><TableCell className="text-center py-6 text-muted-foreground text-sm italic">{UZ.coupons.noCoupons}</TableCell></TableRow>
-                   )}
-                 </TableBody>
-               </Table>
+              <Table>
+                <TableBody>
+                  {customer.waitlist.map((w: any) => (
+                    <TableRow key={w.id}>
+                      <TableCell className="py-3">
+                        <p className="text-sm font-medium">{w.productName}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Qo'shildi: {formatDate(w.createdAt)}
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {customer.waitlist.length === 0 && (
+                    <TableRow>
+                      <TableCell className="text-center py-6 text-muted-foreground text-sm italic">
+                        {UZ.coupons.noCoupons}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-sm">Mijoz uchun izohlar</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-sm">Mijoz uchun izohlar</CardTitle>
+            </CardHeader>
             <CardContent>
-              <textarea 
+              <textarea
                 className="w-full min-h-[100px] p-2 text-sm rounded border bg-muted/30 focus:bg-white transition-colors"
                 defaultValue={customer.notes || ''}
-                onBlur={(e) => updateMutation.mutate({ notes: e.target.value })}
+                onBlur={e => updateMutation.mutate({ notes: e.target.value })}
                 placeholder="Mijoz haqida maxsus qaydlar..."
               />
             </CardContent>

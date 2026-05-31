@@ -14,7 +14,12 @@ export async function createExpense(input: CreateExpenseInput, adminId: string) 
   });
 }
 
-export async function updateExpense(id: string, input: UpdateExpenseInput, adminId: string, isAdminSuper: boolean) {
+export async function updateExpense(
+  id: string,
+  input: UpdateExpenseInput,
+  adminId: string,
+  isAdminSuper: boolean
+) {
   const expense = await repository.findById(id);
   if (!expense) throw new NotFoundError('Expense not found');
 
@@ -55,7 +60,7 @@ export async function getMonthlyExpenseSummary(month: string) {
   if (!/^\d{4}-\d{2}$/.test(month)) {
     throw new BadRequestError('Month must be in YYYY-MM format');
   }
-  
+
   const [year, monthNum] = month.split('-');
   const startDate = `${year}-${monthNum}-01`;
   const endDate = new Date(Number(year), Number(monthNum), 0).toISOString().split('T')[0];
@@ -143,7 +148,7 @@ export async function getAccountingSummary(month: string) {
       uzbRevenue += BigInt(row.totalAmount);
       uzbDiscounts += BigInt(row.discountAmountKrw || 0n);
     }
-    
+
     totalCogs += BigInt(row.cogs);
     totalCargo += BigInt(row.cargoCostKrw);
   }
@@ -151,13 +156,14 @@ export async function getAccountingSummary(month: string) {
   const netRevenue = korRevenue + uzbRevenue;
   const totalDiscounts = korDiscounts + uzbDiscounts;
   const grossRevenue = netRevenue + totalDiscounts; // Net Revenue + Discounts = Gross Revenue
-  
+
   const grossProfit = netRevenue - totalCogs - totalCargo; // Net Revenue is what we actually received
-  const grossMarginPercent = netRevenue > 0n ? Number(grossProfit * 10000n / netRevenue) / 100 : 0;
+  const grossMarginPercent =
+    netRevenue > 0n ? Number((grossProfit * 10000n) / netRevenue) / 100 : 0;
 
   const grandTotalExpenses = BigInt(expensesSummary.grandTotalKrw);
   const netProfit = grossProfit - grandTotalExpenses;
-  const netMarginPercent = netRevenue > 0n ? Number(netProfit * 10000n / netRevenue) / 100 : 0;
+  const netMarginPercent = netRevenue > 0n ? Number((netProfit * 10000n) / netRevenue) / 100 : 0;
 
   let inventoryTotalValue = 0n;
   const inventoryItems = inventoryRows.map(row => {
@@ -256,7 +262,7 @@ export async function exportAccountingToExcel(month: string) {
       customerName: o.customerName,
       status: o.status,
       regionCode: o.regionCode,
-      products: 'Batafsil ma\'lumot order items da', // Placeholder unless order items are fetched
+      products: "Batafsil ma'lumot order items da", // Placeholder unless order items are fetched
       quantity: 1, // Placeholder
       totalAmount: Number(o.totalAmount),
       cogs: Number(o.cogs),
@@ -268,18 +274,31 @@ export async function exportAccountingToExcel(month: string) {
   // SHEET 2 - Daromad xulosasi (Revenue summary)
   const plSheet = workbook.addWorksheet('Daromad xulosasi');
   plSheet.columns = [
-    { header: 'Ko\'rsatkich', key: 'label', width: 30 },
+    { header: "Ko'rsatkich", key: 'label', width: 30 },
     { header: 'Summa ₩', key: 'value', width: 20 },
     { header: 'Marja %', key: 'margin', width: 15 },
   ];
 
-  plSheet.addRow({ label: 'Koreya savdosi (brutto)', value: Number(summary.gross_revenue.kor_krw) });
-  plSheet.addRow({ label: 'O\'zbekiston savdosi (brutto)', value: Number(summary.gross_revenue.uzb_krw) });
-  plSheet.addRow({ label: 'Kupon chegirmalari', value: -Number(summary.coupon_discounts.total_krw) });
+  plSheet.addRow({
+    label: 'Koreya savdosi (brutto)',
+    value: Number(summary.gross_revenue.kor_krw),
+  });
+  plSheet.addRow({
+    label: "O'zbekiston savdosi (brutto)",
+    value: Number(summary.gross_revenue.uzb_krw),
+  });
+  plSheet.addRow({
+    label: 'Kupon chegirmalari',
+    value: -Number(summary.coupon_discounts.total_krw),
+  });
   plSheet.addRow({ label: 'Jami netto daromad', value: Number(summary.revenue.total_krw) });
   plSheet.addRow({ label: 'COGS', value: -Number(summary.cogs.total_krw) });
   plSheet.addRow({ label: 'Yetkazib berish', value: -Number(summary.cargo.total_krw) });
-  plSheet.addRow({ label: 'Yalpi foyda', value: Number(summary.gross_profit.total_krw), margin: summary.gross_profit.margin_percent + '%' });
+  plSheet.addRow({
+    label: 'Yalpi foyda',
+    value: Number(summary.gross_profit.total_krw),
+    margin: summary.gross_profit.margin_percent + '%',
+  });
   plSheet.addRow({ label: 'Marja %', value: summary.gross_profit.margin_percent + '%' });
 
   // Formatting

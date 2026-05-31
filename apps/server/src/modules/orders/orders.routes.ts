@@ -7,33 +7,78 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.get('/:id/download-invoice', requirePermission('orders:read'), asyncHandler(ctrl.downloadInvoice));
+router.get(
+  '/:id/download-invoice',
+  requirePermission('orders:read'),
+  asyncHandler(ctrl.downloadInvoice)
+);
 
 router.get('/', requirePermission('orders:read'), asyncHandler(ctrl.listOrders));
 router.post('/', requirePermission('orders:write'), asyncHandler(ctrl.createOrder));
 
 // Manual Orders
 router.post('/manual', requirePermission('orders:write'), asyncHandler(ctrl.createManualOrder));
-router.post('/:id/confirm-payment', requirePermission('orders:write'), asyncHandler(ctrl.confirmPayment));
-router.get('/customers/search', requirePermission('orders:write'), asyncHandler(ctrl.searchCustomers));
+router.post(
+  '/:id/confirm-payment',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.confirmPayment)
+);
+router.get(
+  '/customers/search',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.searchCustomers)
+);
 
 router.get('/:id', requirePermission('orders:read'), asyncHandler(ctrl.getOrder));
 router.get('/:id/receipt', requirePermission('orders:read'), asyncHandler(ctrl.getPaymentReceipt));
 router.post('/:id/items', requirePermission('orders:write'), asyncHandler(ctrl.addItem));
-router.delete('/:id/items/:itemId', requirePermission('orders:write'), asyncHandler(ctrl.removeItem));
-router.patch('/:id/submit-payment', requirePermission('orders:write'), asyncHandler(ctrl.submitPayment));
-router.patch('/:id/verify-payment', requirePermission('orders:write'), asyncHandler(ctrl.verifyPayment));
-router.patch('/:id/reject-payment', requirePermission('orders:write'), asyncHandler(ctrl.rejectPayment));
+router.delete(
+  '/:id/items/:itemId',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.removeItem)
+);
+router.patch(
+  '/:id/submit-payment',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.submitPayment)
+);
+router.patch(
+  '/:id/verify-payment',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.verifyPayment)
+);
+router.patch(
+  '/:id/reject-payment',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.rejectPayment)
+);
 router.patch('/:id/ship', requirePermission('orders:write'), asyncHandler(ctrl.shipOrder));
 router.patch('/:id/deliver', requirePermission('orders:write'), asyncHandler(ctrl.deliverOrder));
 router.patch('/:id/cancel', requirePermission('orders:write'), asyncHandler(ctrl.cancelOrder));
 router.patch('/:id/status', requirePermission('orders:write'), asyncHandler(ctrl.updateStatus));
-router.post('/:id/scan-item', requireAuth, requirePermission('orders:write'), asyncHandler(ctrl.scanItem));
+router.post(
+  '/:id/scan-item',
+  requireAuth,
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.scanItem)
+);
 router.post('/:id/scan', requirePermission('inventory:write'), asyncHandler(ctrl.scanItem));
-router.post('/:id/complete-packing', requirePermission('inventory:write'), asyncHandler(ctrl.completePacking));
+router.post(
+  '/:id/complete-packing',
+  requirePermission('inventory:write'),
+  asyncHandler(ctrl.completePacking)
+);
 
 router.get('/:id/expenses', requirePermission('orders:read'), asyncHandler(ctrl.getOrderExpenses));
-router.post('/:id/expenses', requirePermission('orders:write'), asyncHandler(ctrl.createOrderExpense));
-router.delete('/:id/expenses/:expenseId', requirePermission('orders:write'), asyncHandler(ctrl.deleteOrderExpense));
+router.post(
+  '/:id/expenses',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.createOrderExpense)
+);
+router.delete(
+  '/:id/expenses/:expenseId',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.deleteOrderExpense)
+);
 
 export default router;

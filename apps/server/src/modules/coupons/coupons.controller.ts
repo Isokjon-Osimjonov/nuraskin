@@ -37,7 +37,7 @@ export async function updateStatus(req: Request, res: Response) {
   if (!['ACTIVE', 'PAUSED'].includes(status)) {
     res.status(400).json({
       error: 'BAD_REQUEST',
-      message: "Status faqat ACTIVE yoki PAUSED bo'lishi mumkin"
+      message: "Status faqat ACTIVE yoki PAUSED bo'lishi mumkin",
     });
     return;
   }

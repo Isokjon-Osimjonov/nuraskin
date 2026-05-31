@@ -17,7 +17,7 @@ export async function findByOrderId(orderId: string) {
     .where(eq(orderExpenses.orderId, orderId))
     .orderBy(desc(orderExpenses.createdAt));
 
-  return rows.map((r) => ({
+  return rows.map(r => ({
     ...r.expense,
     amountKrw: r.expense.amountKrw.toString(),
     createdByName: r.createdByName,

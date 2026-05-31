@@ -13,7 +13,7 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: s => s.location.pathname });
   const isHero = pathname === '/';
   const isLogin = pathname === '/login';
 

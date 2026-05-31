@@ -1,13 +1,17 @@
-import { db, carts, cartItems, products, productRegionalConfigs, exchangeRateSnapshots, inventoryBatches } from '@nuraskin/database';
+import {
+  db,
+  carts,
+  cartItems,
+  products,
+  productRegionalConfigs,
+  exchangeRateSnapshots,
+  inventoryBatches,
+} from '@nuraskin/database';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
 
 export async function findByCustomerId(customerId: string, tx: any = db) {
-  const [cart] = await tx
-    .select()
-    .from(carts)
-    .where(eq(carts.customerId, customerId))
-    .limit(1);
+  const [cart] = await tx.select().from(carts).where(eq(carts.customerId, customerId)).limit(1);
 
   if (!cart) return null;
 
@@ -29,10 +33,13 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
     })
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))
-    .leftJoin(productRegionalConfigs, and(
-      eq(products.id, productRegionalConfigs.productId),
-      eq(productRegionalConfigs.regionCode, cart.regionCode)
-    ))
+    .leftJoin(
+      productRegionalConfigs,
+      and(
+        eq(products.id, productRegionalConfigs.productId),
+        eq(productRegionalConfigs.regionCode, cart.regionCode)
+      )
+    )
     .leftJoin(inventoryBatches, eq(products.id, inventoryBatches.productId))
     .where(eq(cartItems.cartId, cart.id))
     .groupBy(
@@ -54,15 +61,23 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
   const formattedItems = items.map((item: any) => {
     const subtotal = BigInt(item.priceSnapshot) * BigInt(item.quantity);
     total += subtotal;
-    
+
     let calculatedRetail = '0';
     let calculatedWholesale = '0';
 
     if (cart.regionCode === 'UZB' && rateSnapshot) {
-      const rPrices = calculateUzbPrice(BigInt(item.retailPrice || 0), item.weightGrams, rateSnapshot);
+      const rPrices = calculateUzbPrice(
+        BigInt(item.retailPrice || 0),
+        item.weightGrams,
+        rateSnapshot
+      );
       calculatedRetail = (rPrices.productPrice + rPrices.cargoFee).toString();
-      
-      const wPrices = calculateUzbPrice(BigInt(item.wholesalePrice || 0), item.weightGrams, rateSnapshot);
+
+      const wPrices = calculateUzbPrice(
+        BigInt(item.wholesalePrice || 0),
+        item.weightGrams,
+        rateSnapshot
+      );
       calculatedWholesale = (wPrices.productPrice + wPrices.cargoFee).toString();
     } else {
       calculatedRetail = calculateKorPrice(BigInt(item.retailPrice || 0)).toString();
@@ -101,10 +116,7 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
 }
 
 export async function createCart(customerId: string, regionCode: string, tx: any = db) {
-  const [cart] = await tx
-    .insert(carts)
-    .values({ customerId, regionCode })
-    .returning();
+  const [cart] = await tx.insert(carts).values({ customerId, regionCode }).returning();
   return cart;
 }
 
@@ -118,15 +130,17 @@ export async function findItem(cartId: string, productId: string, tx: any = db) 
 }
 
 export async function findItemById(itemId: string, tx: any = db) {
-  const [item] = await tx
-    .select()
-    .from(cartItems)
-    .where(eq(cartItems.id, itemId))
-    .limit(1);
+  const [item] = await tx.select().from(cartItems).where(eq(cartItems.id, itemId)).limit(1);
   return item || null;
 }
 
-export async function addItem(cartId: string, productId: string, quantity: number, priceSnapshot: bigint, tx: any = db) {
+export async function addItem(
+  cartId: string,
+  productId: string,
+  quantity: number,
+  priceSnapshot: bigint,
+  tx: any = db
+) {
   const [inserted] = await tx
     .insert(cartItems)
     .values({ cartId, productId, quantity, priceSnapshot })
@@ -134,7 +148,12 @@ export async function addItem(cartId: string, productId: string, quantity: numbe
   return inserted;
 }
 
-export async function updateItemQuantity(itemId: string, quantity: number, priceSnapshot: bigint, tx: any = db) {
+export async function updateItemQuantity(
+  itemId: string,
+  quantity: number,
+  priceSnapshot: bigint,
+  tx: any = db
+) {
   const [updated] = await tx
     .update(cartItems)
     .set({ quantity, priceSnapshot, updatedAt: new Date() })
@@ -164,10 +183,12 @@ export async function getRegionalPrice(productId: string, regionCode: string, tx
   const [config] = await tx
     .select({ retailPrice: productRegionalConfigs.retailPrice })
     .from(productRegionalConfigs)
-    .where(and(
-      eq(productRegionalConfigs.productId, productId),
-      eq(productRegionalConfigs.regionCode, regionCode)
-    ))
+    .where(
+      and(
+        eq(productRegionalConfigs.productId, productId),
+        eq(productRegionalConfigs.regionCode, regionCode)
+      )
+    )
     .limit(1);
   return config?.retailPrice || null;
 }

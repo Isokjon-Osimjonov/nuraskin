@@ -12,11 +12,11 @@ export const categories = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (t) => ({
+  t => ({
     slugIdx: uniqueIndex('categories_slug_idx').on(t.slug),
     activeIdx: index('categories_active_idx').on(t.isActive),
     deletedIdx: index('categories_deleted_idx').on(t.deletedAt),
-  }),
+  })
 );
 
 export type Category = typeof categories.$inferSelect;

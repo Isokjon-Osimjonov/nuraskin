@@ -32,10 +32,7 @@ export function formatKrw(won: string | number | bigint): string {
 }
 
 // Format by region — USE THIS EVERYWHERE
-export function formatPrice(
-  amount: string | number | bigint,
-  region: 'UZB' | 'KOR'
-): string {
+export function formatPrice(amount: string | number | bigint, region: 'UZB' | 'KOR'): string {
   return region === 'KOR' ? formatKrw(amount) : formatUzs(amount);
 }
 

@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  integer,
-  timestamp,
-  uniqueIndex,
-  text,
-  bigint,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, integer, timestamp, uniqueIndex, text, bigint } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { customers } from './customers';
 import { products } from './products';
@@ -22,21 +14,27 @@ export const carts = pgTable('carts', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const cartItems = pgTable('cart_items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  cartId: uuid('cart_id')
-    .notNull()
-    .references(() => carts.id, { onDelete: 'cascade' }),
-  productId: uuid('product_id')
-    .notNull()
-    .references(() => products.id, { onDelete: 'cascade' }),
-  quantity: integer('quantity').notNull(),
-  priceSnapshot: bigint('price_snapshot', { mode: 'bigint' }).notNull().default(sql`'0'`),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => ({
-  cartProductUniq: uniqueIndex('cart_items_cart_product_idx').on(t.cartId, t.productId),
-}));
+export const cartItems = pgTable(
+  'cart_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    cartId: uuid('cart_id')
+      .notNull()
+      .references(() => carts.id, { onDelete: 'cascade' }),
+    productId: uuid('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').notNull(),
+    priceSnapshot: bigint('price_snapshot', { mode: 'bigint' })
+      .notNull()
+      .default(sql`'0'`),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  t => ({
+    cartProductUniq: uniqueIndex('cart_items_cart_product_idx').on(t.cartId, t.productId),
+  })
+);
 
 export const cartsRelations = relations(carts, ({ many, one }) => ({
   items: many(cartItems),

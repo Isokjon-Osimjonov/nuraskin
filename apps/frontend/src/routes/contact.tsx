@@ -1,8 +1,8 @@
-import { REGION_PHONE_PREFIX } from '@nuraskin/shared-utils';
+import { REGION_PHONE_PREFIX, STORE_INFO } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { MapPin, Phone, Send, Camera } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
 
@@ -24,7 +24,7 @@ async function getPublicSettings() {
 }
 
 function Contact() {
-  const regionCode = useAppStore((s) => s.regionCode);
+  const regionCode = useAppStore(s => s.regionCode);
   const phonePrefix = regionCode === 'KOR' ? REGION_PHONE_PREFIX.KOR : REGION_PHONE_PREFIX.UZB;
   const phonePlaceholder = regionCode === 'KOR' ? '10 0000 0000' : '00 000 00 00';
 
@@ -38,8 +38,12 @@ function Contact() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  
-  const [errors, setErrors] = useState<{ name?: string; phone?: string; message?: string }>({});
+
+  const [errors, setErrors] = useState<{
+    name?: string;
+    phone?: string;
+    message?: string;
+  }>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   useEffect(() => {
@@ -49,7 +53,8 @@ function Contact() {
   const validate = (): boolean => {
     const next: typeof errors = {};
     if (!name.trim()) next.name = 'Ismingizni kiriting';
-    if (phoneNumber.replace(/\D/g, '').length < 7) next.phone = "Telefon raqamingizni to'liq kiriting";
+    if (phoneNumber.replace(/\D/g, '').length < 7)
+      next.phone = "Telefon raqamingizni to'liq kiriting";
     if (!message.trim()) next.message = 'Xabar matnini kiriting';
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -61,16 +66,18 @@ function Contact() {
     setStatus('loading');
     try {
       await api.post<any>('/storefront/contact', {
-          name,
-          phone: `${phonePrefix}${phoneNumber}`,
-          subject,
-          message,
-          region: regionCode,
-        });
-      
+        name,
+        phone: `${phonePrefix}${phoneNumber}`,
+        subject,
+        message,
+        region: regionCode,
+      });
+
       setStatus('success');
-      setName(''); setPhoneNumber('');
-      setSubject(''); setMessage('');
+      setName('');
+      setPhoneNumber('');
+      setSubject('');
+      setMessage('');
       setErrors({});
     } catch {
       setStatus('error');
@@ -88,66 +95,61 @@ function Contact() {
         <div className="text-center mb-14">
           <h1 className="text-2xl md:text-3xl font-light text-[#4A1525] mb-4">Biz bilan aloqa</h1>
           <p className="text-[14px] font-light text-stone-500 max-w-2xl mx-auto leading-relaxed">
-            Savollaringiz bormi yoki hamkorlik qilmoqchimisiz? Biz sizga yordam berishdan doim xursandmiz.
+            Savollaringiz bormi yoki hamkorlik qilmoqchimisiz? Biz sizga yordam berishdan doim
+            xursandmiz.
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row bg-[#f8f7f5] rounded-2xl overflow-hidden">
+        <div className="flex flex-col lg:flex-row bg-[#f8f7f5] rounded-2xl overflow-hidden ">
           {/* Contact Info (Left) */}
           <div className="w-full lg:w-2/5 bg-[#4A1525] text-white p-8 md:p-10">
             <h2 className="text-lg font-light mb-8 text-white">Ma'lumotlarimiz</h2>
 
             <div className="space-y-7">
-              {s?.contactAddress && (
-                <div className="flex items-start gap-4">
-                  <MapPin className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
+              {/* Address card */}
+              <div className="flex items-start gap-3">
+                <MapPin size={20} className="mt-1 shrink-0" />
+                <div>
+                  <p className="font-medium">Manzil</p>
+                  <p className="text-sm text-white/60">{STORE_INFO.ADDRESS.KO}</p>
+                </div>
+              </div>
+
+              {/* Phone cards */}
+              {STORE_INFO.PHONES.map(p => (
+                <div key={p.label} className="flex items-center gap-3">
+                  <Phone size={20} className="shrink-0" />
                   <div>
-                    <h3 className="text-[14px] font-light text-white mb-1">Manzil</h3>
-                    <p className="text-[13px] font-light text-white/60 leading-relaxed">
-                      {s.contactAddress}
+                    <p className="font-medium">
+                      <a href={p.href} className="text-sm text-white ">
+                        {p.label}
+                      </a>
                     </p>
                   </div>
                 </div>
-              )}
+              ))}
 
-              {s?.contactPhone && (
-                <div className="flex items-start gap-4">
-                  <Phone className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-[14px] font-normal text-white mb-1">Telefon</h3>
-                    <a
-                      href={`tel:${s.contactPhone}`}
-                      className="block text-[13px] font-light text-white/60 hover:text-white transition-colors"
-                    >
-                      {s.contactPhone}
-                    </a>
-                  </div>
-                </div>
-              )}
+              {/* Telegram card */}
+              <a
+                href={STORE_INFO.SOCIAL.TELEGRAM.href}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3"
+              >
+                <Send size={20} className="shrink-0" />
+                <p className="font-medium">Telegram</p>
+              </a>
 
-              {s?.contactEmail && (
-                <div className="flex items-start gap-4">
-                  <Mail className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-[14px] font-normal text-white mb-1">Email</h3>
-                    <a
-                      href={`mailto:${s.contactEmail}`}
-                      className="text-[13px] font-light text-white/60 hover:text-white transition-colors"
-                    >
-                      {s.contactEmail}
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-start gap-4">
-                <Clock className="w-5 h-5 text-white/70 shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="text-[14px] font-normal text-white mb-1">Ish vaqti</h3>
-                  <p className="text-[13px] font-light text-white/60">Dush - Shan: 09:00 - 18:00</p>
-                  <p className="text-[13px] font-light text-white/60">Yakshanba: Dam olish kuni</p>
-                </div>
-              </div>
+              {/* Instagram card */}
+              <a
+                href={STORE_INFO.SOCIAL.INSTAGRAM.href}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 "
+              >
+                <Camera size={20} className="shrink-0" />
+                <p className="font-medium">Instagram</p>
+              </a>
             </div>
           </div>
 
@@ -179,9 +181,9 @@ function Contact() {
                     <input
                       type="text"
                       value={name}
-                      onChange={(e) => {
+                      onChange={e => {
                         setName(e.target.value);
-                        if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                        if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
                       }}
                       className={inputClass(errors.name)}
                       placeholder="Ism Familiya"
@@ -204,9 +206,13 @@ function Contact() {
                         placeholder={phonePlaceholder}
                         className="flex-1 px-4 py-3 outline-none text-[14px] font-light bg-white"
                         value={phoneNumber}
-                        onChange={(e) => {
+                        onChange={e => {
                           setPhoneNumber(e.target.value);
-                          if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+                          if (errors.phone)
+                            setErrors(prev => ({
+                              ...prev,
+                              phone: undefined,
+                            }));
                         }}
                       />
                     </div>
@@ -223,7 +229,7 @@ function Contact() {
                   <input
                     type="text"
                     value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
+                    onChange={e => setSubject(e.target.value)}
                     className={inputClass()}
                     placeholder="Kichik sarlavha ushbu xabar haqida"
                   />
@@ -236,9 +242,9 @@ function Contact() {
                   <textarea
                     rows={5}
                     value={message}
-                    onChange={(e) => {
+                    onChange={e => {
                       setMessage(e.target.value);
-                      if (errors.message) setErrors((prev) => ({ ...prev, message: undefined }));
+                      if (errors.message) setErrors(prev => ({ ...prev, message: undefined }));
                     }}
                     className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] font-light outline-none transition-colors placeholder:text-stone-400 resize-none ${
                       errors.message
@@ -273,4 +279,3 @@ function Contact() {
     </div>
   );
 }
-

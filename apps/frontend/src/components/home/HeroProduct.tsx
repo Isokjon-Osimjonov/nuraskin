@@ -9,8 +9,7 @@ export function HeroProduct({ productImage }: HeroProductProps) {
       <div
         className="absolute inset-0 -z-10 blur-3xl"
         style={{
-          background:
-            'radial-gradient(circle, rgba(74,21,37,0.35) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(74,21,37,0.35) 0%, transparent 70%)',
           width: '140%',
           height: '140%',
           left: '-20%',

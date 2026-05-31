@@ -14,25 +14,25 @@ const router = Router();
 // Middleware to resolve customer from authenticated user
 const resolveCustomer = asyncHandler(async (req, res, next) => {
   if (!req.user) return next();
-  
+
   const sub = req.user.sub;
   const telegramId = BigInt(sub);
-  
+
   let customer = await service.findCustomerByTelegramId(telegramId);
-  
+
   if (!customer) {
     // Auto-create from Telegram JWT claims
     const firstName = req.user.firstName || '';
     const lastName = req.user.lastName || '';
     const username = req.user.username || '';
-    
+
     customer = await service.createCustomerFromTelegram({
       telegramId,
       fullName: `${firstName} ${lastName}`.trim() || username || 'Mijoz',
       regionCode: 'UZB', // Default region
     });
   }
-  
+
   (req as any).customer = customer;
   next();
 });
@@ -52,17 +52,21 @@ router.post('/contact', asyncHandler(contactCtrl.send));
 router.use(requireAuth);
 router.use(resolveCustomer);
 
-router.patch('/profile/region', asyncHandler(async (req, res) => {
-  const { region } = req.body;
-  if (!['UZB', 'KOR'].includes(region)) {
-    res.status(400).json({ error: "Noto'g'ri mintaqa" });
-    return;
-  }
-  await db.update(customers)
-    .set({ regionCode: region })
-    .where(eq(customers.id, (req as any).customer.id));
-  res.json({ success: true });
-}));
+router.patch(
+  '/profile/region',
+  asyncHandler(async (req, res) => {
+    const { region } = req.body;
+    if (!['UZB', 'KOR'].includes(region)) {
+      res.status(400).json({ error: "Noto'g'ri mintaqa" });
+      return;
+    }
+    await db
+      .update(customers)
+      .set({ regionCode: region })
+      .where(eq(customers.id, (req as any).customer.id));
+    res.json({ success: true });
+  })
+);
 
 router.get('/coupons', asyncHandler(ctrl.listCoupons));
 router.post('/coupons/validate', asyncHandler(ctrl.validateCoupon));

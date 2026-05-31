@@ -1,5 +1,12 @@
 import * as repository from './inventory.repository';
-import { db, products, inventoryBatches, settings, customers, productWaitlist, productRegionalConfigs } from '@nuraskin/database';
+import {
+  db,
+  products,
+  inventoryBatches,
+  customers,
+  productWaitlist,
+  productRegionalConfigs,
+} from '@nuraskin/database';
 import { eq, sql, and, isNull } from 'drizzle-orm';
 import { NotFoundError, BadRequestError } from '../../common/errors/AppError';
 import { sendToAdmin, sendToCustomer } from '../../common/services/telegram.service';
@@ -55,7 +62,9 @@ export async function updateBatch(batchId: string, input: UpdateBatchInput, admi
 
   if (input.expiry_date !== undefined) {
     const oldDate = batch.expiryDate;
-    const newDate = input.expiry_date ? new Date(input.expiry_date).toISOString().split('T')[0] : null;
+    const newDate = input.expiry_date
+      ? new Date(input.expiry_date).toISOString().split('T')[0]
+      : null;
     if (newDate !== oldDate) {
       adjustments.push({
         batchId,
@@ -96,10 +105,16 @@ export async function adjustQuantity(batchId: string, input: AdjustQuantityInput
     throw new BadRequestError("Miqdor manfiy bo'la olmaydi");
   }
   if (newQty > batch.initialQty) {
-    throw new BadRequestError("Miqdor dastlabki miqdordan oshib ketdi");
+    throw new BadRequestError('Miqdor dastlabki miqdordan oshib ketdi');
   }
 
-  return await repository.adjustBatchQuantity(batchId, newQty, input.adjustment, adminId, input.reason);
+  return await repository.adjustBatchQuantity(
+    batchId,
+    newQty,
+    input.adjustment,
+    adminId,
+    input.reason
+  );
 }
 
 export async function deleteBatch(batchId: string) {
@@ -130,7 +145,7 @@ export async function checkAndNotifyStock(productId: string, txIn?: any) {
     .select({ total: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)` })
     .from(inventoryBatches)
     .where(eq(inventoryBatches.productId, productId));
-  
+
   const totalStock = stockRow ? stockRow.total : 0;
   const LOW_STOCK_THRESHOLD = 5;
 
@@ -143,7 +158,7 @@ export async function checkAndNotifyStock(productId: string, txIn?: any) {
 
 export async function addBatch(input: AddBatchInput) {
   const isKrw = input.costCurrency === 'KRW';
-  
+
   const batchData: NewInventoryBatch = {
     productId: input.productId,
     batchRef: input.batchRef || null,
@@ -165,7 +180,11 @@ export async function addBatch(input: AddBatchInput) {
   const result = await repository.createBatch(batchData, movementData);
 
   // Check for low stock and send admin notifications
-  const [product] = await db.select().from(products).where(eq(products.id, input.productId)).limit(1);
+  const [product] = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, input.productId))
+    .limit(1);
   if (product) {
     await sendToAdmin(`📦 Yangi partiya qo'shildi: ${product.name} x${input.initialQty}`);
   }
@@ -179,10 +198,9 @@ export async function addBatch(input: AddBatchInput) {
       const waitlist = await db
         .select()
         .from(productWaitlist)
-        .where(and(
-          eq(productWaitlist.productId, input.productId),
-          isNull(productWaitlist.notifiedAt)
-        ));
+        .where(
+          and(eq(productWaitlist.productId, input.productId), isNull(productWaitlist.notifiedAt))
+        );
 
       if (waitlist.length === 0) return;
 
@@ -192,22 +210,30 @@ export async function addBatch(input: AddBatchInput) {
         .where(eq(productRegionalConfigs.productId, input.productId));
 
       await Promise.allSettled(
-        waitlist.map(async (entry) => {
+        waitlist.map(async entry => {
           try {
-            const [customer] = await db.select().from(customers).where(eq(customers.id, entry.customerId)).limit(1);
+            const [customer] = await db
+              .select()
+              .from(customers)
+              .where(eq(customers.id, entry.customerId))
+              .limit(1);
             if (customer && customer.telegramId) {
               const config = configs.find(c => c.regionCode === entry.regionCode) || configs[0];
               const price = config?.retailPrice?.toString() || '0';
               const productUrl = `https://nuraskin.uz/products/${product.barcode}`;
-              
+
               const message = `🛒 Mahsulot omborda!\n\n${product.name}\n💰 Narx: ${price} ₩\n\nHoziroq buyurtma bering:\n${productUrl}`;
-              
+
               await sendToCustomer(customer.telegramId, message);
             }
           } catch (err) {
-            console.error(`Failed to send restock notification to customer ${entry.customerId}:`, err);
+            console.error(
+              `Failed to send restock notification to customer ${entry.customerId}:`,
+              err
+            );
           } finally {
-            await db.update(productWaitlist)
+            await db
+              .update(productWaitlist)
               .set({ notifiedAt: new Date() })
               .where(eq(productWaitlist.id, entry.id));
           }

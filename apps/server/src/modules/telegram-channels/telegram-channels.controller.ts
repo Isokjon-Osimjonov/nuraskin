@@ -27,10 +27,10 @@ export async function removeChannel(req: Request, res: Response) {
 export async function testConnection(req: Request, res: Response) {
   const { chatId } = req.body;
   if (!chatId) {
-      // If chatId is not in body, maybe we are testing existing channel by id
-      const channel = await service.testConnection(req.params.chatId || req.body.chatId);
-      res.json(channel);
-      return;
+    // If chatId is not in body, maybe we are testing existing channel by id
+    const channel = await service.testConnection(req.params.chatId || req.body.chatId);
+    res.json(channel);
+    return;
   }
   const result = await service.testConnection(chatId);
   res.json(result);

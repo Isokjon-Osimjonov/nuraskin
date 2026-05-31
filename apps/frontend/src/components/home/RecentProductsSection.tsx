@@ -29,9 +29,7 @@ export function RecentProductsSection() {
         <div className="flex items-baseline justify-between mb-8">
           <div className="space-y-1">
             <p className={typography.sectionLabel}>Tanlovimiz</p>
-            <h2 className={typography.sectionTitle}>
-              So&apos;nggi mahsulotlar
-            </h2>
+            <h2 className={typography.sectionTitle}>So&apos;nggi mahsulotlar</h2>
           </div>
           <Link
             to="/products"
@@ -58,7 +56,7 @@ export function RecentProductsSection() {
           ) : (
             /* Product Grid */
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-              {latestProducts.map((product) => {
+              {latestProducts.map(product => {
                 const isInCart = cartData?.items?.some((i: any) => i.productId === product.id);
 
                 return (
@@ -66,7 +64,6 @@ export function RecentProductsSection() {
                     key={product.id}
                     className="group flex flex-col bg-[#f8f7f5] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
                   >
-
                     {/* Image */}
                     <Link
                       to="/products/$slug"
@@ -80,7 +77,12 @@ export function RecentProductsSection() {
                       />
 
                       {product.brandName && (
-                        <div className={cn(typography.cardMeta, "absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-stone-600")}>
+                        <div
+                          className={cn(
+                            typography.cardMeta,
+                            'absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-stone-600'
+                          )}
+                        >
                           {product.brandName}
                         </div>
                       )}
@@ -91,7 +93,9 @@ export function RecentProductsSection() {
                       )}
                       {(!product.inStock || product.availableStock <= 0) && (
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                          <span className="bg-white/90 text-red-600 text-[11px] font-normal px-3 py-1 rounded-full">Mavjud emas</span>
+                          <span className="bg-white/90 text-red-600 text-[11px] font-normal px-3 py-1 rounded-full">
+                            Mavjud emas
+                          </span>
                         </div>
                       )}
                     </Link>
@@ -99,7 +103,12 @@ export function RecentProductsSection() {
                     {/* Info */}
                     <div className="flex flex-col flex-1 p-3 pt-2">
                       <Link to="/products/$slug" params={{ slug: product.slug }}>
-                        <h3 className={cn(typography.cardTitle, "mb-1 group-hover:opacity-80 transition-opacity line-clamp-2")}>
+                        <h3
+                          className={cn(
+                            typography.cardTitle,
+                            'mb-1 group-hover:opacity-80 transition-opacity line-clamp-2'
+                          )}
+                        >
                           {product.name}
                         </h3>
                       </Link>
@@ -108,7 +117,7 @@ export function RecentProductsSection() {
                         <span className={typography.cardPrice}>
                           {displayPrice(product.calculatedPrice)}
                         </span>
-                        {(!product.inStock || product.availableStock <= 0) ? (
+                        {!product.inStock || product.availableStock <= 0 ? (
                           <button
                             aria-label="Xabardor qiling"
                             className="w-8 h-8 rounded-full bg-stone-200 text-stone-600 hover:bg-[#4A1525] hover:text-white flex items-center justify-center transition-all duration-200"
@@ -119,7 +128,10 @@ export function RecentProductsSection() {
                           <button
                             aria-label="Savatga qo'shish"
                             onClick={() => {
-                              if (!isAuthenticated) { navigate({ to: '/login' }); return; }
+                              if (!isAuthenticated) {
+                                navigate({ to: '/login' });
+                                return;
+                              }
                               addToCart.mutate({
                                 productId: product.id,
                                 quantity: 1,
@@ -138,7 +150,6 @@ export function RecentProductsSection() {
                         )}
                       </div>
                     </div>
-
                   </div>
                 );
               })}

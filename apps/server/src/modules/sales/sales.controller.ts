@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import * as service from './sales.service';
-import { runSalesRollup } from '../../jobs/sales-rollup.job';
 import { salesRollupQueue } from '../queues';
 import { BadRequestError, ForbiddenError } from '../../common/errors/AppError';
 
@@ -15,8 +14,8 @@ export async function list(req: Request, res: Response) {
   const { from, to, region, page, limit } = req.query;
   if (!from || !to) throw new BadRequestError('from and to dates are required');
   const result = await service.listSalesOrders(
-    from as string, 
-    to as string, 
+    from as string,
+    to as string,
     region as string,
     page ? parseInt(page as string) : 1,
     limit ? parseInt(limit as string) : 10

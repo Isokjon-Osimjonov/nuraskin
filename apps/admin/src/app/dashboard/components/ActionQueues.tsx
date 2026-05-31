@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreditCard, Package, Clock, AlertTriangle } from 'lucide-react';
@@ -37,22 +37,32 @@ export function ActionQueues({ data, isLoading }: ActionQueuesProps) {
 
   const actions = [
     {
-      title: 'To\'lov tasdiqlash',
+      title: "To'lov tasdiqlash",
       count: data.action_queues.pending_payment_verification,
       description: 'Mijoz chek yuborgan, tasdiqlash kutilmoqda',
       icon: CreditCard,
       href: '/orders?status=PAYMENT_SUBMITTED',
-      cta: 'Ko\'rish →',
-      urgency: data.action_queues.pending_payment_verification >= 4 ? 'high' : data.action_queues.pending_payment_verification > 0 ? 'medium' : 'none',
+      cta: "Ko'rish →",
+      urgency:
+        data.action_queues.pending_payment_verification >= 4
+          ? 'high'
+          : data.action_queues.pending_payment_verification > 0
+            ? 'medium'
+            : 'none',
     },
     {
-      title: 'Yig\'ish uchun tayyor',
+      title: "Yig'ish uchun tayyor",
       count: data.action_queues.ready_to_pack,
-      description: 'To\'lov tasdiqlangan, yig\'ishni boshlang',
+      description: "To'lov tasdiqlangan, yig'ishni boshlang",
       icon: Package,
       href: '/orders?status=PAYMENT_VERIFIED',
-      cta: 'Yig\'ishga o\'tish →',
-      urgency: data.action_queues.ready_to_pack >= 4 ? 'high' : data.action_queues.ready_to_pack > 0 ? 'medium' : 'none',
+      cta: "Yig'ishga o'tish →",
+      urgency:
+        data.action_queues.ready_to_pack >= 4
+          ? 'high'
+          : data.action_queues.ready_to_pack > 0
+            ? 'medium'
+            : 'none',
     },
     {
       title: 'Muddati tugayotgan bronlar',
@@ -70,7 +80,12 @@ export function ActionQueues({ data, isLoading }: ActionQueuesProps) {
       icon: AlertTriangle,
       href: '/inventory?filter=low_stock',
       cta: "Ko'rish →",
-      urgency: data.action_queues.low_stock_skus >= 6 ? 'high' : data.action_queues.low_stock_skus > 0 ? 'medium' : 'none',
+      urgency:
+        data.action_queues.low_stock_skus >= 6
+          ? 'high'
+          : data.action_queues.low_stock_skus > 0
+            ? 'medium'
+            : 'none',
     },
   ];
 
@@ -87,30 +102,34 @@ export function ActionQueues({ data, isLoading }: ActionQueuesProps) {
         {actions.map((action, i) => {
           const isHigh = action.urgency === 'high';
           const isMed = action.urgency === 'medium';
-          
+
           return (
-            <Card 
-              key={i} 
+            <Card
+              key={i}
               className={`relative overflow-hidden transition-all border-2 ${
-                isHigh ? 'border-red-500 animate-pulse' : 
-                isMed ? 'border-yellow-500' : 
-                'border-gray-200'
+                isHigh
+                  ? 'border-red-500 animate-pulse'
+                  : isMed
+                    ? 'border-yellow-500'
+                    : 'border-gray-200'
               }`}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <action.icon className={`h-5 w-5 ${isHigh ? 'text-red-500' : isMed ? 'text-yellow-600' : 'text-gray-500'}`} />
+                      <action.icon
+                        className={`h-5 w-5 ${isHigh ? 'text-red-500' : isMed ? 'text-yellow-600' : 'text-gray-500'}`}
+                      />
                       <h3 className="font-semibold">{action.title}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground">{action.description}</p>
                   </div>
                   <div className="text-3xl font-bold">{action.count}</div>
                 </div>
-                
+
                 <div className="mt-4 flex justify-end">
-                  <Link 
+                  <Link
                     to={action.href as any}
                     className="text-sm font-medium text-coral-600 hover:text-coral-700 hover:underline"
                   >

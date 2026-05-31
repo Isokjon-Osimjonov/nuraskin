@@ -1,11 +1,9 @@
 import { api } from '@/lib/api';
-import type { 
-  CustomerListItem, 
-  CustomerFilters, 
-  UpdateCustomerInput 
+import type {
+  CustomerListItem,
+  CustomerFilters,
+  UpdateCustomerInput,
 } from '@nuraskin/shared-types';
-
-
 
 export const customersApi = {
   getAll: (filters: CustomerFilters): Promise<{ data: CustomerListItem[]; total: number }> => {
@@ -21,6 +19,5 @@ export const customersApi = {
   update: (id: string, data: UpdateCustomerInput): Promise<any> =>
     api.patch<any>(`/customers/${id}`, data),
 
-  delete: (id: string): Promise<void> =>
-    api.delete<any>(`/customers/${id}`),
+  delete: (id: string): Promise<void> => api.delete<any>(`/customers/${id}`),
 };

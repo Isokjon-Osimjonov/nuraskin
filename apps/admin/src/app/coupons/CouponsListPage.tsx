@@ -1,4 +1,4 @@
-import {  queryKeys , formatDate } from '@nuraskin/shared-utils';
+import { queryKeys, formatDate } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatUzs, formatKrw } from '@nuraskin/shared-utils';
@@ -7,12 +7,17 @@ import { useNavigate } from '@tanstack/react-router';
 import { Route } from '../../routes/_app/coupons/index';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Search, Plus, Eye, Pause, Play, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DataTable,
@@ -21,7 +26,7 @@ import {
   DataTableRow,
   DataTableHead,
   DataTableCell,
-  DataTableEmpty
+  DataTableEmpty,
 } from '@/components/ui/DataTable';
 import { TablePagination } from '@/components/ui/TablePagination';
 
@@ -36,12 +41,13 @@ export function CouponsListPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['coupons', { page, limit, search, status }],
-    queryFn: () => couponsApi.getAll({ 
-        page, 
-        limit, 
-        search: search || undefined, 
-        status: status as any 
-    }),
+    queryFn: () =>
+      couponsApi.getAll({
+        page,
+        limit,
+        search: search || undefined,
+        status: status as any,
+      }),
   });
 
   const coupons = data?.data || [];
@@ -60,21 +66,52 @@ export function CouponsListPage() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string, status: 'ACTIVE' | 'PAUSED' }) => couponsApi.updateStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'PAUSED' }) =>
+      couponsApi.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.coupons.all() });
-      toast.success("Kupon holati yangilandi");
+      toast.success('Kupon holati yangilandi');
     },
   });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return <Badge variant="success" className="rounded-full">Active</Badge>;
-      case 'PAUSED': return <Badge className="bg-yellow-500 hover:bg-yellow-500 border-none rounded-full">Paused</Badge>;
-      case 'EXPIRED': return <Badge variant="destructive" className="rounded-full">Expired</Badge>;
-      case 'DRAFT': return <Badge variant="secondary" className="rounded-full">Draft</Badge>;
-      case 'ARCHIVED': return <Badge variant="outline" className="rounded-full">Archived</Badge>;
-      default: return <Badge variant="outline" className="rounded-full">{status}</Badge>;
+      case 'ACTIVE':
+        return (
+          <Badge variant="success" className="rounded-full">
+            Active
+          </Badge>
+        );
+      case 'PAUSED':
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-500 border-none rounded-full">
+            Paused
+          </Badge>
+        );
+      case 'EXPIRED':
+        return (
+          <Badge variant="destructive" className="rounded-full">
+            Expired
+          </Badge>
+        );
+      case 'DRAFT':
+        return (
+          <Badge variant="secondary" className="rounded-full">
+            Draft
+          </Badge>
+        );
+      case 'ARCHIVED':
+        return (
+          <Badge variant="outline" className="rounded-full">
+            Archived
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="rounded-full">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -91,9 +128,14 @@ export function CouponsListPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">Kuponlar</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Promo-kodlar va chegirmalar boshqaruvi</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Promo-kodlar va chegirmalar boshqaruvi
+          </p>
         </div>
-        <Button className="w-full sm:w-auto" onClick={() => navigate({ to: '/coupons/new' } as any)}>
+        <Button
+          className="w-full sm:w-auto"
+          onClick={() => navigate({ to: '/coupons/new' } as any)}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Yangi kupon
         </Button>
@@ -108,11 +150,22 @@ export function CouponsListPage() {
                 placeholder="Kod yoki nom bo'yicha qidirish..."
                 className="pl-8 w-full"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); handlePageChange(1); }}
+                onChange={e => {
+                  setSearch(e.target.value);
+                  handlePageChange(1);
+                }}
               />
             </div>
-            <Select value={status} onValueChange={(v) => { setStatus(v); handlePageChange(1); }}>
-              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Holat" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={v => {
+                setStatus(v);
+                handlePageChange(1);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Holat" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Barcha holatlar</SelectItem>
                 <SelectItem value="ACTIVE">Faol</SelectItem>
@@ -144,65 +197,116 @@ export function CouponsListPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <DataTableRow key={i}>
-                  <DataTableCell><Skeleton className="h-4 w-[100px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[150px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[60px]" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[80px] ml-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[60px] mx-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-6 w-[80px] mx-auto rounded-full" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-4 w-[100px] mx-auto" /></DataTableCell>
-                  <DataTableCell><Skeleton className="h-8 w-16 ml-auto rounded" /></DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[60px]" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[80px] ml-auto" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[60px] mx-auto" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-6 w-[80px] mx-auto rounded-full" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-4 w-[100px] mx-auto" />
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Skeleton className="h-8 w-16 ml-auto rounded" />
+                  </DataTableCell>
                 </DataTableRow>
               ))
-            ) : (!coupons || coupons.length === 0) ? (
+            ) : !coupons || coupons.length === 0 ? (
               <DataTableEmpty colSpan={8} message="Kuponlar topilmadi" />
             ) : (
-              coupons.map((coupon) => (
+              coupons.map(coupon => (
                 <DataTableRow key={coupon.id}>
-                  <DataTableCell className="font-mono font-bold text-stone-900">{coupon.code}</DataTableCell>
+                  <DataTableCell className="font-mono font-bold text-stone-900">
+                    {coupon.code}
+                  </DataTableCell>
                   <DataTableCell>
                     <div className="font-medium text-stone-900">{coupon.name}</div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">{coupon.description || '—'}</div>
+                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {coupon.description || '—'}
+                    </div>
                   </DataTableCell>
-                  <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">{coupon.type}</DataTableCell>
+                  <DataTableCell className="text-xs uppercase font-medium tracking-wide text-stone-500">
+                    {coupon.type}
+                  </DataTableCell>
                   <DataTableCell className="text-right font-medium text-stone-900">
                     {coupon.type === 'PERCENTAGE'
                       ? `${coupon.value}%`
-                      : coupon.regionCode === 'UZB' ? formatUzs(coupon.value) : coupon.regionCode === 'KOR' ? formatKrw(coupon.value) : `${formatUzs(coupon.valueUzs || '0')} / ${formatKrw(coupon.valueKrw || '0')}`}
+                      : coupon.regionCode === 'UZB'
+                        ? formatUzs(coupon.value)
+                        : coupon.regionCode === 'KOR'
+                          ? formatKrw(coupon.value)
+                          : `${formatUzs(coupon.valueUzs || '0')} / ${formatKrw(coupon.valueKrw || '0')}`}
                   </DataTableCell>
                   <DataTableCell className="text-center">
                     <span className="font-medium text-stone-900">{coupon.usageCount}</span>
-                    {coupon.maxUsesTotal && <span className="text-stone-400"> / {coupon.maxUsesTotal}</span>}
+                    {coupon.maxUsesTotal && (
+                      <span className="text-stone-400"> / {coupon.maxUsesTotal}</span>
+                    )}
                   </DataTableCell>
-                  <DataTableCell className="text-center">{getStatusBadge(coupon.status)}</DataTableCell>
+                  <DataTableCell className="text-center">
+                    {getStatusBadge(coupon.status)}
+                  </DataTableCell>
                   <DataTableCell className="text-center text-xs font-medium text-stone-600">
-                    {coupon.regionCode === 'ALL' ? 'Barchasi' : coupon.regionCode === 'UZB' ? "O'zbekiston" : 'Koreya'}
+                    {coupon.regionCode === 'ALL'
+                      ? 'Barchasi'
+                      : coupon.regionCode === 'UZB'
+                        ? "O'zbekiston"
+                        : 'Koreya'}
                   </DataTableCell>
                   <DataTableCell className="text-center text-sm font-medium text-stone-700">
                     {coupon.expiresAt ? formatDate(coupon.expiresAt) : 'Limitsiz'}
                   </DataTableCell>
                   <DataTableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="text-stone-400 hover:text-stone-900" onClick={() => navigate({ to: `/coupons/${coupon.id}` } as any)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-stone-400 hover:text-stone-900"
+                        onClick={() => navigate({ to: `/coupons/${coupon.id}` } as any)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       {coupon.status === 'ACTIVE' ? (
-                        <Button title="To'xtatish" variant="ghost" size="icon" className="text-stone-400 hover:text-yellow-600" onClick={() => statusMutation.mutate({ id: coupon.id, status: 'PAUSED' })}>
+                        <Button
+                          title="To'xtatish"
+                          variant="ghost"
+                          size="icon"
+                          className="text-stone-400 hover:text-yellow-600"
+                          onClick={() => statusMutation.mutate({ id: coupon.id, status: 'PAUSED' })}
+                        >
                           <Pause className="h-4 w-4" />
                         </Button>
-                      ) : (coupon.status === 'PAUSED' || coupon.status === 'DRAFT') ? (
-                        <Button title="Davom ettirish" variant="ghost" size="icon" className="text-stone-400 hover:text-green-600" onClick={() => statusMutation.mutate({ id: coupon.id, status: 'ACTIVE' })}>
+                      ) : coupon.status === 'PAUSED' || coupon.status === 'DRAFT' ? (
+                        <Button
+                          title="Davom ettirish"
+                          variant="ghost"
+                          size="icon"
+                          className="text-stone-400 hover:text-green-600"
+                          onClick={() => statusMutation.mutate({ id: coupon.id, status: 'ACTIVE' })}
+                        >
                           <Play className="h-4 w-4" />
                         </Button>
                       ) : null}
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="text-stone-400 hover:text-red-600"
                         onClick={() => {
-                            if(confirm("Haqiqatan ham o'chirasizmi?")) {
-                                deleteMutation.mutate(coupon.id);
-                            }
+                          if (confirm("Haqiqatan ham o'chirasizmi?")) {
+                            deleteMutation.mutate(coupon.id);
+                          }
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -216,12 +320,12 @@ export function CouponsListPage() {
         </DataTable>
 
         {!isLoading && (
-          <TablePagination 
-            currentPage={page} 
-            totalPages={totalPages} 
-            pageSize={limit} 
-            onPageChange={handlePageChange} 
-            onPageSizeChange={handlePageSizeChange} 
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            pageSize={limit}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         )}
       </div>

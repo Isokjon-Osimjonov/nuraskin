@@ -14,7 +14,7 @@ export const createExpenseSchema = z.object({
   category: expenseCategorySchema,
   amountKrw: z.number().int().positive(),
   description: z.string().min(1).max(500),
-  expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, use YYYY-MM-DD"),
+  expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, use YYYY-MM-DD'),
   receiptUrl: z.string().optional(),
 });
 

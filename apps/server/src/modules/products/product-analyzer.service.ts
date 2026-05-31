@@ -14,7 +14,9 @@ export interface AnalyzeImageResult {
 
 const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-export async function analyzeImage(imageUrl: string): Promise<AnalyzeImageResult | { error: string }> {
+export async function analyzeImage(
+  imageUrl: string
+): Promise<AnalyzeImageResult | { error: string }> {
   let response;
   try {
     response = await client.chat.completions.create({
@@ -58,14 +60,14 @@ Rules:
   const raw = response.choices[0]?.message?.content ?? '{}';
   logger.debug({ raw }, 'AI analyze response');
 
-  let parsed: { 
-    name?: string; 
-    brand_name?: string; 
-    description_uz?: string; 
-    how_to_use_uz?: string; 
+  let parsed: {
+    name?: string;
+    brand_name?: string;
+    description_uz?: string;
+    how_to_use_uz?: string;
     ingredients?: string[];
     skin_types?: string[];
-    benefits?: string[] 
+    benefits?: string[];
   };
   try {
     parsed = JSON.parse(raw) as any;
@@ -75,10 +77,10 @@ Rules:
   }
 
   if (
-    !parsed.name || 
-    !parsed.brand_name || 
-    !parsed.description_uz || 
-    !parsed.how_to_use_uz || 
+    !parsed.name ||
+    !parsed.brand_name ||
+    !parsed.description_uz ||
+    !parsed.how_to_use_uz ||
     !parsed.benefits ||
     !parsed.ingredients ||
     !parsed.skin_types

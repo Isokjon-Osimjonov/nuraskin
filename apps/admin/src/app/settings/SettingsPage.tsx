@@ -6,7 +6,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { updateSettingsSchema, type UpdateSettingsInput } from '@nuraskin/shared-types';
 import { settingsApi } from './api/settings.api';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -51,12 +59,14 @@ export function SettingsPage() {
     },
   });
 
-  const { formState: { isDirty } } = form;
+  const {
+    formState: { isDirty },
+  } = form;
 
   React.useEffect(() => {
     if (settings && !hasInitialized.current) {
       form.reset({
-        debtLimitDefault: Number(BigInt(settings.debtLimitDefault)), 
+        debtLimitDefault: Number(BigInt(settings.debtLimitDefault)),
         lowStockThreshold: settings.lowStockThreshold,
         adminCardNumber: settings.adminCardNumber || '',
         adminCardHolder: settings.adminCardHolder || '',
@@ -124,10 +134,16 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Standart Qarz Limiti (KRW)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" step="1" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Mijozning qarzi shu limitga nisbatan foizlarda o'lchanadi: <br/>
+                      Mijozning qarzi shu limitga nisbatan foizlarda o'lchanadi: <br />
                       80% = ogohlantirish, 100% = bloklash, 120% = qattiq bloklash
                     </FormDescription>
                     <FormMessage />
@@ -150,9 +166,17 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>To'lov muddati (daqiqa)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="5" max="1440" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 30)} />
+                      <Input
+                        type="number"
+                        min="5"
+                        max="1440"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value) || 30)}
+                      />
                     </FormControl>
-                    <FormDescription>Mijoz shu muddat ichida to'lov qilmasa, buyurtma bekor qilinadi</FormDescription>
+                    <FormDescription>
+                      Mijoz shu muddat ichida to'lov qilmasa, buyurtma bekor qilinadi
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -173,7 +197,12 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>O'zbekiston (UZS)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,7 +215,12 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Koreya (KRW)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -208,9 +242,17 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Kam Qoldiq Chegarasi</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" step="1" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
-                    <FormDescription>Bu miqdordan kam qolsa, qizil rangda ogohlantiriladi</FormDescription>
+                    <FormDescription>
+                      Bu miqdordan kam qolsa, qizil rangda ogohlantiriladi
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -222,7 +264,9 @@ export function SettingsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-medium">To'lov usullari (mintaqalar bo'yicha)</h3>
-                <p className="text-sm text-muted-foreground">Xaridorlarga ko'rsatiladigan to'lov usullarini sozlang</p>
+                <p className="text-sm text-muted-foreground">
+                  Xaridorlarga ko'rsatiladigan to'lov usullarini sozlang
+                </p>
               </div>
               <TabsList>
                 <TabsTrigger value="KOR">🇰🇷 Koreya</TabsTrigger>
@@ -260,7 +304,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Bank nomi</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: Kookmin Bank" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: Kookmin Bank"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -273,7 +321,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Karta egasi</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: Kim Chulsoo" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: Kim Chulsoo"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -286,7 +338,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Karta raqami</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: 123-456-789012" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: 123-456-789012"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -325,7 +381,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Ism va familiya</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: Kim Chulsoo" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: Kim Chulsoo"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -338,7 +398,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Hisob raqami</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: 010-1234-5678" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: 010-1234-5678"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -381,7 +445,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Bank nomi</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: Kapitalbank" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: Kapitalbank"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -394,7 +462,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Karta egasi</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: Isokjon Osimjonov" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: Isokjon Osimjonov"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -407,7 +479,11 @@ export function SettingsPage() {
                             <FormItem>
                               <FormLabel>Karta raqami</FormLabel>
                               <FormControl>
-                                <Input placeholder="Masalan: 8600 1234 5678 9012" {...field} value={field.value || ''} />
+                                <Input
+                                  placeholder="Masalan: 8600 1234 5678 9012"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

@@ -3,7 +3,13 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { CategoriesTable } from '../../app/categories/components/categories-table';
 import { CategoryForm } from '../../app/categories/components/category-form';
 import { categoriesApi } from '../../app/categories/api/categories.api';
@@ -21,7 +27,7 @@ const categorySearchSchema = z.object({
 });
 
 export const Route = createFileRoute('/_app/categories')({
-  validateSearch: (search) => categorySearchSchema.parse(search),
+  validateSearch: search => categorySearchSchema.parse(search),
   component: CategoriesPage,
 });
 
@@ -80,7 +86,7 @@ function CategoriesPage() {
     mutationFn: categoriesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.categories.all() });
-      toast.success('Kategoriya o\'chirildi');
+      toast.success("Kategoriya o'chirildi");
       setCategoryToDelete(undefined);
     },
     onError: (err: unknown) => {
@@ -127,7 +133,7 @@ function CategoriesPage() {
           <h1 className="text-3xl font-bold tracking-tight">Kategoriyalar</h1>
           <p className="text-muted-foreground">Mahsulot kategoriyalarini boshqaring</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+        <Dialog open={open} onOpenChange={v => !v && handleClose()}>
           <DialogTrigger asChild>
             <Button onClick={() => setOpen(true)}>
               <PlusIcon className="mr-2 h-4 w-4" />
@@ -136,12 +142,14 @@ function CategoriesPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingCategory ? 'Kategoriyani tahrirlash' : 'Kategoriya qo\'shish'}</DialogTitle>
+              <DialogTitle>
+                {editingCategory ? 'Kategoriyani tahrirlash' : "Kategoriya qo'shish"}
+              </DialogTitle>
             </DialogHeader>
-            <CategoryForm 
+            <CategoryForm
               initialData={editingCategory}
-              onSubmit={onSubmit} 
-              isSubmitting={isSubmitting} 
+              onSubmit={onSubmit}
+              isSubmitting={isSubmitting}
             />
           </DialogContent>
         </Dialog>
@@ -149,22 +157,18 @@ function CategoriesPage() {
 
       <ConfirmDeleteDialog
         open={!!categoryToDelete}
-        onOpenChange={(open) => !open && setCategoryToDelete(undefined)}
+        onOpenChange={open => !open && setCategoryToDelete(undefined)}
         onConfirm={confirmDelete}
         isLoading={deleteMutation.isPending}
         title="Kategoriyani o'chirish"
         description={`Haqiqatan ham "${categoryToDelete?.name}" kategoriyasini o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`}
       />
-      
+
       {isLoading ? (
         <DataTableSkeleton columnCount={5} rowCount={5} />
       ) : (
         <div className="space-y-4">
-          <CategoriesTable 
-            data={categories} 
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          <CategoriesTable data={categories} onEdit={handleEdit} onDelete={handleDelete} />
           <TablePagination
             currentPage={page}
             totalPages={totalPages}

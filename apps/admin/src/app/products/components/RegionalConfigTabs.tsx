@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useFormContext } from 'react-hook-form';
 import { FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
@@ -30,10 +29,10 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
   const handleChange = (field: keyof RegionalConfig, value: string | number | undefined) => {
     const updated = [...configs] as RegionalConfig[];
     (updated[activeTab] as Record<string, unknown>)[field as string] = value;
-    
+
     // Always force currency to KRW in state
     updated[activeTab].currency = 'KRW';
-    
+
     onChange(updated);
   };
 
@@ -63,9 +62,16 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
               type="number"
               placeholder="0"
               value={currentConfig.retailPrice ?? ''}
-              onChange={(e) => handleChange('retailPrice', e.target.value === '' ? undefined : parseInt(e.target.value))}
+              onChange={e =>
+                handleChange(
+                  'retailPrice',
+                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                )
+              }
             />
-            <p className="text-[10px] text-muted-foreground mt-1">Ushbu narx asosida UZB uchun UZS hisoblanadi</p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Ushbu narx asosida UZB uchun UZS hisoblanadi
+            </p>
           </div>
           <div>
             <FormLabel>Wholesale Price (KRW)</FormLabel>
@@ -73,7 +79,12 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
               type="number"
               placeholder="0"
               value={currentConfig.wholesalePrice ?? ''}
-              onChange={(e) => handleChange('wholesalePrice', e.target.value === '' ? undefined : parseInt(e.target.value))}
+              onChange={e =>
+                handleChange(
+                  'wholesalePrice',
+                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                )
+              }
             />
           </div>
           <div>
@@ -83,7 +94,12 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
               min="1"
               placeholder="0"
               value={currentConfig.minWholesaleQty ?? ''}
-              onChange={(e) => handleChange('minWholesaleQty', e.target.value === '' ? undefined : parseInt(e.target.value))}
+              onChange={e =>
+                handleChange(
+                  'minWholesaleQty',
+                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                )
+              }
             />
           </div>
           <div>
@@ -93,7 +109,12 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
               min="1"
               placeholder="0"
               value={currentConfig.minOrderQty ?? ''}
-              onChange={(e) => handleChange('minOrderQty', e.target.value === '' ? undefined : parseInt(e.target.value))}
+              onChange={e =>
+                handleChange(
+                  'minOrderQty',
+                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                )
+              }
             />
           </div>
         </div>

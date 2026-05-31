@@ -7,11 +7,15 @@ import * as usersRepository from '../../modules/users/users.repository';
 
 const SUPER_ADMIN_ROLE = 'SUPER_ADMIN';
 
-export const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const requireAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     let token: string | undefined;
     const authHeader = req.headers.authorization;
-    
+
     if (authHeader?.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
     } else if (req.query.token) {
@@ -31,7 +35,9 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       if (!user.isActive) return next(new UnauthorizedError('User is inactive'));
 
       if (user.mustChangePassword && !req.path.endsWith('/change-password')) {
-        res.status(403).json({ code: 'MUST_CHANGE_PASSWORD', message: 'Parolni o\'zgartirishingiz shart' });
+        res
+          .status(403)
+          .json({ code: 'MUST_CHANGE_PASSWORD', message: "Parolni o'zgartirishingiz shart" });
         return;
       }
     }
@@ -39,7 +45,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     req.user = payload;
     next();
   } catch (err) {
-    next(new UnauthorizedError('Token muddati tugagan yoki noto\'g\'ri'));
+    next(new UnauthorizedError("Token muddati tugagan yoki noto'g'ri"));
   }
 };
 
@@ -72,24 +78,21 @@ export function requirePermission(permission: string) {
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   ADMIN: [
     'auth:read',
-    'categories:read', 'categories:write',
-    'products:read', 'products:write',
-    'inventory:read', 'inventory:write',
-    'orders:read', 'orders:write',
-    'customers:read', 'customers:write',
-    'settings:read', 'settings:write',
-    'team:read', 'team:write',
-  ],
-  WAREHOUSE: [
-    'products:read',
-    'inventory:read', 'inventory:write',
-    'orders:read',
-  ],
-  VIEWER: [
     'categories:read',
+    'categories:write',
     'products:read',
+    'products:write',
     'inventory:read',
+    'inventory:write',
     'orders:read',
+    'orders:write',
     'customers:read',
+    'customers:write',
+    'settings:read',
+    'settings:write',
+    'team:read',
+    'team:write',
   ],
+  WAREHOUSE: ['products:read', 'inventory:read', 'inventory:write', 'orders:read'],
+  VIEWER: ['categories:read', 'products:read', 'inventory:read', 'orders:read', 'customers:read'],
 };

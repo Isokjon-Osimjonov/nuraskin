@@ -6,24 +6,37 @@ import * as cartsRepository from '../carts/carts.repository';
 import * as inventoryRepository from '../inventory/inventory.repository';
 import * as couponsService from '../coupons/coupons.service';
 import * as couponsRepository from '../coupons/coupons.repository';
-import { db, customers, orders, orderItems, orderStatusHistory, products, settings, korShippingTiers, inventoryBatches, stockReservations, productWaitlist, exchangeRateSnapshots, productRegionalConfigs, customerAddresses, coupons, couponRedemptions, categories } from '@nuraskin/database';
+import {
+  db,
+  customers,
+  orders,
+  products,
+  settings,
+  productWaitlist,
+  exchangeRateSnapshots,
+  productRegionalConfigs,
+  customerAddresses,
+  coupons,
+  couponRedemptions,
+  categories,
+} from '@nuraskin/database';
 import { eq, desc, sql, and, or, asc, gt, isNull, inArray } from 'drizzle-orm';
 import { NotFoundError, BadRequestError, PriceChangedError } from '../../common/errors/AppError';
 import { logger } from '../../common/utils/logger';
 import { NotificationService } from '../notifications/notification.service';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '../../common/config/env';
-import { calculateUzbPrice, calculateKorPrice, calculateKorCargo } from '../../common/utils/pricing';
+import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
 import { reservationTimeoutQueue } from '../queues';
 import axios from 'axios';
-import type { 
-  CreateStorefrontOrderInput, 
+import type {
+  CreateStorefrontOrderInput,
   StorefrontProductListItem,
   StorefrontProductDetail,
   StorefrontOrderResponse,
   ValidateCouponInput,
   CouponValidationResponse,
-  KorShippingTierInput
+  KorShippingTierInput,
 } from '@nuraskin/shared-types';
 
 // Initialize Cloudinary
@@ -40,7 +53,7 @@ let cachedRateTime: number = 0;
 
 async function getCachedLatestRate() {
   const now = Date.now();
-  if (cachedRate && (now - cachedRateTime < 5 * 60 * 1000)) {
+  if (cachedRate && now - cachedRateTime < 5 * 60 * 1000) {
     return cachedRate;
   }
   cachedRate = await ordersRepository.getLatestRateSnapshot();
@@ -49,10 +62,20 @@ async function getCachedLatestRate() {
 }
 
 export async function listCategories(): Promise<any[]> {
-  return await db.select().from(categories).where(isNull(categories.deletedAt)).orderBy(asc(categories.name));
+  return await db
+    .select()
+    .from(categories)
+    .where(isNull(categories.deletedAt))
+    .orderBy(asc(categories.name));
 }
 
-export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, search?: string, customerId?: string, limit?: number): Promise<StorefrontProductListItem[]> {
+export async function listProducts(
+  region: 'UZB' | 'KOR',
+  categoryId?: string,
+  search?: string,
+  customerId?: string,
+  limit?: number
+): Promise<StorefrontProductListItem[]> {
   const rawProducts = await storefrontRepository.findActiveProducts({ categoryId, search, limit });
   const latestRate = await getCachedLatestRate();
 
@@ -63,13 +86,17 @@ export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, s
     if (!config) continue;
 
     const availableStock = await inventoryRepository.getAvailableStock(p.id);
-    
+
     let calculatedPrice = '0';
     let wholesalePrice = '0';
     if (region === 'UZB' && latestRate) {
-      const { productPrice, cargoFee } = calculateUzbPrice(BigInt(config.retailPrice), p.weightGrams, latestRate);
+      const { productPrice, cargoFee } = calculateUzbPrice(
+        BigInt(config.retailPrice),
+        p.weightGrams,
+        latestRate
+      );
       calculatedPrice = (productPrice + cargoFee).toString();
-      
+
       const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
       wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
     } else {
@@ -99,7 +126,10 @@ export async function listProducts(region: 'UZB' | 'KOR', categoryId?: string, s
   return results;
 }
 
-export async function getProductBySlug(slug: string, region: 'UZB' | 'KOR'): Promise<StorefrontProductDetail> {
+export async function getProductBySlug(
+  slug: string,
+  region: 'UZB' | 'KOR'
+): Promise<StorefrontProductDetail> {
   const p = await storefrontRepository.findProductByBarcode(slug);
   if (!p) throw new NotFoundError('Mahsulot topilmadi');
 
@@ -112,9 +142,13 @@ export async function getProductBySlug(slug: string, region: 'UZB' | 'KOR'): Pro
   let calculatedPrice = '0';
   let wholesalePrice = '0';
   if (region === 'UZB' && latestRate) {
-    const { productPrice, cargoFee } = calculateUzbPrice(BigInt(config.retailPrice), p.weightGrams, latestRate);
+    const { productPrice, cargoFee } = calculateUzbPrice(
+      BigInt(config.retailPrice),
+      p.weightGrams,
+      latestRate
+    );
     calculatedPrice = (productPrice + cargoFee).toString();
-    
+
     const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
     wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
   } else {
@@ -146,9 +180,18 @@ export async function getProductBySlug(slug: string, region: 'UZB' | 'KOR'): Pro
   };
 }
 
-export async function validateCoupon(input: ValidateCouponInput, customerId: string, regionCode: string): Promise<CouponValidationResponse> {
+export async function validateCoupon(
+  input: ValidateCouponInput,
+  customerId: string,
+  regionCode: string
+): Promise<CouponValidationResponse> {
   try {
-    const result = await couponsService.validateAndApply(input.code, customerId, input.cartItems, regionCode);
+    const result = await couponsService.validateAndApply(
+      input.code,
+      customerId,
+      input.cartItems,
+      regionCode
+    );
     return {
       valid: true,
       discountAmount: result.discountAmount.toString(),
@@ -167,9 +210,13 @@ export async function validateCoupon(input: ValidateCouponInput, customerId: str
 
 export async function listCoupons(customerId: string, requestRegion: string) {
   const cart = await cartsRepository.findByCustomerId(customerId);
-  const cartItemsFull: Array<{ productId: string, categoryId: string | null, brandName: string | null }> = [];
+  const cartItemsFull: Array<{
+    productId: string;
+    categoryId: string | null;
+    brandName: string | null;
+  }> = [];
   let cartSubtotal = 0n;
-  
+
   if (cart && cart.items.length > 0) {
     for (const item of cart.items) {
       const p = await db.query.products.findFirst({ where: eq(products.id, item.productId) });
@@ -187,61 +234,66 @@ export async function listCoupons(customerId: string, requestRegion: string) {
   const allCoupons = await db.query.coupons.findMany({
     where: and(
       eq(coupons.status, 'ACTIVE'),
-      or(
-        isNull(coupons.targetCustomerIds),
-        sql`${customerId} = ANY(${coupons.targetCustomerIds})`
-      ),
-      or(
-        isNull(coupons.expiresAt),
-        gt(coupons.expiresAt, new Date())
-      ),
+      or(isNull(coupons.targetCustomerIds), sql`${customerId} = ANY(${coupons.targetCustomerIds})`),
+      or(isNull(coupons.expiresAt), gt(coupons.expiresAt, new Date())),
       or(
         isNull(coupons.regionCode),
         eq(coupons.regionCode, 'ALL'),
         eq(coupons.regionCode, requestRegion)
       )
     ),
-    orderBy: [desc(coupons.createdAt)]
+    orderBy: [desc(coupons.createdAt)],
   });
 
   const customerRedemptions = await db.query.couponRedemptions.findMany({
-    where: eq(couponRedemptions.customerId, customerId)
+    where: eq(couponRedemptions.customerId, customerId),
   });
-  
-  const usageCounts = customerRedemptions.reduce((acc, r) => {
-    acc[r.couponId] = (acc[r.couponId] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+
+  const usageCounts = customerRedemptions.reduce(
+    (acc, r) => {
+      acc[r.couponId] = (acc[r.couponId] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   const results = [];
-  
+
   for (const c of allCoupons) {
     // Check total uses depleted
     if (c.maxUsesTotal !== null && (c.usageCount || 0) >= c.maxUsesTotal) continue;
 
     const isUsed = (usageCounts[c.id] || 0) >= c.maxUsesPerCustomer;
-    
+
     // Evaluate scope matching
     let scopeMatched = false;
     let applicableProductNames: string[] = [];
     let applicableCategoryNames: string[] = [];
-    
+
     if (c.scope === 'ENTIRE_ORDER') {
       scopeMatched = true;
     } else if (c.scope === 'PRODUCTS' && c.applicableResourceIds?.length) {
       const hasProduct = cartItemsFull.some(i => c.applicableResourceIds!.includes(i.productId));
       if (hasProduct || cartItemsFull.length === 0) scopeMatched = true; // Still show if cart is empty
       // Fetch names
-      const prods = await db.query.products.findMany({ where: inArray(products.id, c.applicableResourceIds) });
+      const prods = await db.query.products.findMany({
+        where: inArray(products.id, c.applicableResourceIds),
+      });
       applicableProductNames = prods.map(p => p.name);
     } else if (c.scope === 'CATEGORIES' && c.applicableResourceIds?.length) {
-      const hasCategory = cartItemsFull.some(i => i.categoryId && c.applicableResourceIds!.includes(i.categoryId));
+      const hasCategory = cartItemsFull.some(
+        i => i.categoryId && c.applicableResourceIds!.includes(i.categoryId)
+      );
       if (hasCategory || cartItemsFull.length === 0) scopeMatched = true;
       // Fetch names
-      const cats = await db.query.categories.findMany({ where: inArray(categories.id, c.applicableResourceIds) });
+      const cats = await db.query.categories.findMany({
+        where: inArray(categories.id, c.applicableResourceIds),
+      });
       applicableCategoryNames = cats.map(cat => cat.name);
     } else if (c.scope === 'BRANDS' && c.applicableBrands?.length) {
-      const hasBrand = cartItemsFull.some(i => i.brandName && c.applicableBrands!.includes(i.brandName));
+      const hasBrand = cartItemsFull.some(
+        i => i.brandName && c.applicableBrands!.includes(i.brandName)
+      );
       if (hasBrand || cartItemsFull.length === 0) scopeMatched = true;
     }
 
@@ -251,11 +303,12 @@ export async function listCoupons(customerId: string, requestRegion: string) {
     if (c.autoApply && !isUsed) {
       let minAmount = 0n;
       if (c.regionCode === 'ALL') {
-          minAmount = requestRegion === 'UZB' ? BigInt(c.minOrderUzs || 0) : BigInt(c.minOrderKrw || 0);
+        minAmount =
+          requestRegion === 'UZB' ? BigInt(c.minOrderUzs || 0) : BigInt(c.minOrderKrw || 0);
       } else {
-          minAmount = BigInt(c.minOrderAmount || 0);
+        minAmount = BigInt(c.minOrderAmount || 0);
       }
-      
+
       if (cartSubtotal >= minAmount && cartItemsFull.length >= c.minOrderQty) {
         autoApplied = true;
       }
@@ -287,35 +340,43 @@ export async function listCoupons(customerId: string, requestRegion: string) {
       isStackable: c.isStackable,
     });
   }
-  
+
   return results;
 }
 
-export async function createOrder(customerId: string, input: CreateStorefrontOrderInput): Promise<StorefrontOrderResponse> {
-  return await db.transaction(async (tx) => {
+export async function createOrder(
+  customerId: string,
+  input: CreateStorefrontOrderInput
+): Promise<StorefrontOrderResponse> {
+  return await db.transaction(async tx => {
     const settingsRow = await tx.query.settings.findFirst();
-    
+
     const customer = await tx.query.customers.findFirst({
-      where: eq(customers.id, customerId)
+      where: eq(customers.id, customerId),
     });
     if (!customer) throw new NotFoundError('Mijoz topilmadi');
 
     const cart = await cartsRepository.findByCustomerId(customerId, tx);
     if (!cart || cart.items.length === 0) {
-      throw new BadRequestError('Savatda mahsulot yo\'q');
+      throw new BadRequestError("Savatda mahsulot yo'q");
     }
 
-    const subtotal = cart.items.reduce((acc, item) => acc + BigInt(item.priceSnapshot) * BigInt(item.quantity), 0n);
+    const subtotal = cart.items.reduce(
+      (acc, item) => acc + BigInt(item.priceSnapshot) * BigInt(item.quantity),
+      0n
+    );
 
     // Min order validation
-    const minOrderAmount = customer.regionCode === 'KOR'
-      ? BigInt((settingsRow as any)?.minOrderKorKrw || 0n)
-      : BigInt((settingsRow as any)?.minOrderUzbUzs || 0n);
+    const minOrderAmount =
+      customer.regionCode === 'KOR'
+        ? BigInt((settingsRow as any)?.minOrderKorKrw || 0n)
+        : BigInt((settingsRow as any)?.minOrderUzbUzs || 0n);
 
     if (minOrderAmount > 0n && subtotal < minOrderAmount) {
-      const formatted = customer.regionCode === 'KOR'
-        ? `${Number(minOrderAmount).toLocaleString()} ₩`
-        : `${Number(minOrderAmount / 100n).toLocaleString()} so'm`;
+      const formatted =
+        customer.regionCode === 'KOR'
+          ? `${Number(minOrderAmount).toLocaleString()} ₩`
+          : `${Number(minOrderAmount / 100n).toLocaleString()} so'm`;
 
       throw new BadRequestError(`Minimal buyurtma summasi ${formatted} bo'lishi kerak`);
     }
@@ -325,14 +386,16 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
         where: and(
           eq(productRegionalConfigs.productId, cartItem.productId),
           eq(productRegionalConfigs.regionCode, cart.regionCode)
-        )
+        ),
       });
 
       if (!regionalConfig) continue;
 
       let freshPrice: bigint;
       const isWholesale = cartItem.quantity >= regionalConfig.minWholesaleQty;
-      const basePrice = isWholesale ? BigInt(regionalConfig.wholesalePrice) : BigInt(regionalConfig.retailPrice);
+      const basePrice = isWholesale
+        ? BigInt(regionalConfig.wholesalePrice)
+        : BigInt(regionalConfig.retailPrice);
 
       if (cart.regionCode === 'UZB') {
         const rateSnapshot = await cartsRepository.getLatestRateSnapshot(tx);
@@ -340,7 +403,7 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
           throw new BadRequestError('Valyuta kursi topilmadi');
         }
         const product = await tx.query.products.findFirst({
-          where: eq(products.id, cartItem.productId)
+          where: eq(products.id, cartItem.productId),
         });
         const { productPrice, cargoFee } = calculateUzbPrice(
           basePrice,
@@ -354,18 +417,21 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
 
       const snapshotPrice = BigInt(cartItem.priceSnapshot);
 
-      const diff = freshPrice > snapshotPrice ? freshPrice - snapshotPrice : snapshotPrice - freshPrice;
+      const diff =
+        freshPrice > snapshotPrice ? freshPrice - snapshotPrice : snapshotPrice - freshPrice;
       const tolerance = snapshotPrice / 100n;
 
       if (diff > tolerance) {
         throw new PriceChangedError({
           message: "Narxlar o'zgardi. Savatni yangilab, qayta urinib ko'ring.",
-          changedItems: [{
-            productId: cartItem.productId,
-            productName: cartItem.productName,
-            oldPrice: snapshotPrice.toString(),
-            newPrice: freshPrice.toString()
-          }]
+          changedItems: [
+            {
+              productId: cartItem.productId,
+              productName: cartItem.productName,
+              oldPrice: snapshotPrice.toString(),
+              newPrice: freshPrice.toString(),
+            },
+          ],
         });
       }
     }
@@ -374,133 +440,156 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     const couponCode = input.couponCode;
 
     if (couponCode) {
-        const fullItems = await Promise.all(input.items.map(async (i) => {
-            const p = await tx.query.products.findFirst({ where: eq(products.id, i.productId) });
-            const latestRate = await tx.query.exchangeRateSnapshots.findFirst({ orderBy: [desc(exchangeRateSnapshots.createdAt)] });
-            const config = await tx.query.productRegionalConfigs.findFirst({ 
-                where: and(
-                    eq(productRegionalConfigs.productId, i.productId),
-                    eq(productRegionalConfigs.regionCode, customer.regionCode)
-                ) 
-            });
-            
-            let subtotal = 0n;
-            if (customer.regionCode === 'UZB' && latestRate && config) {
-                const { productPrice, cargoFee } = calculateUzbPrice(config.retailPrice, p?.weightGrams || 0, latestRate);
-                subtotal = (productPrice + cargoFee) * BigInt(i.quantity);
-            } else if (config) {
-                const productPrice = calculateKorPrice(config.retailPrice);
-                subtotal = productPrice * BigInt(i.quantity);
-            }
+      const fullItems = await Promise.all(
+        input.items.map(async i => {
+          const p = await tx.query.products.findFirst({ where: eq(products.id, i.productId) });
+          const latestRate = await tx.query.exchangeRateSnapshots.findFirst({
+            orderBy: [desc(exchangeRateSnapshots.createdAt)],
+          });
+          const config = await tx.query.productRegionalConfigs.findFirst({
+            where: and(
+              eq(productRegionalConfigs.productId, i.productId),
+              eq(productRegionalConfigs.regionCode, customer.regionCode)
+            ),
+          });
 
-            return {
-                productId: i.productId,
-                quantity: i.quantity,
-                categoryId: p?.categoryId || '',
-                brandName: p?.brandName || '',
-                subtotal: subtotal.toString()
-            };
-        }));
+          let subtotal = 0n;
+          if (customer.regionCode === 'UZB' && latestRate && config) {
+            const { productPrice, cargoFee } = calculateUzbPrice(
+              config.retailPrice,
+              p?.weightGrams || 0,
+              latestRate
+            );
+            subtotal = (productPrice + cargoFee) * BigInt(i.quantity);
+          } else if (config) {
+            const productPrice = calculateKorPrice(config.retailPrice);
+            subtotal = productPrice * BigInt(i.quantity);
+          }
 
-        couponData = await couponsService.validateAndApply(couponCode, customerId, fullItems, customer.regionCode, tx);
+          return {
+            productId: i.productId,
+            quantity: i.quantity,
+            categoryId: p?.categoryId || '',
+            brandName: p?.brandName || '',
+            subtotal: subtotal.toString(),
+          };
+        })
+      );
+
+      couponData = await couponsService.validateAndApply(
+        couponCode,
+        customerId,
+        fullItems,
+        customer.regionCode,
+        tx
+      );
     }
 
     let order;
     try {
-        order = await ordersService.createOrder({
-            ...input,
-            customerId,
-            regionCode: customer.regionCode as 'UZB' | 'KOR',
-            currency: (customer.regionCode === 'UZB' ? 'UZS' : 'KRW') as any,
-            couponId: couponData?.couponId,
-            couponCode: couponCode,
-            discountAmount: couponData?.discountAmount || 0n,
-        }, tx);
+      order = await ordersService.createOrder(
+        {
+          ...input,
+          customerId,
+          regionCode: customer.regionCode as 'UZB' | 'KOR',
+          currency: (customer.regionCode === 'UZB' ? 'UZS' : 'KRW') as any,
+          couponId: couponData?.couponId,
+          couponCode: couponCode,
+          discountAmount: couponData?.discountAmount || 0n,
+        },
+        tx
+      );
     } catch (err: any) {
-        logger.error({
-            msg: 'Order creation transaction failed',
-            error: err.message,
-            stack: err.stack,
-            detail: err.detail,
-            constraint: err.constraint
-        });
-        throw err;
+      logger.error({
+        msg: 'Order creation transaction failed',
+        error: err.message,
+        stack: err.stack,
+        detail: err.detail,
+        constraint: err.constraint,
+      });
+      throw err;
     }
 
     if (couponData && order) {
-        await couponsRepository.incrementUsage(couponData.couponId, tx);
-        await couponsService.recordRedemption({
-            couponId: couponData.couponId,
-            customerId,
-            orderId: order.id,
-            discountAmount: couponData.discountAmount,
-        }, tx);
+      await couponsRepository.incrementUsage(couponData.couponId, tx);
+      await couponsService.recordRedemption(
+        {
+          couponId: couponData.couponId,
+          customerId,
+          orderId: order.id,
+          discountAmount: couponData.discountAmount,
+        },
+        tx
+      );
     }
 
     if (!order) throw new Error('Failed to create order');
 
     // Transition to PENDING_PAYMENT immediately (reserves stock)
-    await ordersService.updateOrderStatus(order.id, { 
-      to: 'PENDING_PAYMENT',
-      note: 'Buyurtma tasdiqlandi, to\'lov kutilmoqda'
-    }, undefined, tx);
+    await ordersService.updateOrderStatus(
+      order.id,
+      {
+        to: 'PENDING_PAYMENT',
+        note: "Buyurtma tasdiqlandi, to'lov kutilmoqda",
+      },
+      undefined,
+      tx
+    );
 
     // Save address snapshot
     if (input.addressId) {
-        const addr = await tx.query.customerAddresses.findFirst({
-            where: and(
-                eq(customerAddresses.id, input.addressId),
-                eq(customerAddresses.customerId, customerId)
-            )
-        });
-        
-        if (addr) {
-            let line1 = '';
-            let line2 = '';
-            let city = '';
-            let postalCode = '';
-            
-            if (addr.regionCode === 'UZB') {
-                line1 = addr.uzbStreet || '';
-                city = `${addr.uzbCity}, ${addr.uzbRegion}`;
-            } else {
-                line1 = addr.korRoadAddress || '';
-                line2 = addr.korDetail || '';
-                city = addr.korBuilding || '';
-                postalCode = addr.korPostalCode || '';
-            }
-            
-            await tx.update(orders)
-                .set({
-                    deliveryFullName: addr.fullName,
-                    deliveryPhone: addr.phone,
-                    deliveryAddressLine1: line1,
-                    deliveryAddressLine2: line2,
-                    deliveryCity: city,
-                    deliveryPostalCode: postalCode,
-                    deliveryRegionCode: addr.regionCode,
-                })
-                .where(eq(orders.id, order.id));
+      const addr = await tx.query.customerAddresses.findFirst({
+        where: and(
+          eq(customerAddresses.id, input.addressId),
+          eq(customerAddresses.customerId, customerId)
+        ),
+      });
+
+      if (addr) {
+        let line1 = '';
+        let line2 = '';
+        let city = '';
+        let postalCode = '';
+
+        if (addr.regionCode === 'UZB') {
+          line1 = addr.uzbStreet || '';
+          city = `${addr.uzbCity}, ${addr.uzbRegion}`;
+        } else {
+          line1 = addr.korRoadAddress || '';
+          line2 = addr.korDetail || '';
+          city = addr.korBuilding || '';
+          postalCode = addr.korPostalCode || '';
         }
+
+        await tx
+          .update(orders)
+          .set({
+            deliveryFullName: addr.fullName,
+            deliveryPhone: addr.phone,
+            deliveryAddressLine1: line1,
+            deliveryAddressLine2: line2,
+            deliveryCity: city,
+            deliveryPostalCode: postalCode,
+            deliveryRegionCode: addr.regionCode,
+          })
+          .where(eq(orders.id, order.id));
+      }
     } else if (input.deliveryAddress) {
-        await tx.update(orders)
-            .set({
-                deliveryFullName: input.deliveryAddress.fullName,
-                deliveryPhone: input.deliveryAddress.phone,
-                deliveryAddressLine1: input.deliveryAddress.line1,
-                deliveryAddressLine2: input.deliveryAddress.line2 || '',
-                deliveryCity: input.deliveryAddress.city,
-                deliveryPostalCode: input.deliveryAddress.postalCode || '',
-                deliveryRegionCode: input.deliveryAddress.regionCode,
-            })
-            .where(eq(orders.id, order.id));
+      await tx
+        .update(orders)
+        .set({
+          deliveryFullName: input.deliveryAddress.fullName,
+          deliveryPhone: input.deliveryAddress.phone,
+          deliveryAddressLine1: input.deliveryAddress.line1,
+          deliveryAddressLine2: input.deliveryAddress.line2 || '',
+          deliveryCity: input.deliveryAddress.city,
+          deliveryPostalCode: input.deliveryAddress.postalCode || '',
+          deliveryRegionCode: input.deliveryAddress.regionCode,
+        })
+        .where(eq(orders.id, order.id));
     }
 
-    await cartService.clearCart(
-      customerId, 
-      input.regionCode || customer.regionCode, 
-      tx
-    );
+    await cartService.clearCart(customerId, input.regionCode || customer.regionCode, tx);
 
     const timeoutMinutes = Number(settingsRow?.paymentTimeoutMinutes || 30);
     const delayMs = timeoutMinutes * 60 * 1000;
@@ -508,7 +597,7 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     await reservationTimeoutQueue.add(
       'timeout',
       { orderId: order.id },
-      { 
+      {
         delay: delayMs,
         jobId: `reservation-timeout-${order.id}`,
         removeOnComplete: true,
@@ -521,7 +610,7 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     const itemsForNotification = cart.items.map((item: any) => ({
       name: item.productName,
       qty: item.quantity,
-      subtotal: BigInt(item.priceSnapshot) * BigInt(item.quantity)
+      subtotal: BigInt(item.priceSnapshot) * BigInt(item.quantity),
     }));
 
     process.nextTick(async () => {
@@ -545,26 +634,26 @@ export async function createOrder(customerId: string, input: CreateStorefrontOrd
     });
 
     return {
-        id: finalOrder.id,
-        orderNumber: finalOrder.orderNumber,
-        totalAmount: finalOrder.totalAmount.toString(),
-        subtotal: finalOrder.subtotal.toString(),
-        cargoFee: finalOrder.cargoFee.toString(),
-        currency: finalOrder.currency,
-        status: finalOrder.status,
-        createdAt: finalOrder.createdAt.toISOString(),
-        items: [],
-        paymentReceiptUrl: finalOrder.paymentReceiptUrl,
-        paymentSubmittedAt: finalOrder.paymentSubmittedAt?.toISOString() || null,
-        paymentNote: finalOrder.paymentNote,
-        paymentExpiresAt: null,
-        deliveryFullName: finalOrder.deliveryFullName,
-        deliveryPhone: finalOrder.deliveryPhone,
-        deliveryAddressLine1: finalOrder.deliveryAddressLine1,
-        deliveryAddressLine2: finalOrder.deliveryAddressLine2,
-        deliveryCity: finalOrder.deliveryCity,
-        deliveryPostalCode: finalOrder.deliveryPostalCode,
-        deliveryRegionCode: finalOrder.deliveryRegionCode,
+      id: finalOrder.id,
+      orderNumber: finalOrder.orderNumber,
+      totalAmount: finalOrder.totalAmount.toString(),
+      subtotal: finalOrder.subtotal.toString(),
+      cargoFee: finalOrder.cargoFee.toString(),
+      currency: finalOrder.currency,
+      status: finalOrder.status,
+      createdAt: finalOrder.createdAt.toISOString(),
+      items: [],
+      paymentReceiptUrl: finalOrder.paymentReceiptUrl,
+      paymentSubmittedAt: finalOrder.paymentSubmittedAt?.toISOString() || null,
+      paymentNote: finalOrder.paymentNote,
+      paymentExpiresAt: null,
+      deliveryFullName: finalOrder.deliveryFullName,
+      deliveryPhone: finalOrder.deliveryPhone,
+      deliveryAddressLine1: finalOrder.deliveryAddressLine1,
+      deliveryAddressLine2: finalOrder.deliveryAddressLine2,
+      deliveryCity: finalOrder.deliveryCity,
+      deliveryPostalCode: finalOrder.deliveryPostalCode,
+      deliveryRegionCode: finalOrder.deliveryRegionCode,
     };
   });
 }
@@ -593,7 +682,7 @@ export async function getPaymentInfo(region: 'UZB' | 'KOR') {
         enabled: settingsRow.korE9payEnabled,
         name: settingsRow.korE9payName,
         account: settingsRow.korE9payAccount,
-      }
+      },
     };
   } else {
     return {
@@ -607,157 +696,176 @@ export async function getPaymentInfo(region: 'UZB' | 'KOR') {
         enabled: settingsRow.uzbE9payEnabled,
         name: settingsRow.uzbE9payName,
         account: settingsRow.uzbE9payAccount,
-      }
+      },
     };
   }
 }
 
 export async function getLatestRates() {
-    return await ordersRepository.getLatestRateSnapshot();
+  return await ordersRepository.getLatestRateSnapshot();
 }
 
 export async function listShippingTiers() {
-    return await storefrontRepository.listShippingTiers();
+  return await storefrontRepository.listShippingTiers();
 }
 
 export async function createShippingTier(input: KorShippingTierInput) {
-    return await storefrontRepository.createShippingTier(input);
+  return await storefrontRepository.createShippingTier(input);
 }
 
 export async function updateShippingTier(id: string, input: Partial<KorShippingTierInput>) {
-    return await storefrontRepository.updateShippingTier(id, input);
+  return await storefrontRepository.updateShippingTier(id, input);
 }
 
 export async function deleteShippingTier(id: string) {
-    return await storefrontRepository.deleteShippingTier(id);
+  return await storefrontRepository.deleteShippingTier(id);
 }
 
 export async function getMyOrders(customerId: string) {
-    return await storefrontRepository.getMyOrders(customerId);
+  return await storefrontRepository.getMyOrders(customerId);
 }
 
 export async function getOrderDetails(orderId: string, customerId: string) {
-    return await storefrontRepository.getOrderForCustomer(orderId, customerId);
+  return await storefrontRepository.getOrderForCustomer(orderId, customerId);
 }
 
 export async function findCustomerByTelegramId(telegramId: bigint) {
-    return await storefrontRepository.findCustomerByTelegramId(telegramId);
+  return await storefrontRepository.findCustomerByTelegramId(telegramId);
 }
 
 export async function createCustomerFromTelegram(data: any) {
-    const [row] = await db.insert(customers).values(data).returning();
-    return row;
+  const [row] = await db.insert(customers).values(data).returning();
+  return row;
 }
 
 export async function addToWaitlist(productId: string, customerId: string, region: string) {
-    await db.insert(productWaitlist).values({
-        productId,
-        customerId,
-        regionCode: region,
-    }).onConflictDoNothing({
-        target: [productWaitlist.productId, productWaitlist.customerId]
+  await db
+    .insert(productWaitlist)
+    .values({
+      productId,
+      customerId,
+      regionCode: region,
+    })
+    .onConflictDoNothing({
+      target: [productWaitlist.productId, productWaitlist.customerId],
     });
 }
 
 export async function removeFromWaitlist(productId: string, customerId: string) {
-    await db.delete(productWaitlist).where(and(eq(productWaitlist.productId, productId), eq(productWaitlist.customerId, customerId)));
+  await db
+    .delete(productWaitlist)
+    .where(
+      and(eq(productWaitlist.productId, productId), eq(productWaitlist.customerId, customerId))
+    );
 }
 
 export async function getMyWaitlist(customerId: string, region: 'UZB' | 'KOR') {
-    const rows = await db.select().from(productWaitlist).where(and(eq(productWaitlist.customerId, customerId), eq(productWaitlist.regionCode, region)));
-    const latestRate = await getCachedLatestRate();
-    
-    const results = [];
-    for (const row of rows) {
-        const p = await storefrontRepository.findProductById(row.productId);
-        if (!p) continue;
+  const rows = await db
+    .select()
+    .from(productWaitlist)
+    .where(and(eq(productWaitlist.customerId, customerId), eq(productWaitlist.regionCode, region)));
+  const latestRate = await getCachedLatestRate();
 
-        const config = (p as any).configs.find((c: any) => c.regionCode === region);
-        if (!config) continue;
+  const results = [];
+  for (const row of rows) {
+    const p = await storefrontRepository.findProductById(row.productId);
+    if (!p) continue;
 
-        const availableStock = await inventoryRepository.getAvailableStock(p.id);
-        
-        let calculatedPrice = '0';
-        let wholesalePrice = '0';
-        if (region === 'UZB' && latestRate) {
-          const { productPrice, cargoFee } = calculateUzbPrice(BigInt(config.retailPrice), p.weightGrams, latestRate);
-          calculatedPrice = (productPrice + cargoFee).toString();
-          
-          const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
-          wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
-        } else {
-          calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();
-          wholesalePrice = calculateKorPrice(BigInt(config.wholesalePrice)).toString();
-        }
+    const config = (p as any).configs.find((c: any) => c.regionCode === region);
+    if (!config) continue;
 
-        results.push({
-          id: row.id,
-          product: {
-            id: p.id,
-            name: p.name,
-            slug: p.barcode,
-            brandName: p.brandName,
-            categoryName: p.categoryName || '',
-            imageUrls: p.imageUrls,
-            availableStock,
-            calculatedPrice,
-            currency: region === 'UZB' ? 'UZS' : 'KRW',
-            showStockCount: p.showStockCount,
-            wholesalePrice,
-            minWholesaleQty: config.minWholesaleQty,
-            weightGrams: p.weightGrams,
-            inStock: availableStock > 0,
-          }
-        });
+    const availableStock = await inventoryRepository.getAvailableStock(p.id);
+
+    let calculatedPrice = '0';
+    let wholesalePrice = '0';
+    if (region === 'UZB' && latestRate) {
+      const { productPrice, cargoFee } = calculateUzbPrice(
+        BigInt(config.retailPrice),
+        p.weightGrams,
+        latestRate
+      );
+      calculatedPrice = (productPrice + cargoFee).toString();
+
+      const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
+      wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
+    } else {
+      calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();
+      wholesalePrice = calculateKorPrice(BigInt(config.wholesalePrice)).toString();
     }
-    return results;
+
+    results.push({
+      id: row.id,
+      product: {
+        id: p.id,
+        name: p.name,
+        slug: p.barcode,
+        brandName: p.brandName,
+        categoryName: p.categoryName || '',
+        imageUrls: p.imageUrls,
+        availableStock,
+        calculatedPrice,
+        currency: region === 'UZB' ? 'UZS' : 'KRW',
+        showStockCount: p.showStockCount,
+        wholesalePrice,
+        minWholesaleQty: config.minWholesaleQty,
+        weightGrams: p.weightGrams,
+        inStock: availableStock > 0,
+      },
+    });
+  }
+  return results;
 }
 
 export async function cancelOrder(orderId: string, customerId: string) {
-    const order = await ordersRepository.findById(orderId);
-    if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
-    if (order.status !== 'PENDING_PAYMENT' && order.status !== 'PAYMENT_SUBMITTED') {
-        throw new BadRequestError('Bu buyurtmani bekor qilib bo\'lmaydi');
+  const order = await ordersRepository.findById(orderId);
+  if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
+  if (order.status !== 'PENDING_PAYMENT' && order.status !== 'PAYMENT_SUBMITTED') {
+    throw new BadRequestError("Bu buyurtmani bekor qilib bo'lmaydi");
+  }
+
+  const result = await ordersService.updateOrderStatus(orderId, { to: 'CANCELED' });
+
+  process.nextTick(async () => {
+    try {
+      const customer = await db.query.customers.findFirst({ where: eq(customers.id, customerId) });
+      const { sendToAdmin } = await import('../../common/services/telegram.service');
+      await sendToAdmin(`❌ Buyurtma bekor qilindi: ${order.orderNumber} — ${customer?.fullName}`);
+    } catch (e) {
+      logger.error({ e }, 'Failed to send order cancellation admin notification');
     }
-    
-    const result = await ordersService.updateOrderStatus(orderId, { to: 'CANCELED' });
+  });
 
-    process.nextTick(async () => {
-      try {
-        const customer = await db.query.customers.findFirst({ where: eq(customers.id, customerId) });
-        const { sendToAdmin } = await import('../../common/services/telegram.service');
-        await sendToAdmin(`❌ Buyurtma bekor qilindi: ${order.orderNumber} — ${customer?.fullName}`);
-      } catch (e) {
-        logger.error({ e }, 'Failed to send order cancellation admin notification');
-      }
-    });
-
-    return result;
+  return result;
 }
 
-export async function uploadOrderReceipt(orderId: string, customerId: string, paymentProofUrl: string) {
-    const order = await ordersRepository.findById(orderId);
-    if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
-    
-    if (order.status !== 'PENDING_PAYMENT') {
-        throw new BadRequestError('Faqat to\'lov kutilayotgan buyurtmaga chek yuborish mumkin');
-    }
+export async function uploadOrderReceipt(
+  orderId: string,
+  customerId: string,
+  paymentProofUrl: string
+) {
+  const order = await ordersRepository.findById(orderId);
+  if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
 
-    await db.update(orders)
-        .set({ 
-            paymentReceiptUrl: paymentProofUrl,
-            paymentSubmittedAt: new Date(),
-            updatedAt: new Date() 
-        })
-        .where(eq(orders.id, orderId));
+  if (order.status !== 'PENDING_PAYMENT') {
+    throw new BadRequestError("Faqat to'lov kutilayotgan buyurtmaga chek yuborish mumkin");
+  }
 
-    return { success: true };
+  await db
+    .update(orders)
+    .set({
+      paymentReceiptUrl: paymentProofUrl,
+      paymentSubmittedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(orders.id, orderId));
+
+  return { success: true };
 }
 
 export async function getOrderReceipt(orderId: string, customerId: string) {
-    const order = await ordersRepository.findById(orderId);
-    if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
-    return order.paymentReceiptUrl;
+  const order = await ordersRepository.findById(orderId);
+  if (!order || order.customerId !== customerId) throw new NotFoundError('Buyurtma topilmadi');
+  return order.paymentReceiptUrl;
 }
 
 export async function searchJuso(keyword: string) {
@@ -800,4 +908,3 @@ export async function searchJuso(keyword: string) {
     return { results: [], fallback: true };
   }
 }
-

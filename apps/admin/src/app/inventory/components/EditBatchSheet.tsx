@@ -2,8 +2,19 @@ import * as React from 'react';
 import { Drawer } from 'vaul';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateBatchSchema, type UpdateBatchInput, type InventoryBatchResponse } from '@nuraskin/shared-types';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  updateBatchSchema,
+  type UpdateBatchInput,
+  type InventoryBatchResponse,
+} from '@nuraskin/shared-types';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { inventoryApi } from '../api/inventory.api';
@@ -49,7 +60,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
     setIsSubmitting(true);
     try {
       await inventoryApi.updateBatch(batch.id, data);
-      toast.success('Partiya ma\'lumotlari yangilandi');
+      toast.success("Partiya ma'lumotlari yangilandi");
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -68,7 +79,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
         <Drawer.Content className="bg-background flex flex-col rounded-t-[10px] h-[85vh] fixed bottom-0 left-0 right-0 z-50">
           <div className="p-4 bg-background rounded-t-[10px] flex-1 overflow-y-auto">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted mb-8" />
-            
+
             <div className="max-w-md mx-auto">
               <Drawer.Title className="text-xl font-semibold mb-2">
                 Partiyani tahrirlash
@@ -109,12 +120,16 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                         <FormItem>
                           <FormLabel>Initial Qty</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              min="1" 
-                              {...field} 
+                            <Input
+                              type="number"
+                              min="1"
+                              {...field}
                               disabled={isInitialQtyDisabled}
-                              onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} 
+                              onChange={e =>
+                                field.onChange(
+                                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -127,10 +142,14 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                         <FormItem>
                           <FormLabel>Cost (Unit KRW)</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field} 
-                              onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))} 
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={e =>
+                                field.onChange(
+                                  e.target.value === '' ? undefined : parseInt(e.target.value)
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />

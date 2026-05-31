@@ -1,15 +1,7 @@
 import { queryKeys } from '@nuraskin/shared-utils';
 import { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
-import {
-  ShoppingBag,
-  Menu,
-  User,
-  Globe,
-  ChevronDown,
-  Check,
-  Bell,
-} from 'lucide-react';
+import { ShoppingBag, Menu, User, ChevronDown, Check } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
 import { toast } from 'sonner';
 import { useCart, useClearCart } from '@/hooks/useCart';
@@ -22,7 +14,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -116,8 +107,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
     toast.success("Mintaqa o'zgartirildi");
   };
 
-  const currentRegionLabel =
-    regionCode === 'KOR' ? '🇰🇷 Koreya' : "🇺🇿 O'zbekiston";
+  const currentRegionLabel = regionCode === 'KOR' ? '🇰🇷 Koreya' : "🇺🇿 O'zbekiston";
 
   // ① At rest on hero      → fully transparent
   // ② Scrolling in hero    → glass
@@ -154,9 +144,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
 
   return (
     <>
-      <header
-        className={`sticky top-0 z-50 w-full transition-all duration-300 ${bg}`}
-      >
+      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${bg}`}>
         <nav className="relative max-w-[1280px] mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
           {/* Left — Mobile: Hamburger | Desktop: Links */}
           <div className="flex flex-1 items-center gap-6">
@@ -169,7 +157,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             </button>
 
             <div className="hidden md:flex items-center gap-8">
-              {leftLinks.map((link) => (
+              {leftLinks.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
@@ -209,27 +197,21 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                     onClick={() => handleRegionSwitch('UZB')}
                     className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-stone-50 rounded-lg transition-colors"
                   >
-                    <span className="flex items-center gap-2">
-                      🇺🇿 O'zbekiston
-                    </span>
-                    {regionCode === 'UZB' && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
+                    <span className="flex items-center gap-2">🇺🇿 O'zbekiston</span>
+                    {regionCode === 'UZB' && <Check className="h-4 w-4 text-primary" />}
                   </button>
                   <button
                     onClick={() => handleRegionSwitch('KOR')}
                     className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-stone-50 rounded-lg transition-colors"
                   >
                     <span className="flex items-center gap-2">🇰🇷 Koreya</span>
-                    {regionCode === 'KOR' && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
+                    {regionCode === 'KOR' && <Check className="h-4 w-4 text-primary" />}
                   </button>
                 </div>
               )}
             </div>
 
-            {rightLinks.map((link) => (
+            {rightLinks.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
@@ -296,7 +278,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
               </div>
             </div>
 
-            {[...leftLinks, ...rightLinks].map((link) => (
+            {[...leftLinks, ...rightLinks].map(link => (
               <Link
                 key={link.to}
                 to={link.to}
@@ -308,9 +290,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                 }`}
                 activeProps={{
                   className: `py-3 px-4 rounded-xl text-[16px] font-normal tracking-wide ${
-                    isDarkMode
-                      ? 'text-white bg-white/10'
-                      : 'text-[#4A1525] bg-[#4A1525]/5'
+                    isDarkMode ? 'text-white bg-white/10' : 'text-[#4A1525] bg-[#4A1525]/5'
                   }`,
                 }}
               >
@@ -336,8 +316,8 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Mintaqani o'zgartirish</AlertDialogTitle>
             <AlertDialogDescription>
-              Savatingizda {cart.length} ta mahsulot bor. Mintaqani o'zgartirish
-              uchun savatni tozalash kerak.
+              Savatingizda {cart.length} ta mahsulot bor. Mintaqani o'zgartirish uchun savatni
+              tozalash kerak.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex items-baseline gap-2 mt-6 ">

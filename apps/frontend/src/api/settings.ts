@@ -1,5 +1,4 @@
 import { api } from '@/lib/api';
-import type { StorefrontSettings } from '@nuraskin/shared-types';
 
 export async function getStorefrontSettings() {
   return await api.get('/storefront/settings');

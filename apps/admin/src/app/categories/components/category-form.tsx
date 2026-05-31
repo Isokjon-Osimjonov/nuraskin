@@ -1,8 +1,19 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createCategorySchema, type CreateCategoryInput, type CategoryResponse } from '@nuraskin/shared-types';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  createCategorySchema,
+  type CreateCategoryInput,
+  type CategoryResponse,
+} from '@nuraskin/shared-types';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useGenerateSlug } from '../hooks/use-generate-slug';
@@ -45,7 +56,9 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nomi</FormLabel>
-              <FormControl><Input placeholder="Masalan: Terini parvarish" {...field} /></FormControl>
+              <FormControl>
+                <Input placeholder="Masalan: Terini parvarish" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -57,7 +70,9 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
           render={({ field }) => (
             <FormItem>
               <FormLabel>Slug (URL uchun)</FormLabel>
-              <FormControl><Input placeholder="masalan: terini-parvarish" {...field} /></FormControl>
+              <FormControl>
+                <Input placeholder="masalan: terini-parvarish" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -68,7 +83,9 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
           render={({ field }) => (
             <FormItem>
               <FormLabel>Rasm</FormLabel>
-              <FormControl><DualSourceImage value={field.value || ''} onChange={field.onChange} /></FormControl>
+              <FormControl>
+                <DualSourceImage value={field.value || ''} onChange={field.onChange} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -85,10 +102,7 @@ export function CategoryForm({ initialData, onSubmit, isSubmitting }: CategoryFo
                 </div>
               </div>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
             </FormItem>
           )}

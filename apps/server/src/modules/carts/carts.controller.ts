@@ -12,9 +12,9 @@ export async function getCart(req: Request, res: Response) {
 export async function addToCart(req: Request, res: Response) {
   const { productId, quantity } = addToCartSchema.parse(req.body);
   const regionCode = req.body.regionCode || req.query.region;
-  
+
   if (!regionCode || typeof regionCode !== 'string') {
-    throw new BadRequestError('Mintaqa kodi (regionCode) ko\'rsatilmagan');
+    throw new BadRequestError("Mintaqa kodi (regionCode) ko'rsatilmagan");
   }
 
   const customerId = (req as any).customer.id;

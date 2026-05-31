@@ -48,10 +48,14 @@ export const storefrontSettingsSchema = z.object({
 export type StorefrontSettings = z.infer<typeof storefrontSettingsSchema>;
 
 export const createStorefrontOrderSchema = z.object({
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      })
+    )
+    .min(1),
   regionCode: z.enum(['UZB', 'KOR']),
   fullName: z.string().min(2),
   phone: z.string().min(7),
@@ -60,15 +64,17 @@ export const createStorefrontOrderSchema = z.object({
   district: z.string().min(2),
   couponCode: z.string().optional(),
   addressId: z.string().uuid().optional(),
-  deliveryAddress: z.object({
-    fullName: z.string(),
-    phone: z.string(),
-    line1: z.string(),
-    line2: z.string().optional(),
-    city: z.string(),
-    postalCode: z.string().optional(),
-    regionCode: z.enum(['UZB', 'KOR']),
-  }).optional(),
+  deliveryAddress: z
+    .object({
+      fullName: z.string(),
+      phone: z.string(),
+      line1: z.string(),
+      line2: z.string().optional(),
+      city: z.string(),
+      postalCode: z.string().optional(),
+      regionCode: z.enum(['UZB', 'KOR']),
+    })
+    .optional(),
 });
 
 export type CreateStorefrontOrderInput = z.infer<typeof createStorefrontOrderSchema>;

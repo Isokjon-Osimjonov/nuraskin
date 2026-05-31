@@ -21,9 +21,7 @@ export function HeroFooter() {
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-      <span
-        className={`w-1 h-1 rounded-full ${isOk ? 'bg-green-400/30' : 'bg-red-500/30'}`}
-      />
+      <span className={`w-1 h-1 rounded-full ${isOk ? 'bg-green-400/30' : 'bg-red-500/30'}`} />
       <span className="text-white/10 text-xs">
         {isOk ? 'Barcha tizimlar ishlamoqda' : 'Xizmat tekshirilmoqda'}
       </span>

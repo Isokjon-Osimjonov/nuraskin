@@ -1,12 +1,9 @@
-import {  queryKeys , formatDateTime } from '@nuraskin/shared-utils';
+import { queryKeys, formatDateTime } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  createExchangeRateSchema,
-  type CreateExchangeRateInput,
-} from '@nuraskin/shared-types';
+import { createExchangeRateSchema, type CreateExchangeRateInput } from '@nuraskin/shared-types';
 import { exchangeRatesApi } from '../exchange-rates/api/exchange-rates.api';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +25,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 export function RatesPage() {
   const queryClient = useQueryClient();
@@ -72,9 +68,7 @@ export function RatesPage() {
   return (
     <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6 max-w-4xl mx-auto w-full overflow-x-hidden">
       <div className="w-full min-w-0">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight">
-          Valyuta kurslari
-        </h1>
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Valyuta kurslari</h1>
         <p className="text-sm text-muted-foreground">
           Tizim uchun joriy valyuta (KRW → UZS) va kargo kurslari
         </p>
@@ -103,8 +97,7 @@ export function RatesPage() {
                   </span>
                 </div>
                 <div className="text-xs text-muted-foreground pt-2">
-                  O'rnatildi:{' '}
-                  {formatDateTime(latestRate.createdAt)}
+                  O'rnatildi: {formatDateTime(latestRate.createdAt)}
                 </div>
               </>
             ) : (
@@ -119,10 +112,7 @@ export function RatesPage() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4">
                   <FormField
                     control={form.control}
@@ -135,9 +125,7 @@ export function RatesPage() {
                             type="number"
                             min="1"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 0)
-                            }
+                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -155,9 +143,7 @@ export function RatesPage() {
                             type="number"
                             min="0"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 0)
-                            }
+                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -178,14 +164,8 @@ export function RatesPage() {
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending
-                    ? 'Saqlanmoqda...'
-                    : "Kursni o'rnatish"}
+                <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? 'Saqlanmoqda...' : "Kursni o'rnatish"}
                 </Button>
               </form>
             </Form>
@@ -203,12 +183,8 @@ export function RatesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="whitespace-nowrap">Sana</TableHead>
-                  <TableHead className="whitespace-nowrap">
-                    KRW → UZS
-                  </TableHead>
-                  <TableHead className="whitespace-nowrap">
-                    Kargo (KRW/kg)
-                  </TableHead>
+                  <TableHead className="whitespace-nowrap">KRW → UZS</TableHead>
+                  <TableHead className="whitespace-nowrap">Kargo (KRW/kg)</TableHead>
                   <TableHead className="whitespace-nowrap">Izoh</TableHead>
                   <TableHead className="whitespace-nowrap">Yaratdi</TableHead>
                 </TableRow>

@@ -11,19 +11,15 @@ import {
   stockMovements,
   pickPackAudit,
 } from '@nuraskin/database';
-import { eq, and, sql, desc, asc, inArray } from 'drizzle-orm';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import type {
   Order,
   NewOrder,
-  OrderItem,
   NewOrderItem,
-  OrderStatusHistory,
-  NewOrderStatusHistory,
   NewStockReservation,
   NewStockMovement,
   NewPickPackAudit,
 } from '@nuraskin/database';
-import { NotFoundError } from '../../common/errors/AppError';
 
 export async function create(orderData: NewOrder) {
   const [order] = await db.insert(orders).values(orderData).returning();
@@ -83,7 +79,7 @@ export async function findAll(filters: {
 
   const rows = await query.orderBy(desc(orders.createdAt));
 
-  return rows.map((r) => ({
+  return rows.map(r => ({
     ...r.order,
     customerName: r.customerName,
     subtotal: r.order.subtotal.toString(),
@@ -128,10 +124,7 @@ export async function findById(id: string, txIn: any = db) {
   const [resRow] = await runner
     .select({ earliest: sql`min(${stockReservations.expiresAt})` })
     .from(stockReservations)
-    .where(and(
-      eq(stockReservations.orderId, id),
-      eq(stockReservations.status, 'ACTIVE')
-    ));
+    .where(and(eq(stockReservations.orderId, id), eq(stockReservations.status, 'ACTIVE')));
 
   return {
     ...row.order,
@@ -144,7 +137,7 @@ export async function findById(id: string, txIn: any = db) {
     couponDiscount: row.order.discountAmount.toString(),
     wholesaleDiscount: '0',
     paymentExpiresAt: resRow?.earliest ?? null,
-    items: items.map((i) => ({
+    items: items.map(i => ({
       ...i.item,
       productName: i.productName,
       brandName: i.brandName,
@@ -158,7 +151,7 @@ export async function findById(id: string, txIn: any = db) {
 }
 
 export async function addItem(orderId: string, itemData: NewOrderItem) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const [item] = await tx.insert(orderItems).values(itemData).returning();
     if (!item) throw new Error('Failed to add item to order');
 
@@ -170,8 +163,10 @@ export async function addItem(orderId: string, itemData: NewOrderItem) {
 }
 
 export async function removeItem(orderId: string, itemId: string) {
-  return await db.transaction(async (tx) => {
-    await tx.delete(orderItems).where(and(eq(orderItems.id, itemId), eq(orderItems.orderId, orderId)));
+  return await db.transaction(async tx => {
+    await tx
+      .delete(orderItems)
+      .where(and(eq(orderItems.id, itemId), eq(orderItems.orderId, orderId)));
     await updateOrderTotals(tx, orderId);
   });
 }
@@ -217,7 +212,7 @@ export async function updateStatus(
   changedBy?: string,
   paymentData?: Partial<Order>
 ) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     await tx
       .update(orders)
       .set({
@@ -247,7 +242,11 @@ export async function getLatestRateSnapshot() {
   return snapshot;
 }
 
-export async function reserveStock(reservations: NewStockReservation[], movements: NewStockMovement[], tx?: any) {
+export async function reserveStock(
+  reservations: NewStockReservation[],
+  movements: NewStockMovement[],
+  tx?: any
+) {
   const d = tx || db;
   await d.insert(stockReservations).values(reservations);
   await d.insert(stockMovements).values(movements);
@@ -255,7 +254,7 @@ export async function reserveStock(reservations: NewStockReservation[], movement
 
 export async function releaseOrderReservations(orderId: string, tx?: any) {
   const d = tx || db;
-  
+
   const activeReservations = await d
     .select()
     .from(stockReservations)
@@ -275,7 +274,8 @@ export async function releaseOrderReservations(orderId: string, tx?: any) {
     const qtyAfter = qtyBefore + res.quantity;
 
     // 2. Restore physical stock in the batch
-    await d.update(inventoryBatches)
+    await d
+      .update(inventoryBatches)
       .set({ currentQty: qtyAfter, updatedAt: new Date() })
       .where(eq(inventoryBatches.id, res.batchId));
 
@@ -292,14 +292,15 @@ export async function releaseOrderReservations(orderId: string, tx?: any) {
     });
 
     // 4. Mark reservation as RELEASED
-    await d.update(stockReservations)
+    await d
+      .update(stockReservations)
       .set({ status: 'RELEASED', updatedAt: new Date() })
       .where(eq(stockReservations.id, res.id));
   }
 }
 
 export async function releaseStock(orderId: string) {
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     await releaseOrderReservations(orderId, tx);
   });
 }
@@ -322,4 +323,3 @@ export async function markItemScanned(itemId: string, userId: string) {
 
 import * as inventoryRepo from '../inventory/inventory.repository';
 export const getAvailableStock = inventoryRepo.getAvailableStock;
-

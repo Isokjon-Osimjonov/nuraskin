@@ -4,7 +4,7 @@ import { useAppStore } from '@/stores/app.store';
 
 export function useProducts(params?: Record<string, unknown>) {
   const { regionCode } = useAppStore();
-  
+
   return useQuery({
     queryKey: ['products', regionCode, params],
     queryFn: async () => {
@@ -16,7 +16,7 @@ export function useProducts(params?: Record<string, unknown>) {
 
 export function useProductBySlug(slug?: string) {
   const { regionCode } = useAppStore();
-  
+
   return useQuery({
     queryKey: ['product', slug, regionCode],
     queryFn: async () => {

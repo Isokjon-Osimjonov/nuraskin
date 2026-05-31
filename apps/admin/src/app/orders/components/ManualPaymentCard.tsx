@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { CreditCard, Check, Loader2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -50,9 +56,9 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>To'lov miqdori (₩)</Label>
-            <Input 
-              type="number" 
-              value={paymentAmount} 
+            <Input
+              type="number"
+              value={paymentAmount}
               onChange={e => setPaymentAmount(parseInt(e.target.value) || 0)}
             />
           </div>
@@ -74,8 +80,8 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
 
         <div className="space-y-2">
           <Label>Ma'lumot</Label>
-          <Input 
-            placeholder="@username orqali yoki boshqa ma'lumot" 
+          <Input
+            placeholder="@username orqali yoki boshqa ma'lumot"
             value={paymentReference}
             onChange={e => setPaymentReference(e.target.value)}
           />
@@ -83,8 +89,8 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
 
         <div className="space-y-2">
           <Label>Izoh</Label>
-          <Textarea 
-            placeholder="Qo'shimcha eslatma" 
+          <Textarea
+            placeholder="Qo'shimcha eslatma"
             value={paymentNote}
             onChange={e => setPaymentNote(e.target.value)}
             rows={2}
@@ -92,17 +98,23 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
         </div>
       </CardContent>
       <CardFooter className="bg-indigo-100/50 rounded-b-lg pt-3">
-        <Button 
+        <Button
           className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
           disabled={confirmMutation.isPending}
-          onClick={() => confirmMutation.mutate({
-            paymentAmount,
-            paymentMethod,
-            paymentReference,
-            paymentNote
-          })}
+          onClick={() =>
+            confirmMutation.mutate({
+              paymentAmount,
+              paymentMethod,
+              paymentReference,
+              paymentNote,
+            })
+          }
         >
-          {confirmMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+          {confirmMutation.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Check className="mr-2 h-4 w-4" />
+          )}
           To'lovni tasdiqlash
         </Button>
       </CardFooter>

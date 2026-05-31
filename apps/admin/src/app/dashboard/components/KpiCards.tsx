@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingBag, Percent, Package, AlertCircle, TrendingUp, CircleDollarSign } from 'lucide-react';
+import { ShoppingBag, Percent, Package, AlertCircle, CircleDollarSign } from 'lucide-react';
 import type { DashboardKPIs } from '@nuraskin/shared-types';
 import { formatKrw } from '@/lib/utils';
 
@@ -8,7 +8,6 @@ interface KpiCardsProps {
   data?: DashboardKPIs;
   isLoading: boolean;
 }
-
 
 export function KpiCards({ data, isLoading }: KpiCardsProps) {
   if (isLoading) {
@@ -31,18 +30,22 @@ export function KpiCards({ data, isLoading }: KpiCardsProps) {
   if (!data) return null;
 
   const margin = data.margin_today_percent;
-  const marginColor = margin >= 30 ? 'text-green-600' : margin >= 15 ? 'text-yellow-600' : 'text-red-600';
+  const marginColor =
+    margin >= 30 ? 'text-green-600' : margin >= 15 ? 'text-yellow-600' : 'text-red-600';
 
   const cards = [
     {
       title: 'Bugungi daromad',
       value: formatKrw(data.revenue_today_krw),
       icon: CircleDollarSign,
-      color: 'text-coral-500', 
+      color: 'text-coral-500',
       accent: 'border-l-4 border-coral-500',
-      subtext: data.gross_revenue_today_krw && data.discounts_today_krw && Number(data.discounts_today_krw) > 0 
-        ? `Jami: ${formatKrw(data.gross_revenue_today_krw)} • Kupon: -${formatKrw(data.discounts_today_krw)}` 
-        : undefined,
+      subtext:
+        data.gross_revenue_today_krw &&
+        data.discounts_today_krw &&
+        Number(data.discounts_today_krw) > 0
+          ? `Jami: ${formatKrw(data.gross_revenue_today_krw)} • Kupon: -${formatKrw(data.discounts_today_krw)}`
+          : undefined,
     },
     {
       title: 'Bugungi buyurtmalar',
@@ -64,15 +67,18 @@ export function KpiCards({ data, isLoading }: KpiCardsProps) {
       icon: Package,
       color: 'text-purple-500',
       accent: 'border-l-4 border-purple-500',
-      subtext: 'Joriy baho bo\'yicha',
+      subtext: "Joriy baho bo'yicha",
     },
     {
       title: 'Qarzdorlik',
       value: formatKrw(data.outstanding_debt_krw),
       icon: AlertCircle,
       color: BigInt(data.outstanding_debt_krw) > 0n ? 'text-red-500' : 'text-green-500',
-      accent: BigInt(data.outstanding_debt_krw) > 0n ? 'border-l-4 border-red-500' : 'border-l-4 border-green-500',
-      subtext: 'Tasdiqlanmagan to\'lovlar',
+      accent:
+        BigInt(data.outstanding_debt_krw) > 0n
+          ? 'border-l-4 border-red-500'
+          : 'border-l-4 border-green-500',
+      subtext: "Tasdiqlanmagan to'lovlar",
     },
   ];
 
@@ -87,14 +93,14 @@ export function KpiCards({ data, isLoading }: KpiCardsProps) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{card.value}</div>
-              {card.subtext && (
-                <p className="text-xs text-muted-foreground mt-1">{card.subtext}</p>
-              )}
+              {card.subtext && <p className="text-xs text-muted-foreground mt-1">{card.subtext}</p>}
             </CardContent>
           </Card>
         ))}
       </div>
-      <p className="text-[10px] text-gray-500 italic">* UZB buyurtmalar so'nggi kurs asosida ₩ ga konvertatsiya qilingan</p>
+      <p className="text-[10px] text-gray-500 italic">
+        * UZB buyurtmalar so'nggi kurs asosida ₩ ga konvertatsiya qilingan
+      </p>
     </div>
   );
 }

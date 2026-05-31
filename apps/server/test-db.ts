@@ -18,4 +18,6 @@ async function test() {
   }
 }
 
-test().then(() => process.exit(0)).catch(console.error);
+test()
+  .then(() => process.exit(0))
+  .catch(console.error);

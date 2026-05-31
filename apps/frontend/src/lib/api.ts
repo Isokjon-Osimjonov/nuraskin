@@ -4,7 +4,9 @@ function getCustomerToken(): string {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.APP_STORE);
     if (stored) return JSON.parse(stored)?.state?.token ?? '';
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
   return '';
 }
 
@@ -15,7 +17,7 @@ export async function storefrontApi<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> ?? {}),
+    ...((options.headers as Record<string, string>) ?? {}),
   };
 
   if (requiresAuth) {
@@ -37,35 +39,51 @@ export async function storefrontApi<T>(
 }
 
 export const api = {
-  get:  <T>(path: string, o?: RequestInit) =>
-          storefrontApi<T>(path, { method: 'GET', ...o }),
+  get: <T>(path: string, o?: RequestInit) => storefrontApi<T>(path, { method: 'GET', ...o }),
   post: <T>(path: string, body: unknown, o?: RequestInit) =>
-          storefrontApi<T>(path, {
-            method: 'POST',
-            body: JSON.stringify(body), ...o }),
+    storefrontApi<T>(path, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      ...o,
+    }),
   patch: <T>(path: string, body: unknown, o?: RequestInit) =>
-          storefrontApi<T>(path, {
-            method: 'PATCH',
-            body: JSON.stringify(body), ...o }),
-  put:   <T>(path: string, body: unknown, o?: RequestInit) =>
-          storefrontApi<T>(path, {
-            method: 'PUT',
-            body: JSON.stringify(body), ...o }),
-  delete: <T>(path: string, o?: RequestInit) =>
-          storefrontApi<T>(path, { method: 'DELETE', ...o }),
+    storefrontApi<T>(path, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      ...o,
+    }),
+  put: <T>(path: string, body: unknown, o?: RequestInit) =>
+    storefrontApi<T>(path, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+      ...o,
+    }),
+  delete: <T>(path: string, o?: RequestInit) => storefrontApi<T>(path, { method: 'DELETE', ...o }),
 
   auth: {
-    get:    <T>(path: string, o?: RequestInit) =>
-              storefrontApi<T>(path, { method: 'GET', ...o }, true),
-    post:   <T>(path: string, body: unknown, o?: RequestInit) =>
-              storefrontApi<T>(path, {
-                method: 'POST',
-                body: JSON.stringify(body), ...o }, true),
-    patch:  <T>(path: string, body: unknown, o?: RequestInit) =>
-              storefrontApi<T>(path, {
-                method: 'PATCH',
-                body: JSON.stringify(body), ...o }, true),
+    get: <T>(path: string, o?: RequestInit) =>
+      storefrontApi<T>(path, { method: 'GET', ...o }, true),
+    post: <T>(path: string, body: unknown, o?: RequestInit) =>
+      storefrontApi<T>(
+        path,
+        {
+          method: 'POST',
+          body: JSON.stringify(body),
+          ...o,
+        },
+        true
+      ),
+    patch: <T>(path: string, body: unknown, o?: RequestInit) =>
+      storefrontApi<T>(
+        path,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(body),
+          ...o,
+        },
+        true
+      ),
     delete: <T>(path: string, o?: RequestInit) =>
-              storefrontApi<T>(path, { method: 'DELETE', ...o }, true),
+      storefrontApi<T>(path, { method: 'DELETE', ...o }, true),
   },
 };

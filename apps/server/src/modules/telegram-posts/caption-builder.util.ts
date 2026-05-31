@@ -4,7 +4,7 @@ import { calculateUzbPrice } from '../../common/utils/pricing';
 export function buildCaption(
   post: TelegramPost,
   product: any,
-  rate: any, // Exchange rate snapshot
+  rate: any // Exchange rate snapshot
 ): string {
   let caption = post.captionText;
 
@@ -20,17 +20,17 @@ export function buildCaption(
     if (korConfig) {
       if (post.showKrwRetail) {
         const formattedKrwRetail = new Intl.NumberFormat('en-US').format(
-          Number(BigInt(korConfig.retailPrice)),
+          Number(BigInt(korConfig.retailPrice))
         );
         krwBlock.push(`🇰🇷 Narx: ₩${formattedKrwRetail} / dona`);
       }
 
       if (post.showKrwWholesale) {
         const formattedKrwWholesale = new Intl.NumberFormat('en-US').format(
-          Number(BigInt(korConfig.wholesalePrice)),
+          Number(BigInt(korConfig.wholesalePrice))
         );
         krwBlock.push(
-          `🇰🇷 Narx: ₩${formattedKrwWholesale} dan — ${korConfig.minWholesaleQty || 5} tadan`,
+          `🇰🇷 Narx: ₩${formattedKrwWholesale} dan — ${korConfig.minWholesaleQty || 5} tadan`
         );
       }
     }
@@ -44,27 +44,20 @@ export function buildCaption(
         const retailKrw = BigInt(uzbConfig.retailPrice);
         const retailPrices = calculateUzbPrice(retailKrw, weightGrams, rate);
         const retailUzs = retailPrices.productPrice + retailPrices.cargoFee;
-        const formattedUzsRetail = new Intl.NumberFormat('en-US').format(
-          Number(retailUzs) / 100,
-        );
+        const formattedUzsRetail = new Intl.NumberFormat('en-US').format(Number(retailUzs) / 100);
         uzsBlock.push(`🇺🇿 Narx: ${formattedUzsRetail} so'm / dona`);
       }
 
       // Wholesale UZS
       if (post.showUzsWholesale) {
         const wholesaleKrw = BigInt(uzbConfig.wholesalePrice);
-        const wholesalePrices = calculateUzbPrice(
-          wholesaleKrw,
-          weightGrams,
-          rate,
-        );
-        const wholesaleUzs =
-          wholesalePrices.productPrice + wholesalePrices.cargoFee;
+        const wholesalePrices = calculateUzbPrice(wholesaleKrw, weightGrams, rate);
+        const wholesaleUzs = wholesalePrices.productPrice + wholesalePrices.cargoFee;
         const formattedUzsWholesale = new Intl.NumberFormat('en-US').format(
-          Number(wholesaleUzs) / 100,
+          Number(wholesaleUzs) / 100
         );
         uzsBlock.push(
-          `🇺🇿 Narx: ${formattedUzsWholesale} so'm dan — ${uzbConfig.minWholesaleQty || 5} tadan`,
+          `🇺🇿 Narx: ${formattedUzsWholesale} so'm dan — ${uzbConfig.minWholesaleQty || 5} tadan`
         );
       }
     }

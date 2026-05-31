@@ -11,7 +11,7 @@ function getRegion(req: Request): 'UZB' | 'KOR' {
 async function tryGetCustomerId(req: Request): Promise<string | undefined> {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) return undefined;
-  
+
   try {
     const token = authHeader.split(' ')[1];
     const decoded: any = jwt.verify(token, env.JWT_SECRET);
@@ -66,11 +66,11 @@ export async function listShippingTiers(req: Request, res: Response) {
 }
 
 export async function validateCoupon(req: Request, res: Response) {
-    const input = validateCouponInputSchema.parse(req.body);
-    const customerId = (req as any).customer.id;
-    const region = input.regionCode || (req as any).customer.regionCode || 'UZB';
-    const result = await service.validateCoupon(input, customerId, region);
-    res.json(result);
+  const input = validateCouponInputSchema.parse(req.body);
+  const customerId = (req as any).customer.id;
+  const region = input.regionCode || (req as any).customer.regionCode || 'UZB';
+  const result = await service.validateCoupon(input, customerId, region);
+  res.json(result);
 }
 
 export async function listCoupons(req: Request, res: Response) {

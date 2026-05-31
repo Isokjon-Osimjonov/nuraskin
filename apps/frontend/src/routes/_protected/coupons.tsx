@@ -31,15 +31,15 @@ function CouponsPage() {
   }, [coupons, selectedCouponCode, setSelectedCouponCode]);
 
   if (!isAuthenticated) return null;
-  
+
   const displayPrice = (val: string | number, rCode?: string | null) => {
     const region = rCode && rCode !== 'ALL' ? rCode : regionCode;
     return formatPrice(val, region as 'UZB' | 'KOR');
   };
-  
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast.success("Kupon kodi nusxalandi!");
+    toast.success('Kupon kodi nusxalandi!');
   };
 
   const handleSelect = (coupon: any) => {
@@ -47,16 +47,16 @@ function CouponsPage() {
       setSelectedCouponCode(null);
     } else {
       setSelectedCouponCode(coupon.code);
-      toast.success("Kupon tanlandi!");
+      toast.success('Kupon tanlandi!');
     }
   };
-  
-  const filteredCoupons = coupons.filter(c => 
-    !c.regionCode || c.regionCode === 'ALL' || c.regionCode === regionCode
+
+  const filteredCoupons = coupons.filter(
+    c => !c.regionCode || c.regionCode === 'ALL' || c.regionCode === regionCode
   );
 
   const activeCoupon = coupons.find(c => c.code === selectedCouponCode);
-  
+
   return (
     <div className="min-h-[80vh] py-12 px-6 bg-white">
       <div className="max-w-[720px] mx-auto">
@@ -82,16 +82,18 @@ function CouponsPage() {
               const isSelected = selectedCouponCode === coupon.code;
               const isOtherSelected = selectedCouponCode && selectedCouponCode !== coupon.code;
               // If another is selected, and this one is NOT stackable OR the other is NOT stackable, disable it
-              const isDisabledSelection = isOtherSelected && (!coupon.isStackable || !activeCoupon?.isStackable);
+              const isDisabledSelection =
+                isOtherSelected && (!coupon.isStackable || !activeCoupon?.isStackable);
               const isUsed = coupon.isUsed;
 
               return (
-                <div key={coupon.id}
+                <div
+                  key={coupon.id}
                   className={`bg-[#f8f7f5] rounded-2xl p-6 border border-stone-100 relative overflow-hidden transition-all ${isUsed ? 'opacity-50 grayscale' : ''} ${isSelected ? 'ring-2 ring-[#4A1525] ring-offset-2' : ''}`}
                 >
                   {/* Dashed left border accent */}
                   <div className="absolute left-0 top-4 bottom-4 w-1 bg-[#4A1525] rounded-r-full" />
-                  
+
                   <div className="pl-4">
                     <div className="flex items-start justify-between">
                       <div>
@@ -122,42 +124,76 @@ function CouponsPage() {
                           {coupon.type === 'PERCENTAGE'
                             ? `${coupon.value}%`
                             : coupon.type === 'FREE_SHIPPING'
-                            ? 'BEPUL'
-                            : displayPrice(coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).valueUzs : (coupon as any).valueKrw) : coupon.value, coupon.regionCode === 'ALL' ? regionCode : coupon.regionCode)
-                          }
+                              ? 'BEPUL'
+                              : displayPrice(
+                                  coupon.regionCode === 'ALL'
+                                    ? regionCode === 'UZB'
+                                      ? (coupon as any).valueUzs
+                                      : (coupon as any).valueKrw
+                                    : coupon.value,
+                                  coupon.regionCode === 'ALL' ? regionCode : coupon.regionCode
+                                )}
                         </span>
                         <p className="text-[11px] text-stone-400">
                           {coupon.type === 'FREE_SHIPPING' ? 'yetkazib berish' : 'chegirma'}
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Scope and Conditions */}
                     <div className="flex flex-wrap gap-2 mt-3">
                       {coupon.scope === 'PRODUCTS' && (
                         <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-normal">
-                          📦 {coupon.applicableProductNames?.length === 1 ? coupon.applicableProductNames[0] : `${coupon.applicableProductNames?.length || 0} ta mahsulot`} uchun
+                          📦{' '}
+                          {coupon.applicableProductNames?.length === 1
+                            ? coupon.applicableProductNames[0]
+                            : `${coupon.applicableProductNames?.length || 0} ta mahsulot`}{' '}
+                          uchun
                         </span>
                       )}
                       {coupon.scope === 'CATEGORIES' && (
                         <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-normal">
-                          🏷 {coupon.applicableCategoryNames?.length === 1 ? coupon.applicableCategoryNames[0] : `${coupon.applicableCategoryNames?.length || 0} ta kategoriya`} uchun
+                          🏷{' '}
+                          {coupon.applicableCategoryNames?.length === 1
+                            ? coupon.applicableCategoryNames[0]
+                            : `${coupon.applicableCategoryNames?.length || 0} ta kategoriya`}{' '}
+                          uchun
                         </span>
                       )}
                       {coupon.scope === 'BRANDS' && (
                         <span className="text-[11px] bg-[#4A1525]/5 px-2.5 py-1 rounded-full text-[#4A1525] font-normal">
-                          🏷 {coupon.applicableBrands?.length === 1 ? coupon.applicableBrands[0] : `${coupon.applicableBrands?.length || 0} ta brend`} uchun
+                          🏷{' '}
+                          {coupon.applicableBrands?.length === 1
+                            ? coupon.applicableBrands[0]
+                            : `${coupon.applicableBrands?.length || 0} ta brend`}{' '}
+                          uchun
                         </span>
                       )}
 
-                      {((coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).minOrderUzs : (coupon as any).minOrderKrw) : coupon.minOrderAmount)) && 
-                        Number(coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).minOrderUzs : (coupon as any).minOrderKrw) : coupon.minOrderAmount) > 0 && (
-                        <span className="text-[11px] bg-white px-2.5 py-1 rounded-full text-stone-500 border border-stone-100">
-                          Min: {displayPrice(
-                            coupon.regionCode === 'ALL' ? (regionCode === 'UZB' ? (coupon as any).minOrderUzs : (coupon as any).minOrderKrw) : coupon.minOrderAmount || 0, coupon.regionCode === 'ALL' ? regionCode : coupon.regionCode
-                          )}
-                        </span>
-                      )}
+                      {(coupon.regionCode === 'ALL'
+                        ? regionCode === 'UZB'
+                          ? (coupon as any).minOrderUzs
+                          : (coupon as any).minOrderKrw
+                        : coupon.minOrderAmount) &&
+                        Number(
+                          coupon.regionCode === 'ALL'
+                            ? regionCode === 'UZB'
+                              ? (coupon as any).minOrderUzs
+                              : (coupon as any).minOrderKrw
+                            : coupon.minOrderAmount
+                        ) > 0 && (
+                          <span className="text-[11px] bg-white px-2.5 py-1 rounded-full text-stone-500 border border-stone-100">
+                            Min:{' '}
+                            {displayPrice(
+                              coupon.regionCode === 'ALL'
+                                ? regionCode === 'UZB'
+                                  ? (coupon as any).minOrderUzs
+                                  : (coupon as any).minOrderKrw
+                                : coupon.minOrderAmount || 0,
+                              coupon.regionCode === 'ALL' ? regionCode : coupon.regionCode
+                            )}
+                          </span>
+                        )}
                       {coupon.expiresAt && (
                         <span className="text-[11px] bg-white px-2.5 py-1 rounded-full text-stone-500 border border-stone-100">
                           {new Date(coupon.expiresAt).toLocaleDateString('uz-UZ')} gacha
@@ -169,7 +205,7 @@ function CouponsPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     {/* Code + Copy / Select */}
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-stone-200">
                       <div className="flex items-center gap-3">
@@ -193,8 +229,8 @@ function CouponsPage() {
                               isSelected
                                 ? 'bg-red-50 text-red-600 hover:bg-red-100'
                                 : isDisabledSelection
-                                ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                                : 'bg-[#4A1525] text-white hover:bg-[#6B2540]'
+                                  ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                                  : 'bg-[#4A1525] text-white hover:bg-[#6B2540]'
                             }`}
                           >
                             {isSelected ? 'Bekor qilish' : 'Tanlash'}

@@ -27,7 +27,7 @@ function AppLayout() {
   useEffect(() => {
     // If user info in store has mustChangePassword, redirect immediately
     if (user?.mustChangePassword) {
-        navigate({ to: '/change-password' });
+      navigate({ to: '/change-password' });
     }
   }, [user, navigate]);
 
@@ -35,9 +35,9 @@ function AppLayout() {
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "260px",
-          "--sidebar-width-icon": "56px",
-          "--header-height": "4rem",
+          '--sidebar-width': '260px',
+          '--sidebar-width-icon': '56px',
+          '--header-height': '4rem',
         } as React.CSSProperties
       }
       className="bg-sidebar"

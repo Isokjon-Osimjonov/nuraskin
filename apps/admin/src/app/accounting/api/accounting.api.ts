@@ -7,7 +7,9 @@ export const accountingApi = {
   },
 
   getCouponSummary: async (startDate: string, endDate: string): Promise<any[]> => {
-    return await api.get<any>(`/admin/accounting/coupon-summary?startDate=${startDate}&endDate=${endDate}`);
+    return await api.get<any>(
+      `/admin/accounting/coupon-summary?startDate=${startDate}&endDate=${endDate}`
+    );
   },
 
   listExpenses: async (month: string, category?: string): Promise<any[]> => {
@@ -15,7 +17,7 @@ export const accountingApi = {
     if (category) params.append('category', category);
     return await api.get<any>(`/admin/expenses?${params.toString()}`);
   },
-  
+
   createExpense: async (data: any) => {
     return await api.post<any>('/admin/expenses', data);
   },
@@ -32,7 +34,12 @@ export const accountingApi = {
     return await api.delete<any>(`/admin/orders/${orderId}/expenses/${expenseId}`);
   },
 
-  getUploadUrl: async (): Promise<{ url: string; timestamp: number; signature: string; apiKey: string }> => {
+  getUploadUrl: async (): Promise<{
+    url: string;
+    timestamp: number;
+    signature: string;
+    apiKey: string;
+  }> => {
     return await api.post<any>('/categories/upload-url', {});
   },
 
@@ -65,5 +72,5 @@ export const accountingApi = {
       console.error('Export error:', err);
       throw err;
     }
-  }
+  },
 };

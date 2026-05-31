@@ -1,25 +1,12 @@
 import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  inventoryApi,
-  type InventoryOverviewItem,
-  type ScannedProduct,
-} from './api/inventory.api';
+import { inventoryApi, type InventoryOverviewItem, type ScannedProduct } from './api/inventory.api';
 import { productsApi } from '../products/api/products.api';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '../../routes/_app/inventory/index';
-import {
-  Search,
-  Scan,
-  AlertTriangle,
-  Eye,
-  Edit,
-  Trash,
-  Plus,
-  RefreshCw,
-} from 'lucide-react';
+import { Search, Scan, AlertTriangle, Eye, Trash, Plus, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   DataTable,
@@ -52,29 +39,22 @@ export function InventoryOverviewPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState<'active' | 'deleted'>(
-    'active',
-  );
+  const [activeTab, setActiveTab] = React.useState<'active' | 'deleted'>('active');
 
   const [selectedProductForBatch, setSelectedProductForBatch] =
     React.useState<ScannedProduct | null>(null);
   const [isBatchSheetOpen, setIsBatchSheetOpen] = React.useState(false);
 
-  const [productToDelete, setProductToDelete] =
-    React.useState<InventoryOverviewItem | null>(null);
+  const [productToDelete, setProductToDelete] = React.useState<InventoryOverviewItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const { data: rawItems = [], isLoading } = useQuery({
     queryKey: ['inventory', 'overview', activeTab],
-    queryFn: () =>
-      inventoryApi.getOverview({ deleted: activeTab === 'deleted' }),
+    queryFn: () => inventoryApi.getOverview({ deleted: activeTab === 'deleted' }),
   });
 
-  const isPaginatedResponse =
-    !Array.isArray(rawItems) && (rawItems as any).data;
-  const items = Array.isArray(rawItems)
-    ? rawItems
-    : (rawItems as any).data || [];
+  const isPaginatedResponse = !Array.isArray(rawItems) && (rawItems as any).data;
+  const items = Array.isArray(rawItems) ? rawItems : (rawItems as any).data || [];
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsApi.delete(id),
@@ -109,12 +89,10 @@ export function InventoryOverviewPage() {
       item.name.toLowerCase().includes(search.toLowerCase()) ||
       item.brandName.toLowerCase().includes(search.toLowerCase()) ||
       item.sku.toLowerCase().includes(search.toLowerCase()) ||
-      item.barcode.includes(search),
+      item.barcode.includes(search)
   );
 
-  const totalItems = isPaginatedResponse
-    ? (rawItems as any).total
-    : filteredItems.length;
+  const totalItems = isPaginatedResponse ? (rawItems as any).total : filteredItems.length;
   const paginatedItems = Array.isArray(rawItems)
     ? filteredItems.slice((page - 1) * limit, page * limit)
     : filteredItems;
@@ -164,7 +142,7 @@ export function InventoryOverviewPage() {
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) => {
+        onValueChange={v => {
           setActiveTab(v as any);
           handlePageChange(1);
         }}
@@ -172,7 +150,9 @@ export function InventoryOverviewPage() {
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList className="w-full sm:w-auto overflow-x-auto flex justify-start">
-            <TabsTrigger value="active" className="flex-1 sm:flex-none">Faol mahsulotlar</TabsTrigger>
+            <TabsTrigger value="active" className="flex-1 sm:flex-none">
+              Faol mahsulotlar
+            </TabsTrigger>
             <TabsTrigger value="deleted" className="flex-1 sm:flex-none">
               O'chirilganlar
             </TabsTrigger>
@@ -184,7 +164,7 @@ export function InventoryOverviewPage() {
               placeholder="Mahsulotlarni qidirish..."
               className="pl-8 w-full"
               value={search}
-              onChange={(e) => {
+              onChange={e => {
                 setSearch(e.target.value);
                 handlePageChange(1);
               }}
@@ -198,12 +178,8 @@ export function InventoryOverviewPage() {
               <DataTableRow>
                 <DataTableHead>Mahsulot</DataTableHead>
                 <DataTableHead>Barcode / SKU</DataTableHead>
-                <DataTableHead className="text-center">
-                  Active Partiyalar
-                </DataTableHead>
-                <DataTableHead className="text-center">
-                  Jami qoldiq
-                </DataTableHead>
+                <DataTableHead className="text-center">Active Partiyalar</DataTableHead>
+                <DataTableHead className="text-center">Jami qoldiq</DataTableHead>
                 <DataTableHead className="text-center">Status</DataTableHead>
                 <DataTableHead className="text-right">Harakatlar</DataTableHead>
               </DataTableRow>
@@ -245,33 +221,30 @@ export function InventoryOverviewPage() {
                 <DataTableEmpty colSpan={6} message="Mahsulot topilmadi." />
               ) : (
                 paginatedItems.map((item: any) => (
-                  <DataTableRow key={item.id} className={activeTab === 'deleted' ? 'bg-muted/10 grayscale-[0.2]' : ''}>
-                  <DataTableCell>
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-                      {item.imageUrls && item.imageUrls.length > 0 ? (
-                        <img
-                          src={item.imageUrls[0]}
-                          alt={item.name}
-                          className="h-10 w-10 rounded object-cover border border-stone-200"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded border bg-muted" />
-                      )}
-                      <div>
-                        <div className="font-medium text-stone-900">{item.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {item.brandName}
-                          </div>
+                  <DataTableRow
+                    key={item.id}
+                    className={activeTab === 'deleted' ? 'bg-muted/10 grayscale-[0.2]' : ''}
+                  >
+                    <DataTableCell>
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                        {item.imageUrls && item.imageUrls.length > 0 ? (
+                          <img
+                            src={item.imageUrls[0]}
+                            alt={item.name}
+                            className="h-10 w-10 rounded object-cover border border-stone-200"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded border bg-muted" />
+                        )}
+                        <div>
+                          <div className="font-medium text-stone-900">{item.name}</div>
+                          <div className="text-xs text-muted-foreground">{item.brandName}</div>
                         </div>
                       </div>
                     </DataTableCell>
                     <DataTableCell>
-                      <div className="font-mono text-sm text-stone-900">
-                        {item.barcode}
-                      </div>
-                      <div className="font-mono text-xs text-muted-foreground">
-                        {item.sku}
-                      </div>
+                      <div className="font-mono text-sm text-stone-900">{item.barcode}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{item.sku}</div>
                     </DataTableCell>
                     <DataTableCell className="text-center font-medium text-stone-900">
                       {item.activeBatchCount}
@@ -286,10 +259,9 @@ export function InventoryOverviewPage() {
                               : 'text-stone-900'
                         }`}
                       >
-                        {item.totalStock <= LOW_STOCK_THRESHOLD &&
-                          item.totalStock > 0 && (
-                            <AlertTriangle className="mr-1 h-3 w-3" />
-                          )}
+                        {item.totalStock <= LOW_STOCK_THRESHOLD && item.totalStock > 0 && (
+                          <AlertTriangle className="mr-1 h-3 w-3" />
+                        )}
                         {item.totalStock}
                       </span>
                     </DataTableCell>
@@ -322,9 +294,7 @@ export function InventoryOverviewPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() =>
-                              navigate({ to: `/inventory/${item.id}` as any })
-                            }
+                            onClick={() => navigate({ to: `/inventory/${item.id}` as any })}
                             className="text-stone-400 hover:text-stone-900"
                           >
                             <Eye className="h-4 w-4" />
@@ -378,7 +348,7 @@ export function InventoryOverviewPage() {
         <AddBatchSheet
           product={selectedProductForBatch}
           open={isBatchSheetOpen}
-          onOpenChange={(v) => !v && setIsBatchSheetOpen(false)}
+          onOpenChange={v => !v && setIsBatchSheetOpen(false)}
           onSuccess={() => {
             queryClient.invalidateQueries({
               queryKey: ['inventory', 'overview'],
@@ -388,24 +358,20 @@ export function InventoryOverviewPage() {
         />
       )}
 
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Mahsulotni o'chirish</AlertDialogTitle>
             <AlertDialogDescription>
-              Haqiqatan ham "{productToDelete?.name}" mahsulotini
-              o'chirmoqchimisiz? Bu amal mahsulotni korzinaga o'tkazadi va uning
-              qoldiqlari ombordan hisobdan chiqarilmaydi, lekin ro'yxatda
-              ko'rinmaydi.
+              Haqiqatan ham "{productToDelete?.name}" mahsulotini o'chirmoqchimisiz? Bu amal
+              mahsulotni korzinaga o'tkazadi va uning qoldiqlari ombordan hisobdan chiqarilmaydi,
+              lekin ro'yxatda ko'rinmaydi.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 confirmDelete();
               }}

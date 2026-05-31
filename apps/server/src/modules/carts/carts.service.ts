@@ -17,13 +17,18 @@ export async function getCart(customerId: string) {
   return await repository.findByCustomerId(customerId);
 }
 
-export async function addToCart(customerId: string, productId: string, quantity: number, incomingRegionCode: string) {
+export async function addToCart(
+  customerId: string,
+  productId: string,
+  quantity: number,
+  incomingRegionCode: string
+) {
   const product = await storefrontRepository.findProductById(productId);
   if (!product) throw new NotFoundError('Mahsulot topilmadi');
 
-  if (quantity <= 0) throw new BadRequestError('Miqdor musbat bo\'lishi shart');
+  if (quantity <= 0) throw new BadRequestError("Miqdor musbat bo'lishi shart");
 
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     let cart = await repository.findByCustomerId(customerId, tx);
     let currentRegion = incomingRegionCode;
 
@@ -36,7 +41,7 @@ export async function addToCart(customerId: string, productId: string, quantity:
           { cart_region: cart.regionCode }
         );
       }
-      
+
       // Cart is empty AND region differs -> update region
       if (cart.items.length === 0 && cart.regionCode !== incomingRegionCode) {
         await repository.updateCartRegion(cart.id, incomingRegionCode, tx);
@@ -58,7 +63,10 @@ export async function addToCart(customerId: string, productId: string, quantity:
     }
 
     const config = await db.query.productRegionalConfigs.findFirst({
-      where: and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, currentRegion))
+      where: and(
+        eq(productRegionalConfigs.productId, productId),
+        eq(productRegionalConfigs.regionCode, currentRegion)
+      ),
     });
 
     if (!config) {
@@ -96,9 +104,9 @@ export async function addToCart(customerId: string, productId: string, quantity:
 }
 
 export async function updateItemQuantity(customerId: string, itemId: string, quantity: number) {
-  if (quantity < 0) throw new BadRequestError('Miqdor manfiy bo\'lishi mumkin emas');
+  if (quantity < 0) throw new BadRequestError("Miqdor manfiy bo'lishi mumkin emas");
 
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const cart = await repository.findByCustomerId(customerId, tx);
     if (!cart) throw new NotFoundError('Savat topilmadi');
 
@@ -116,7 +124,10 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
       }
 
       const config = await db.query.productRegionalConfigs.findFirst({
-        where: and(eq(productRegionalConfigs.productId, productId), eq(productRegionalConfigs.regionCode, cart.regionCode))
+        where: and(
+          eq(productRegionalConfigs.productId, productId),
+          eq(productRegionalConfigs.regionCode, cart.regionCode)
+        ),
       });
 
       if (!config) {
@@ -152,7 +163,7 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
 }
 
 export async function removeItem(customerId: string, itemId: string) {
-  return await db.transaction(async (tx) => {
+  return await db.transaction(async tx => {
     const cart = await repository.findByCustomerId(customerId, tx);
     if (!cart) throw new NotFoundError('Savat topilmadi');
 
@@ -175,4 +186,3 @@ export async function clearCart(customerId: string, regionCode?: string, txIn?: 
   }
   return cart ? await repository.findByCustomerId(customerId, runner) : null;
 }
-

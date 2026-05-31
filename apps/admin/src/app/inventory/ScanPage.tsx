@@ -5,7 +5,7 @@ import { AddBatchSheet } from './components/AddBatchSheet';
 import { inventoryApi, type ScannedProduct } from './api/inventory.api';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -28,9 +28,9 @@ export function ScanPage() {
       console.error('handleScan failed:', error);
       if (error.message.includes('404') || error.message.includes('not found')) {
         toast.info(`Yangi mahsulot — ro'yxatga o'tkazildi`);
-        navigate({ 
-          to: '/products/new', 
-          search: { barcode } 
+        navigate({
+          to: '/products/new',
+          search: { barcode },
         });
       } else {
         toast.error(error.message || 'Xatolik yuz berdi');
@@ -84,9 +84,9 @@ export function ScanPage() {
         <BarcodeScanner
           isActive={scannerActive}
           onScan={handleScan}
-          onError={(err) => toast.error(err.message || "Xatolik yuz berdi")}
+          onError={err => toast.error(err.message || 'Xatolik yuz berdi')}
         />
-        
+
         {!scannerActive && !sheetOpen && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-4">

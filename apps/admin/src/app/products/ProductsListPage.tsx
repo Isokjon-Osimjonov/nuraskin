@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTableSkeleton } from '@/components/ui/data-table-skeleton';
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { toast } from 'sonner';
@@ -21,7 +21,6 @@ import { productsApi, type ProductListItem } from './api/products.api';
 import { exchangeRatesApi } from '../exchange-rates/api/exchange-rates.api';
 import { ProductFormPage } from './ProductFormPage';
 import type { CategoryResponse } from '@nuraskin/shared-types';
-import { format } from 'date-fns';
 import { Route } from '../../routes/_app/products/index';
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -41,12 +40,8 @@ export function ProductsPage() {
 
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'deleted'>('active');
-  const [editingProduct, setEditingProduct] = useState<
-    ProductListItem | undefined
-  >();
-  const [productToDelete, setProductToDelete] = useState<
-    ProductListItem | undefined
-  >();
+  const [editingProduct, setEditingProduct] = useState<ProductListItem | undefined>();
+  const [productToDelete, setProductToDelete] = useState<ProductListItem | undefined>();
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
 
@@ -61,14 +56,9 @@ export function ProductsPage() {
   });
 
   // Client-side pagination fallback if the API returns a full array
-  const isPaginatedResponse =
-    !Array.isArray(rawProducts) && (rawProducts as any).data;
-  const productsList = Array.isArray(rawProducts)
-    ? rawProducts
-    : (rawProducts as any).data || [];
-  const totalItems = isPaginatedResponse
-    ? (rawProducts as any).total
-    : productsList.length;
+  const isPaginatedResponse = !Array.isArray(rawProducts) && (rawProducts as any).data;
+  const productsList = Array.isArray(rawProducts) ? rawProducts : (rawProducts as any).data || [];
+  const totalItems = isPaginatedResponse ? (rawProducts as any).total : productsList.length;
 
   const products = Array.isArray(rawProducts)
     ? productsList.slice((page - 1) * limit, page * limit)
@@ -82,8 +72,7 @@ export function ProductsPage() {
 
   const { data: categories = [] } = useQuery({
     queryKey: queryKeys.categories.all(),
-    queryFn: () =>
-      api.get<CategoryResponse[]>('/categories'),
+    queryFn: () => api.get<CategoryResponse[]>('/categories'),
   });
 
   const createMutation = useMutation({
@@ -100,13 +89,8 @@ export function ProductsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Parameters<typeof productsApi.update>[1];
-    }) => productsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof productsApi.update>[1] }) =>
+      productsApi.update(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all() });
       queryClient.invalidateQueries({ queryKey: ['products', variables.id] });
@@ -159,18 +143,14 @@ export function ProductsPage() {
   };
 
   const onSubmit = (
-    data: Parameters<typeof createMutation.mutate>[0] extends infer T
-      ? T
-      : never,
+    data: Parameters<typeof createMutation.mutate>[0] extends infer T ? T : never
   ) => {
     if (editingProduct) {
       updateMutation.mutate({ id: editingProduct.id, data } as Parameters<
         typeof updateMutation.mutate
       >[0]);
     } else {
-      createMutation.mutate(
-        data as Parameters<typeof createMutation.mutate>[0],
-      );
+      createMutation.mutate(data as Parameters<typeof createMutation.mutate>[0]);
     }
   };
 
@@ -203,15 +183,14 @@ export function ProductsPage() {
     <div className="flex flex-col gap-6 p-3 sm:p-4 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">Mahsulotlar</h1>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-stone-900">
+            Mahsulotlar
+          </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {totalItems} ta mahsulot {activeTab === 'active' ? 'katalogda' : 'savatda'}
           </p>
         </div>
-        <Dialog
-          open={open}
-          onOpenChange={(v) => (v ? setOpen(true) : handleClose())}
-        >
+        <Dialog open={open} onOpenChange={v => (v ? setOpen(true) : handleClose())}>
           <DialogTrigger asChild>
             <Button className="w-full sm:w-auto" onClick={() => setEditingProduct(undefined)}>
               <PlusIcon className="w-4 h-4 mr-2" />
@@ -221,7 +200,7 @@ export function ProductsPage() {
           <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingProduct ? 'Mahsulotni tahrirlash' : 'Mahsulot qo\'shish'}
+                {editingProduct ? 'Mahsulotni tahrirlash' : "Mahsulot qo'shish"}
               </DialogTitle>
             </DialogHeader>
             <ProductFormPage
@@ -236,7 +215,7 @@ export function ProductsPage() {
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) => {
+        onValueChange={v => {
           setActiveTab(v as any);
           handlePageChange(1);
         }}
@@ -244,7 +223,9 @@ export function ProductsPage() {
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList className="w-full sm:w-auto overflow-x-auto flex justify-start">
-            <TabsTrigger value="active" className="flex-1 sm:flex-none">Faol mahsulotlar</TabsTrigger>
+            <TabsTrigger value="active" className="flex-1 sm:flex-none">
+              Faol mahsulotlar
+            </TabsTrigger>
             <TabsTrigger value="deleted" className="flex-1 sm:flex-none">
               O'chirilganlar
             </TabsTrigger>
@@ -255,7 +236,7 @@ export function ProductsPage() {
             <Input
               placeholder="Nomi, barkod, SKU, brend..."
               value={search}
-              onChange={(e) => {
+              onChange={e => {
                 setSearch(e.target.value);
                 handlePageChange(1);
               }}
@@ -276,22 +257,12 @@ export function ProductsPage() {
                     <DataTableHead>Nomi / Brend</DataTableHead>
                     <DataTableHead>Barkod</DataTableHead>
                     <DataTableHead>SKU</DataTableHead>
-                    <DataTableHead className="text-right">
-                      Narxi (UZS)
-                    </DataTableHead>
-                    <DataTableHead className="text-right">
-                      Narxi (KRW)
-                    </DataTableHead>
+                    <DataTableHead className="text-right">Narxi (UZS)</DataTableHead>
+                    <DataTableHead className="text-right">Narxi (KRW)</DataTableHead>
                     <DataTableHead className="text-center">Zaxira</DataTableHead>
-                    {activeTab === 'deleted' && (
-                      <DataTableHead>O'chirilgan sana</DataTableHead>
-                    )}
-                    <DataTableHead className="text-center">
-                      Holati
-                    </DataTableHead>
-                    <DataTableHead className="text-right">
-                      Amallar
-                    </DataTableHead>
+                    {activeTab === 'deleted' && <DataTableHead>O'chirilgan sana</DataTableHead>}
+                    <DataTableHead className="text-center">Holati</DataTableHead>
+                    <DataTableHead className="text-right">Amallar</DataTableHead>
                   </DataTableRow>
                 </DataTableHeader>
                 <DataTableBody>
@@ -300,21 +271,17 @@ export function ProductsPage() {
                       colSpan={10}
                       message={
                         search
-                          ? 'Qidiruv bo\'yicha mahsulot topilmadi.'
+                          ? "Qidiruv bo'yicha mahsulot topilmadi."
                           : activeTab === 'active'
                             ? 'Mahsulotlar mavjud emas.'
-                            : 'Savat bo\'sh.'
+                            : "Savat bo'sh."
                       }
                     />
                   ) : (
                     products.map((p: any) => (
                       <DataTableRow
                         key={p.id}
-                        className={
-                          activeTab === 'deleted'
-                            ? 'bg-muted/10 grayscale-[0.2]'
-                            : ''
-                        }
+                        className={activeTab === 'deleted' ? 'bg-muted/10 grayscale-[0.2]' : ''}
                       >
                         <DataTableCell>
                           {p.imageUrls && p.imageUrls[0] ? (
@@ -330,19 +297,11 @@ export function ProductsPage() {
                           )}
                         </DataTableCell>
                         <DataTableCell>
-                          <div className="font-medium text-stone-900">
-                            {p.name}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {p.brandName}
-                          </div>
+                          <div className="font-medium text-stone-900">{p.name}</div>
+                          <div className="text-xs text-muted-foreground">{p.brandName}</div>
                         </DataTableCell>
-                        <DataTableCell className="font-mono text-xs">
-                          {p.barcode}
-                        </DataTableCell>
-                        <DataTableCell className="font-mono text-xs">
-                          {p.sku}
-                        </DataTableCell>
+                        <DataTableCell className="font-mono text-xs">{p.barcode}</DataTableCell>
+                        <DataTableCell className="font-mono text-xs">{p.sku}</DataTableCell>
                         <DataTableCell className="text-right whitespace-nowrap">
                           {formatUZS(p.uzbRetail)}
                         </DataTableCell>
@@ -352,11 +311,7 @@ export function ProductsPage() {
                         <DataTableCell className="text-center">
                           {p.totalStock > 0 ? (
                             <span
-                              className={
-                                p.totalStock < 10
-                                  ? 'text-orange-600 font-medium'
-                                  : ''
-                              }
+                              className={p.totalStock < 10 ? 'text-orange-600 font-medium' : ''}
                             >
                               {p.totalStock}
                             </span>
@@ -366,10 +321,7 @@ export function ProductsPage() {
                         </DataTableCell>
                         {activeTab === 'deleted' && (
                           <DataTableCell className="text-xs text-muted-foreground">
-                            {p.deletedAt
-                              ? formatDateTime(
-                                  new Date(p.deletedAt))
-                              : '—'}
+                            {p.deletedAt ? formatDateTime(new Date(p.deletedAt)) : '—'}
                           </DataTableCell>
                         )}
                         <DataTableCell className="text-center">
@@ -436,10 +388,8 @@ export function ProductsPage() {
 
       <ConfirmDeleteDialog
         open={!!productToDelete}
-        onOpenChange={(v) => !v && setProductToDelete(undefined)}
-        onConfirm={() =>
-          productToDelete && deleteMutation.mutate(productToDelete.id)
-        }
+        onOpenChange={v => !v && setProductToDelete(undefined)}
+        onConfirm={() => productToDelete && deleteMutation.mutate(productToDelete.id)}
         isLoading={deleteMutation.isPending}
         title="Mahsulotni o'chirish"
         description={`Haqiqatan ham "${productToDelete?.name}" mahsulotini o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`}
@@ -447,4 +397,3 @@ export function ProductsPage() {
     </div>
   );
 }
-

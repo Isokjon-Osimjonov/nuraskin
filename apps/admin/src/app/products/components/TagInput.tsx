@@ -22,7 +22,7 @@ export function TagInput({ value, onChange, placeholder, suggestions }: TagInput
   };
 
   const removeTag = (tag: string) => {
-    onChange(value.filter((t) => t !== tag));
+    onChange(value.filter(t => t !== tag));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -35,7 +35,7 @@ export function TagInput({ value, onChange, placeholder, suggestions }: TagInput
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {value.map((tag) => (
+        {value.map(tag => (
           <Badge key={tag} variant="secondary" className="gap-1 pr-1">
             {tag}
             <button
@@ -51,15 +51,15 @@ export function TagInput({ value, onChange, placeholder, suggestions }: TagInput
       </div>
       <Input
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={e => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
       />
       {suggestions && suggestions.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1">
           {suggestions
-            .filter((s) => !value.includes(s))
-            .map((s) => (
+            .filter(s => !value.includes(s))
+            .map(s => (
               <button
                 key={s}
                 type="button"

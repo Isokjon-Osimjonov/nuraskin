@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { uz } from 'date-fns/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { cn, formatKrw } from '@/lib/utils';
+import { formatKrw } from '@/lib/utils';
 
 interface ExpenseListDialogProps {
   open: boolean;
@@ -49,7 +49,11 @@ export function ExpenseListDialog({
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [expenseToDelete, setExpenseToDelete] = React.useState<any>(null);
 
-  const { data: expenses, isLoading, isError } = useQuery({
+  const {
+    data: expenses,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['expenses', month, category, isOrderLinked],
     queryFn: async () => {
       return await accountingApi.listExpenses(month, category);
@@ -59,7 +63,7 @@ export function ExpenseListDialog({
 
   const handleDelete = async () => {
     if (!expenseToDelete) return;
-    
+
     setDeletingId(expenseToDelete.id);
     try {
       if (isOrderLinked && expenseToDelete.orderId) {
@@ -67,9 +71,9 @@ export function ExpenseListDialog({
       } else {
         await accountingApi.deleteExpense(expenseToDelete.id);
       }
-      queryClient.invalidateQueries({ queryKey: ['accounting-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses', month, category] });
-      toast.success('Xarajat o\'chirildi');
+      void queryClient.invalidateQueries({ queryKey: ['accounting-summary'] });
+      void queryClient.invalidateQueries({ queryKey: ['expenses', month, category] });
+      toast.success("Xarajat o'chirildi");
       setExpenseToDelete(null);
     } catch (err: any) {
       toast.error('Xatolik yuz berdi: ' + err.message);
@@ -104,7 +108,7 @@ export function ExpenseListDialog({
               </div>
             ) : (
               <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                {expenses.map((expense) => (
+                {expenses.map(expense => (
                   <div
                     key={expense.id}
                     className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -112,7 +116,9 @@ export function ExpenseListDialog({
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span>{format(parseISO(expense.expenseDate), 'd-MMM', { locale: uz })}</span>
+                        <span>
+                          {format(parseISO(expense.expenseDate), 'd-MMM', { locale: uz })}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 font-medium truncate">
                         <FileText className="h-3 w-3 text-blue-500" />
@@ -163,20 +169,24 @@ export function ExpenseListDialog({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!expenseToDelete} onOpenChange={(open) => !open && setExpenseToDelete(null)}>
+      <AlertDialog
+        open={!!expenseToDelete}
+        onOpenChange={open => !open && setExpenseToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xarajatni o'chirishni tasdiqlaysizmi?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ushbu amalni ortga qaytarib bo'lmaydi. "{expenseToDelete?.description}" xarajati butunlay o'chiriladi.
+              Ushbu amalni ortga qaytarib bo'lmaydi. "{expenseToDelete?.description}" xarajati
+              butunlay o'chiriladi.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => {
+            <AlertDialogAction
+              onClick={e => {
                 e.preventDefault();
-                handleDelete();
+                void handleDelete();
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={!!deletingId}

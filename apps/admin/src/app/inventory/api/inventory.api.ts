@@ -1,7 +1,10 @@
 import { api } from '@/lib/api';
-import type { AddBatchInput, InventoryBatchResponse, UpdateBatchInput, AdjustQuantityInput } from '@nuraskin/shared-types';
-
-
+import type {
+  AddBatchInput,
+  InventoryBatchResponse,
+  UpdateBatchInput,
+  AdjustQuantityInput,
+} from '@nuraskin/shared-types';
 
 export interface InventoryOverviewItem {
   id: string;

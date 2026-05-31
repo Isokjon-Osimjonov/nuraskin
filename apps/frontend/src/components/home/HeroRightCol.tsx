@@ -12,8 +12,8 @@ export function HeroRightCol() {
   const heroProducts = productsData?.data ?? [];
   const total = heroProducts.length;
 
-  const handlePrev = () => setIndex((i) => (i - 1 + total) % total);
-  const handleNext = () => setIndex((i) => (i + 1) % total);
+  const handlePrev = () => setIndex(i => (i - 1 + total) % total);
+  const handleNext = () => setIndex(i => (i + 1) % total);
 
   if (isLoading) {
     return (
@@ -44,7 +44,9 @@ export function HeroRightCol() {
             {currentProduct?.name}
           </p>
           <button
-            onClick={() => navigate({ to: `/products/${currentProduct?.slug ?? currentProduct?.id}` })}
+            onClick={() =>
+              navigate({ to: `/products/${currentProduct?.slug ?? currentProduct?.id}` })
+            }
             className="text-xs sm:text-sm text-[#4A1525] underline underline-offset-2 hover:opacity-80 transition-opacity"
           >
             Mahsulotni kashf qilish

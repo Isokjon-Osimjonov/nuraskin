@@ -6,7 +6,7 @@ import { UnauthorizedError } from '../../common/errors/AppError';
 export async function listExpenses(req: Request, res: Response) {
   const month = req.query.month as string;
   const category = req.query.category as string | undefined;
-  
+
   const result = await service.listExpenses(month, category);
   res.json(result);
 }
@@ -24,7 +24,7 @@ export async function updateExpense(req: Request, res: Response) {
   const adminId = req.user?.sub;
   if (!adminId) throw new UnauthorizedError();
   const isAdminSuper = req.user?.role === 'SUPER_ADMIN';
-  
+
   const result = await service.updateExpense(req.params.id, input, adminId, isAdminSuper);
   res.json({ ...result, amountKrw: result.amountKrw.toString() });
 }
@@ -58,8 +58,11 @@ export async function getCouponSummary(req: Request, res: Response) {
 export async function exportAccounting(req: Request, res: Response) {
   const month = req.query.month as string;
   const buffer = await service.exportAccountingToExcel(month);
-  
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  );
   res.setHeader('Content-Disposition', `attachment; filename="nuraskin-hisobot-${month}.xlsx"`);
   res.send(buffer);
 }

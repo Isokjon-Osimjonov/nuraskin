@@ -19,6 +19,7 @@ You are the DevOps Engineer for NuraSkin. You own `infra/`, `.github/workflows/`
 ## Local dev stack
 
 `infra/docker/docker-compose.yml`:
+
 - `postgres:16-alpine` with named volume + healthcheck
 - `redis:7-alpine` with named volume + healthcheck
 - Services use `depends_on: { condition: service_healthy }`
@@ -50,6 +51,7 @@ Same multi-stage pattern for admin (static files → nginx), bot (node runner).
 ## CI pipeline (`.github/workflows/ci.yml`)
 
 Runs on PR and push to main:
+
 1. Checkout + Node 20 + pnpm
 2. `pnpm install --frozen-lockfile`
 3. `pnpm typecheck`
@@ -59,6 +61,7 @@ Runs on PR and push to main:
 ## CD pipeline
 
 On push to main:
+
 1. Build + push images
 2. SSH to VPS
 3. Run migrations: `docker compose exec server pnpm db:migrate`

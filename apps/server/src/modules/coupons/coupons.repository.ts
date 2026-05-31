@@ -20,18 +20,25 @@ export async function findById(id: string) {
   return row || null;
 }
 
-export async function list(filters: { status?: string; search?: string; page: number; limit: number }) {
+export async function list(filters: {
+  status?: string;
+  search?: string;
+  page: number;
+  limit: number;
+}) {
   const offset = (filters.page - 1) * filters.limit;
-  
+
   const conditions = [isNull(coupons.deletedAt)];
   if (filters.status && filters.status !== 'ALL') {
     conditions.push(eq(coupons.status, filters.status));
   }
   if (filters.search) {
-    conditions.push(or(
-      like(coupons.code, `%${filters.search.toUpperCase()}%`),
-      like(coupons.name, `%${filters.search}%`)
-    ) as any);
+    conditions.push(
+      or(
+        like(coupons.code, `%${filters.search.toUpperCase()}%`),
+        like(coupons.name, `%${filters.search}%`)
+      ) as any
+    );
   }
 
   const data = await db
@@ -51,10 +58,13 @@ export async function list(filters: { status?: string; search?: string; page: nu
 }
 
 export async function create(data: NewCoupon) {
-  const [row] = await db.insert(coupons).values({
-    ...data,
-    code: data.code.toUpperCase(),
-  }).returning();
+  const [row] = await db
+    .insert(coupons)
+    .values({
+      ...data,
+      code: data.code.toUpperCase(),
+    })
+    .returning();
   return row;
 }
 
@@ -109,23 +119,19 @@ export async function findRedemptions(couponId: string) {
 }
 
 export async function getCustomerUsageCount(couponId: string, customerId: string, tx: any = db) {
-    const [row] = await tx
-        .select({ count: sql`count(*)::int` })
-        .from(couponRedemptions)
-        .where(and(
-            eq(couponRedemptions.couponId, couponId),
-            eq(couponRedemptions.customerId, customerId)
-        ));
-    return row.count;
+  const [row] = await tx
+    .select({ count: sql`count(*)::int` })
+    .from(couponRedemptions)
+    .where(
+      and(eq(couponRedemptions.couponId, couponId), eq(couponRedemptions.customerId, customerId))
+    );
+  return row.count;
 }
 
 export async function getCustomerOrderCount(customerId: string, tx: any = db) {
-    const [row] = await tx
-        .select({ count: sql`count(*)::int` })
-        .from(orders)
-        .where(and(
-            eq(orders.customerId, customerId),
-            sql`status != 'CANCELED'`
-        ));
-    return row.count;
+  const [row] = await tx
+    .select({ count: sql`count(*)::int` })
+    .from(orders)
+    .where(and(eq(orders.customerId, customerId), sql`status != 'CANCELED'`));
+  return row.count;
 }

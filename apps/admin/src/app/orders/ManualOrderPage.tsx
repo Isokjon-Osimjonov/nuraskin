@@ -8,18 +8,44 @@ import { ordersApi } from './api/orders.api';
 import { productsApi } from '../products/api/products.api';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from '@/components/ui/form';
+
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { ArrowLeft, Search, Plus, Trash, Info, User, Package, MapPin, CreditCard, AlertTriangle, Loader2, X } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import {
+  ArrowLeft,
+  Search,
+  Plus,
+  Trash,
+  Info,
+  User,
+  Package,
+  MapPin,
+  CreditCard,
+  AlertTriangle,
+  Loader2,
+  X,
+} from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
 interface ManualOrderItem {
@@ -37,7 +63,7 @@ export function ManualOrderPage() {
   const [customerSearch, setCustomerSearch] = React.useState('');
   const debouncedCustomerSearch = useDebounce(customerSearch, 300);
   const [selectedCustomer, setSelectedCustomer] = React.useState<any | null>(null);
-  
+
   const [productSearch, setProductSearch] = React.useState('');
   const [items, setItems] = React.useState<ManualOrderItem[]>([]);
   const [isForceCreate, setIsForceCreate] = React.useState(false);
@@ -58,10 +84,11 @@ export function ManualOrderPage() {
   const filteredProducts = React.useMemo(() => {
     if (!productSearch) return allProducts;
     const term = productSearch.toLowerCase();
-    return allProducts.filter(p => 
-      p.name.toLowerCase().includes(term) || 
-      p.barcode.toLowerCase().includes(term) || 
-      p.sku.toLowerCase().includes(term)
+    return allProducts.filter(
+      p =>
+        p.name.toLowerCase().includes(term) ||
+        p.barcode.toLowerCase().includes(term) ||
+        p.sku.toLowerCase().includes(term)
     );
   }, [allProducts, productSearch]);
 
@@ -93,27 +120,32 @@ export function ManualOrderPage() {
 
   const handleAddProduct = (p: any) => {
     if (items.some(i => i.productId === p.id)) return;
-    
+
     const price = Number(p.korRetail || 0);
-    
-    setItems([...items, {
-      productId: p.id,
-      name: p.name,
-      image: p.imageUrls[0] || '',
-      quantity: 1,
-      negotiatedPriceKrw: price,
-      availableStock: p.totalStock
-    }]);
+
+    setItems([
+      ...items,
+      {
+        productId: p.id,
+        name: p.name,
+        image: p.imageUrls[0] || '',
+        quantity: 1,
+        negotiatedPriceKrw: price,
+        availableStock: p.totalStock,
+      },
+    ]);
     setProductSearch('');
     setIsProductListVisible(false);
   };
 
   const updateItemQty = (id: string, qty: number) => {
-    setItems(items.map(i => i.productId === id ? { ...i, quantity: Math.max(1, qty) } : i));
+    setItems(items.map(i => (i.productId === id ? { ...i, quantity: Math.max(1, qty) } : i)));
   };
 
   const updateItemPrice = (id: string, price: number) => {
-    setItems(items.map(i => i.productId === id ? { ...i, negotiatedPriceKrw: Math.max(0, price) } : i));
+    setItems(
+      items.map(i => (i.productId === id ? { ...i, negotiatedPriceKrw: Math.max(0, price) } : i))
+    );
   };
 
   const removeItem = (id: string) => {
@@ -122,7 +154,7 @@ export function ManualOrderPage() {
 
   const createMutation = useMutation({
     mutationFn: ordersApi.createManual,
-    onSuccess: (order) => {
+    onSuccess: order => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
       toast.success('Buyurtma yaratildi! Mijozga xabar yuborildi.');
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
@@ -139,7 +171,7 @@ export function ManualOrderPage() {
               items: items.map(i => ({
                 productId: i.productId,
                 quantity: i.quantity,
-                negotiatedPriceKrw: i.negotiatedPriceKrw
+                negotiatedPriceKrw: i.negotiatedPriceKrw,
               })),
             } as any);
           }
@@ -158,30 +190,33 @@ export function ManualOrderPage() {
       return;
     }
     if (items.length === 0) {
-      toast.error('Kamida bitta mahsulot qo\'shing');
+      toast.error("Kamida bitta mahsulot qo'shing");
       return;
     }
-    
+
     const formattedData = {
       ...data,
       items: items.map(i => ({
         productId: i.productId,
         quantity: i.quantity,
-        negotiatedPriceKrw: i.negotiatedPriceKrw
+        negotiatedPriceKrw: i.negotiatedPriceKrw,
       })),
       forceCreate: isForceCreate,
-      region: 'KOR' as const
+      region: 'KOR' as const,
     };
-    
+
     createMutation.mutate(formattedData as any);
   };
 
   // 3. Calculations
-  const subtotal = items.reduce((acc, i) => acc + ((i.negotiatedPriceKrw || 0) * (i.quantity || 0)), 0);
+  const subtotal = items.reduce(
+    (acc, i) => acc + (i.negotiatedPriceKrw || 0) * (i.quantity || 0),
+    0
+  );
   const deliveryFeeCharged = form.watch('deliveryFeeCharged') || 0;
   const deliveryFeeActual = form.watch('deliveryFeeActual') || 0;
   const total = subtotal + deliveryFeeCharged;
-  
+
   const stockWarnings = items.filter(i => i.quantity > i.availableStock);
 
   return (
@@ -195,10 +230,13 @@ export function ManualOrderPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          
           {/* SECTION 1: Customer Search */}
           <Card>
-            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><User className="w-5 h-5" /> Mijozni tanlash</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="w-5 h-5" /> Mijozni tanlash
+              </CardTitle>
+            </CardHeader>
             <CardContent>
               {selectedCustomer ? (
                 <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl">
@@ -220,8 +258,8 @@ export function ManualOrderPage() {
               ) : (
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Ism, telefon yoki telegram..." 
+                  <Input
+                    placeholder="Ism, telefon yoki telegram..."
                     className="pl-10 h-12"
                     value={customerSearch}
                     onChange={e => setCustomerSearch(e.target.value)}
@@ -235,7 +273,9 @@ export function ManualOrderPage() {
                       ) : customerResults.length === 0 ? (
                         <div className="p-8 text-center">
                           <p className="text-sm font-medium text-stone-600">Mijoz topilmadi</p>
-                          <p className="text-xs text-muted-foreground mt-1">Avval ro'yxatdan o'tishini so'rang.</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Avval ro'yxatdan o'tishini so'rang.
+                          </p>
                         </div>
                       ) : (
                         customerResults.map((c: any) => (
@@ -251,7 +291,9 @@ export function ManualOrderPage() {
                                 {c.phone} • {c.totalOrders} ta buyurtma
                               </p>
                             </div>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 uppercase">{c.region}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 uppercase">
+                              {c.region}
+                            </span>
                           </button>
                         ))
                       )}
@@ -265,19 +307,24 @@ export function ManualOrderPage() {
           {/* SECTION 2: Products */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2"><Package className="w-5 h-5" /> Mahsulotlar</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Package className="w-5 h-5" /> Mahsulotlar
+              </CardTitle>
               <div className="relative w-72">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input 
-                  placeholder="Qidirish va qo'shish..." 
-                  className="pl-8 h-10" 
+                <Input
+                  placeholder="Qidirish va qo'shish..."
+                  className="pl-8 h-10"
                   value={productSearch}
                   onChange={e => setProductSearch(e.target.value)}
                   onFocus={() => setIsProductListVisible(true)}
                 />
                 {isProductListVisible && (
-                    <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsProductListVisible(false)}></div>
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsProductListVisible(false)}
+                    ></div>
                     <div className="absolute z-50 w-[400px] right-0 mt-2 bg-white border rounded-xl shadow-2xl overflow-hidden">
                       <div className="p-2 border-b bg-stone-50 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
                         Mahsulotlar ({filteredProducts.length})
@@ -302,17 +349,27 @@ export function ManualOrderPage() {
                                 className={`w-full p-3 text-left hover:bg-stone-50 transition-colors border-b last:border-0 flex items-center gap-3 ${isAdded ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 onClick={() => handleAddProduct(p)}
                               >
-                                <img src={p.imageUrls[0]} className="w-10 h-10 rounded object-cover border" />
+                                <img
+                                  src={p.imageUrls[0]}
+                                  className="w-10 h-10 rounded object-cover border"
+                                />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-stone-900 truncate">
-                                    {p.name} {isAdded && <span className="text-[10px] text-primary ml-1">(Qo'shilgan)</span>}
+                                    {p.name}{' '}
+                                    {isAdded && (
+                                      <span className="text-[10px] text-primary ml-1">
+                                        (Qo'shilgan)
+                                      </span>
+                                    )}
                                   </p>
                                   <p className="text-[11px] text-muted-foreground flex items-center gap-2">
                                     <span>{p.barcode}</span>
                                     <span>•</span>
                                     <span>Stock: {p.totalStock} ta</span>
                                     <span>•</span>
-                                    <span className="font-bold text-stone-700">{Number(p.korRetail || 0).toLocaleString()} ₩</span>
+                                    <span className="font-bold text-stone-700">
+                                      {Number(p.korRetail || 0).toLocaleString()} ₩
+                                    </span>
                                   </p>
                                 </div>
                               </button>
@@ -321,8 +378,8 @@ export function ManualOrderPage() {
                         )}
                       </div>
                     </div>
-                    </>
-                  )}
+                  </>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -346,47 +403,69 @@ export function ManualOrderPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {items.map((item) => (
+                      {items.map(item => (
                         <TableRow key={item.productId} className="group">
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <img src={item.image} className="w-10 h-10 rounded object-cover border" />
+                              <img
+                                src={item.image}
+                                className="w-10 h-10 rounded object-cover border"
+                              />
                               <div className="min-w-0">
-                                <p className="font-medium text-sm truncate max-w-[200px]">{item.name}</p>
+                                <p className="font-medium text-sm truncate max-w-[200px]">
+                                  {item.name}
+                                </p>
                                 {item.quantity > item.availableStock ? (
                                   <p className="text-[10px] text-orange-600 font-bold flex items-center gap-1 mt-0.5">
-                                    <AlertTriangle className="w-3 h-3" /> Faqat {item.availableStock} ta bor
+                                    <AlertTriangle className="w-3 h-3" /> Faqat{' '}
+                                    {item.availableStock} ta bor
                                   </p>
                                 ) : (
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">Zaxirada: {item.availableStock} ta</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                                    Zaxirada: {item.availableStock} ta
+                                  </p>
                                 )}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Input 
-                              type="number" 
-                              className="h-9 text-center bg-white" 
-                              value={item.quantity || ''} 
-                              onChange={e => updateItemQty(item.productId, parseInt(e.target.value) || 0)}
+                            <Input
+                              type="number"
+                              className="h-9 text-center bg-white"
+                              value={item.quantity || ''}
+                              onChange={e =>
+                                updateItemQty(item.productId, parseInt(e.target.value) || 0)
+                              }
                             />
                           </TableCell>
                           <TableCell>
                             <div className="relative">
-                              <Input 
-                                type="number" 
-                                className="h-9 text-right pr-7 bg-white font-mono" 
+                              <Input
+                                type="number"
+                                className="h-9 text-right pr-7 bg-white font-mono"
                                 value={item.negotiatedPriceKrw || ''}
-                                onChange={e => updateItemPrice(item.productId, parseInt(e.target.value) || 0)}
+                                onChange={e =>
+                                  updateItemPrice(item.productId, parseInt(e.target.value) || 0)
+                                }
                               />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">₩</span>
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                ₩
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-bold text-stone-900 font-mono">
-                            {((item.negotiatedPriceKrw || 0) * (item.quantity || 0)).toLocaleString()} ₩
+                            {(
+                              (item.negotiatedPriceKrw || 0) * (item.quantity || 0)
+                            ).toLocaleString()}{' '}
+                            ₩
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-stone-300 hover:text-destructive transition-colors" onClick={() => removeItem(item.productId)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-stone-300 hover:text-destructive transition-colors"
+                              onClick={() => removeItem(item.productId)}
+                            >
                               <Trash className="w-4 h-4" />
                             </Button>
                           </TableCell>
@@ -396,18 +475,25 @@ export function ManualOrderPage() {
                   </Table>
 
                   <div className="flex justify-between items-center p-5 bg-stone-900 rounded-xl text-white">
-                    <span className="text-sm font-medium uppercase tracking-widest opacity-60">Subtotal:</span>
-                    <span className="text-2xl font-bold font-mono">{(subtotal || 0).toLocaleString()} ₩</span>
+                    <span className="text-sm font-medium uppercase tracking-widest opacity-60">
+                      Subtotal:
+                    </span>
+                    <span className="text-2xl font-bold font-mono">
+                      {(subtotal || 0).toLocaleString()} ₩
+                    </span>
                   </div>
 
                   {stockWarnings.length > 0 && (
                     <div className="flex items-center space-x-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl">
-                      <Checkbox 
-                        id="forceCreate" 
-                        checked={isForceCreate} 
-                        onCheckedChange={(checked) => setIsForceCreate(checked as boolean)}
+                      <Checkbox
+                        id="forceCreate"
+                        checked={isForceCreate}
+                        onCheckedChange={checked => setIsForceCreate(checked as boolean)}
                       />
-                      <label htmlFor="forceCreate" className="text-sm font-medium leading-none cursor-pointer text-amber-900">
+                      <label
+                        htmlFor="forceCreate"
+                        className="text-sm font-medium leading-none cursor-pointer text-amber-900"
+                      >
                         Zaxira yetishmasligiga qaramay davom etish
                       </label>
                     </div>
@@ -419,7 +505,11 @@ export function ManualOrderPage() {
 
           {/* SECTION 3: Delivery */}
           <Card>
-            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MapPin className="w-5 h-5" /> Yetkazib berish</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="w-5 h-5" /> Yetkazib berish
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-6">
               <FormField
                 control={form.control}
@@ -427,7 +517,13 @@ export function ManualOrderPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Yetkazib berish manzili</FormLabel>
-                    <FormControl><Textarea placeholder="To'liq manzil..." className="min-h-[100px] bg-stone-50/50" {...field} /></FormControl>
+                    <FormControl>
+                      <Textarea
+                        placeholder="To'liq manzil..."
+                        className="min-h-[100px] bg-stone-50/50"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -442,7 +538,7 @@ export function ManualOrderPage() {
                       <FormLabel className="text-base">Xarajatni kim qoplaydi?</FormLabel>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={(val) => {
+                          onValueChange={val => {
                             field.onChange(val);
                             if (val === 'BUSINESS') {
                               form.setValue('deliveryFeeCharged', 0);
@@ -455,12 +551,20 @@ export function ManualOrderPage() {
                           className="flex flex-col space-y-2"
                         >
                           <FormItem className="flex items-center space-x-3 space-y-0 p-3 border rounded-xl hover:bg-stone-50 transition-colors cursor-pointer">
-                            <FormControl><RadioGroupItem value="CUSTOMER" /></FormControl>
-                            <FormLabel className="font-normal cursor-pointer flex-1">Mijoz to'laydi</FormLabel>
+                            <FormControl>
+                              <RadioGroupItem value="CUSTOMER" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer flex-1">
+                              Mijoz to'laydi
+                            </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-3 space-y-0 p-3 border rounded-xl hover:bg-orange-50/50 border-orange-100 transition-colors cursor-pointer">
-                            <FormControl><RadioGroupItem value="BUSINESS" /></FormControl>
-                            <FormLabel className="font-normal cursor-pointer flex-1 text-orange-700 font-medium">Biz to'laymiz (Biznes qoplaydi)</FormLabel>
+                            <FormControl>
+                              <RadioGroupItem value="BUSINESS" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer flex-1 text-orange-700 font-medium">
+                              Biz to'laymiz (Biznes qoplaydi)
+                            </FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -479,10 +583,10 @@ export function ManualOrderPage() {
                           <FormLabel>Yetkazib berish narxi (Mijoz to'laydi)</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input 
-                                type="number" 
+                              <Input
+                                type="number"
                                 className="h-12 text-lg font-mono"
-                                {...field} 
+                                {...field}
                                 value={field.value ?? ''}
                                 onChange={e => {
                                   const val = parseInt(e.target.value) || 0;
@@ -490,7 +594,9 @@ export function ManualOrderPage() {
                                   form.setValue('deliveryFeeActual', val);
                                 }}
                               />
-                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-stone-400">₩</span>
+                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-stone-400">
+                                ₩
+                              </span>
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -506,14 +612,16 @@ export function ManualOrderPage() {
                           <FormLabel>Haqiqiy yetkazib berish narxi (Biznes qoplaydi)</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input 
-                                type="number" 
-                                className="h-12 text-lg font-mono" 
-                                {...field} 
+                              <Input
+                                type="number"
+                                className="h-12 text-lg font-mono"
+                                {...field}
                                 value={field.value ?? ''}
-                                onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
+                                onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                               />
-                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-stone-400">₩</span>
+                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-stone-400">
+                                ₩
+                              </span>
                             </div>
                           </FormControl>
                           <FormDescription className="text-orange-600 font-bold italic text-xs">
@@ -532,7 +640,11 @@ export function ManualOrderPage() {
           {/* SECTION 4: Summary + Notes */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="md:col-span-2">
-              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Info className="w-5 h-5" /> Qo'shimcha</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Info className="w-5 h-5" /> Qo'shimcha
+                </CardTitle>
+              </CardHeader>
               <CardContent>
                 <FormField
                   control={form.control}
@@ -540,7 +652,13 @@ export function ManualOrderPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Admin izohi (faqat ichki foydalanish uchun)</FormLabel>
-                      <FormControl><Textarea placeholder="Masalan: Telegram @username orqali kelishildi..." className="min-h-[120px] bg-stone-50/50" {...field} /></FormControl>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Masalan: Telegram @username orqali kelishildi..."
+                          className="min-h-[120px] bg-stone-50/50"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -549,44 +667,61 @@ export function ManualOrderPage() {
             </Card>
 
             <Card className="border-primary/20 bg-primary/5">
-              <CardHeader><CardTitle className="text-lg flex items-center gap-2 text-primary"><CreditCard className="w-5 h-5" /> Xulosa</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                  <CreditCard className="w-5 h-5" /> Xulosa
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Mahsulotlar:</span>
-                    <span className="font-medium font-mono">{(subtotal || 0).toLocaleString()} ₩</span>
+                    <span className="font-medium font-mono">
+                      {(subtotal || 0).toLocaleString()} ₩
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Yetkazib berish:</span>
-                    <span className="font-medium font-mono">+{(deliveryFeeCharged || 0).toLocaleString()} ₩</span>
+                    <span className="font-medium font-mono">
+                      +{(deliveryFeeCharged || 0).toLocaleString()} ₩
+                    </span>
                   </div>
                   {deliveryFeeCoveredBy === 'BUSINESS' && (
                     <div className="flex justify-between italic text-stone-500 text-[11px] pt-1 border-t">
                       <span>Biznes xarajati:</span>
-                      <span className="font-mono">{(deliveryFeeActual || 0).toLocaleString()} ₩</span>
+                      <span className="font-mono">
+                        {(deliveryFeeActual || 0).toLocaleString()} ₩
+                      </span>
                     </div>
                   )}
                 </div>
-                
+
                 <div className="pt-4 border-t-2 border-primary/20 flex justify-between items-center">
-                  <span className="font-black text-stone-900 uppercase text-xs tracking-widest">JAMI:</span>
+                  <span className="font-black text-stone-900 uppercase text-xs tracking-widest">
+                    JAMI:
+                  </span>
                   <span className="text-3xl font-black text-primary font-mono tracking-tighter">
                     {(total || 0).toLocaleString()} ₩
                   </span>
                 </div>
               </CardContent>
               <CardFooter className="pt-2">
-                <Button 
+                <Button
                   type="submit"
                   className="w-full h-14 text-xl font-black shadow-xl"
                   disabled={createMutation.isPending}
                 >
-                  {createMutation.isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> Yaratilmoqda...</> : 'BUYURTMA YARATISH'}
+                  {createMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Yaratilmoqda...
+                    </>
+                  ) : (
+                    'BUYURTMA YARATISH'
+                  )}
                 </Button>
               </CardFooter>
             </Card>
           </div>
-
         </form>
       </Form>
     </div>

@@ -106,13 +106,13 @@ export function AddressForm({
     <div className="space-y-6 py-2">
       <form
         onSubmit={form.handleSubmit(
-          (data) => {
+          data => {
             console.log('✅ FORM VALID, submitting data:', data);
             onSubmit(data as any);
           },
-          (errors) => {
+          errors => {
             console.log('❌ FORM INVALID, errors:', errors);
-          },
+          }
         )}
         className="space-y-5"
       >
@@ -139,9 +139,7 @@ export function AddressForm({
               />
             </div>
             {errors.label && (
-              <p className="text-[11px] text-red-500 ml-1">
-                {errors.label.message}
-              </p>
+              <p className="text-[11px] text-red-500 ml-1">{errors.label.message}</p>
             )}
           </div>
 
@@ -158,33 +156,23 @@ export function AddressForm({
               />
             </div>
             {errors.fullName && (
-              <p className="text-[11px] text-red-500 ml-1">
-                {errors.fullName.message}
-              </p>
+              <p className="text-[11px] text-red-500 ml-1">{errors.fullName.message}</p>
             )}
           </div>
         </div>
 
         {/* Common: Phone */}
         <div className="space-y-1.5">
-          <label className="text-[12px] font-normal text-stone-500 ml-1">
-            Telefon raqam
-          </label>
+          <label className="text-[12px] font-normal text-stone-500 ml-1">Telefon raqam</label>
           <div className="relative">
             <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-300" />
             <input
               {...register('phone')}
               className="w-full h-11 pl-10 pr-4 rounded-xl bg-stone-50 border border-stone-100 text-[14px] outline-none focus:border-[#4A1525] transition-all"
-              placeholder={
-                regionCode === 'UZB' ? '+998 90 123 45 67' : '+82 10 1234 5678'
-              }
+              placeholder={regionCode === 'UZB' ? '+998 90 123 45 67' : '+82 10 1234 5678'}
             />
           </div>
-          {errors.phone && (
-            <p className="text-[11px] text-red-500 ml-1">
-              {errors.phone.message}
-            </p>
-          )}
+          {errors.phone && <p className="text-[11px] text-red-500 ml-1">{errors.phone.message}</p>}
         </div>
 
         {/* Region Specific Fields */}
@@ -192,23 +180,19 @@ export function AddressForm({
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[12px] font-normal text-stone-500 ml-1">
-                  Viloyat
-                </label>
+                <label className="text-[12px] font-normal text-stone-500 ml-1">Viloyat</label>
                 <select
                   {...register('uzbRegion')}
                   className="w-full h-11 px-4 rounded-xl bg-stone-50 border border-stone-100 text-[14px] outline-none focus:border-[#4A1525] transition-all appearance-none"
                 >
-                  {UZB_REGIONS.map((r) => (
+                  {UZB_REGIONS.map(r => (
                     <option key={r} value={r}>
                       {r}
                     </option>
                   ))}
                 </select>
                 {errors.uzbRegion && (
-                  <p className="text-[11px] text-red-500 ml-1">
-                    {errors.uzbRegion.message}
-                  </p>
+                  <p className="text-[11px] text-red-500 ml-1">{errors.uzbRegion.message}</p>
                 )}
               </div>
               <div className="space-y-1.5">
@@ -221,9 +205,7 @@ export function AddressForm({
                   placeholder="Masalan: Yunusobod tumani"
                 />
                 {errors.uzbCity && (
-                  <p className="text-[11px] text-red-500 ml-1">
-                    {errors.uzbCity.message}
-                  </p>
+                  <p className="text-[11px] text-red-500 ml-1">{errors.uzbCity.message}</p>
                 )}
               </div>
             </div>
@@ -237,9 +219,7 @@ export function AddressForm({
                 placeholder="Masalan: Navoiy ko'chasi, 15-uy"
               />
               {errors.uzbStreet && (
-                <p className="text-[11px] text-red-500 ml-1">
-                  {errors.uzbStreet.message}
-                </p>
+                <p className="text-[11px] text-red-500 ml-1">{errors.uzbStreet.message}</p>
               )}
             </div>
           </div>
@@ -267,15 +247,11 @@ export function AddressForm({
               </button>
             </div>
             {errors.korPostalCode && (
-              <p className="text-[11px] text-red-500 ml-1">
-                {errors.korPostalCode.message}
-              </p>
+              <p className="text-[11px] text-red-500 ml-1">{errors.korPostalCode.message}</p>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[12px] font-normal text-stone-500 ml-1">
-                Asosiy manzil
-              </label>
+              <label className="text-[12px] font-normal text-stone-500 ml-1">Asosiy manzil</label>
               <input
                 {...register('korRoadAddress')}
                 readOnly
@@ -283,26 +259,20 @@ export function AddressForm({
                 placeholder="서울특별시 강남구..."
               />
               {errors.korRoadAddress && (
-                <p className="text-[11px] text-red-500 ml-1">
-                  {errors.korRoadAddress.message}
-                </p>
+                <p className="text-[11px] text-red-500 ml-1">{errors.korRoadAddress.message}</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[12px] font-normal text-stone-500 ml-1">
-                  Bino nomi
-                </label>
+                <label className="text-[12px] font-normal text-stone-500 ml-1">Bino nomi</label>
                 <input
                   {...register('korBuilding')}
                   readOnly
                   className="w-full h-11 px-4 rounded-xl bg-stone-100 border border-stone-100 text-[14px] outline-none cursor-not-allowed"
                 />
                 {errors.korBuilding && (
-                  <p className="text-[11px] text-red-500 ml-1">
-                    {errors.korBuilding.message}
-                  </p>
+                  <p className="text-[11px] text-red-500 ml-1">{errors.korBuilding.message}</p>
                 )}
               </div>
               <div className="space-y-1.5">
@@ -315,9 +285,7 @@ export function AddressForm({
                   placeholder="Masalan: 101-dong, 502-ho"
                 />
                 {errors.korDetail && (
-                  <p className="text-[11px] text-red-500 ml-1">
-                    {errors.korDetail.message}
-                  </p>
+                  <p className="text-[11px] text-red-500 ml-1">{errors.korDetail.message}</p>
                 )}
               </div>
             </div>
@@ -332,10 +300,7 @@ export function AddressForm({
             {...register('isDefault')}
             className="w-4 h-4 rounded border-stone-300 text-[#4A1525] focus:ring-[#4A1525]"
           />
-          <label
-            htmlFor="isDefault"
-            className="text-[13px] text-stone-600 cursor-pointer"
-          >
+          <label htmlFor="isDefault" className="text-[13px] text-stone-600 cursor-pointer">
             Asosiy manzil sifatida saqlash
           </label>
         </div>

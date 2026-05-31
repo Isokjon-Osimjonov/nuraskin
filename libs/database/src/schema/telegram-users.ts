@@ -14,9 +14,9 @@ export const telegramUsers = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => ({
+  t => ({
     telegramIdIdx: index('telegram_users_telegram_id_idx').on(t.telegramId),
-  }),
+  })
 );
 
 export type TelegramUser = typeof telegramUsers.$inferSelect;

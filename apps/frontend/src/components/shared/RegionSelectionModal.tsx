@@ -21,10 +21,13 @@ export function RegionSelectionModal() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {
-      // Intentionally empty: modal cannot be closed manually
-    }}>
-      <DialogContent 
+    <Dialog
+      open={isOpen}
+      onOpenChange={() => {
+        // Intentionally empty: modal cannot be closed manually
+      }}
+    >
+      <DialogContent
         className="max-w-[340px] w-[calc(100%-32px)] p-8 border-none bg-white shadow-2xl flex flex-col items-center text-center"
         // Prevent closing via overlay or Esc
         onPointerDownOutside={(e: any) => e.preventDefault()}

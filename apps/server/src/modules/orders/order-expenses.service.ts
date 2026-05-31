@@ -3,7 +3,11 @@ import * as ordersRepository from './orders.repository';
 import { NotFoundError, ForbiddenError } from '../../common/errors/AppError';
 import type { CreateOrderExpenseInput } from '@nuraskin/shared-types';
 
-export async function createOrderExpense(orderId: string, input: CreateOrderExpenseInput, adminId: string) {
+export async function createOrderExpense(
+  orderId: string,
+  input: CreateOrderExpenseInput,
+  adminId: string
+) {
   const order = await ordersRepository.findById(orderId);
   if (!order) throw new NotFoundError('Order not found');
 
@@ -15,10 +19,10 @@ export async function createOrderExpense(orderId: string, input: CreateOrderExpe
     createdBy: adminId,
     isAuto: false,
   });
-  
+
   return {
     ...result,
-    amountKrw: result.amountKrw.toString()
+    amountKrw: result.amountKrw.toString(),
   };
 }
 
@@ -26,7 +30,12 @@ export async function getOrderExpenses(orderId: string) {
   return await repository.findByOrderId(orderId);
 }
 
-export async function deleteOrderExpense(orderId: string, expenseId: string, adminId: string, isAdminSuper: boolean) {
+export async function deleteOrderExpense(
+  orderId: string,
+  expenseId: string,
+  adminId: string,
+  isAdminSuper: boolean
+) {
   const expense = await repository.findById(expenseId);
   if (!expense || expense.orderId !== orderId) throw new NotFoundError('Order expense not found');
 

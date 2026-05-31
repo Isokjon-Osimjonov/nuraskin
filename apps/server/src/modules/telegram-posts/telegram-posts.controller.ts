@@ -54,6 +54,6 @@ export async function generateCaption(req: Request, res: Response) {
 }
 
 export async function removePost(req: Request, res: Response) {
-    await service.removePost(req.params.id);
-    res.status(204).end();
+  await service.removePost(req.params.id);
+  res.status(204).end();
 }

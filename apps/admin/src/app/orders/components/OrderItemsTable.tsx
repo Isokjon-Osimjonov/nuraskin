@@ -1,13 +1,5 @@
 import * as React from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import { type OrderItemResponse } from '@nuraskin/shared-types';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
@@ -23,31 +15,33 @@ export function OrderItemsTable({ items, currency }: OrderItemsTableProps) {
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <th className="w-[80px] px-4 py-3 text-left font-medium text-muted-foreground">Image</th>
+            <th className="w-[80px] px-4 py-3 text-left font-medium text-muted-foreground">
+              Image
+            </th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Product</th>
             <th className="px-4 py-3 text-center font-medium text-muted-foreground">Qty</th>
             <th className="px-4 py-3 text-right font-medium text-muted-foreground">Price</th>
             <th className="px-4 py-3 text-right font-medium text-muted-foreground">Subtotal</th>
-            <th className="w-[100px] px-4 py-3 text-center font-medium text-muted-foreground">Status</th>
+            <th className="w-[100px] px-4 py-3 text-center font-medium text-muted-foreground">
+              Status
+            </th>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item) => (
+          {items.map(item => (
             <TableRow key={item.id}>
               <TableCell className="p-4">
-                <img 
-                  src={item.imageUrls[0] || '/placeholder.png'} 
-                  className="h-12 w-12 rounded object-cover border" 
-                  alt={item.productName} 
+                <img
+                  src={item.imageUrls[0] || '/placeholder.png'}
+                  className="h-12 w-12 rounded object-cover border"
+                  alt={item.productName}
                 />
               </TableCell>
               <TableCell className="p-4">
                 <div className="font-medium">{item.productName}</div>
                 <div className="text-xs text-muted-foreground font-mono">{item.barcode}</div>
               </TableCell>
-              <TableCell className="p-4 text-center font-bold">
-                {item.quantity}
-              </TableCell>
+              <TableCell className="p-4 text-center font-bold">{item.quantity}</TableCell>
               <TableCell className="p-4 text-right whitespace-nowrap">
                 {formatPrice(item.unitPriceSnapshot, currency === 'UZS' ? 'UZB' : 'KOR')}
               </TableCell>

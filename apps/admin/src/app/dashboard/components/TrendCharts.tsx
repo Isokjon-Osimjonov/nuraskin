@@ -1,14 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { DashboardTrend } from '@nuraskin/shared-types';
 import { formatKrw } from '@/lib/utils';
 
@@ -24,15 +16,14 @@ const formatValueAbbreviated = (val: string) => {
   return `₩ ${n}`;
 };
 
-
 const UZBEK_DAYS: Record<string, string> = {
-  'Monday': 'Dush',
-  'Tuesday': 'Sesh',
-  'Wednesday': 'Chor',
-  'Thursday': 'Pay',
-  'Friday': 'Jum',
-  'Saturday': 'Shan',
-  'Sunday': 'Yak',
+  Monday: 'Dush',
+  Tuesday: 'Sesh',
+  Wednesday: 'Chor',
+  Thursday: 'Pay',
+  Friday: 'Jum',
+  Saturday: 'Shan',
+  Sunday: 'Yak',
 };
 
 export function TrendCharts({ data, isLoading }: TrendChartsProps) {
@@ -98,20 +89,20 @@ export function TrendCharts({ data, isLoading }: TrendChartsProps) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="label" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#888' }} 
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#888' }}
                   dy={10}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
                   tickFormatter={formatValueAbbreviated}
                   tick={{ fontSize: 11, fill: '#888' }}
                 />
-                <Tooltip 
+                <Tooltip
                   cursor={{ fill: '#f8f8f8' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
@@ -119,7 +110,9 @@ export function TrendCharts({ data, isLoading }: TrendChartsProps) {
                       const uzb = payload[1].value as number;
                       return (
                         <div className="rounded-lg border bg-white p-3 shadow-lg">
-                          <p className="mb-2 text-xs font-bold text-gray-500">{payload[0].payload.date}</p>
+                          <p className="mb-2 text-xs font-bold text-gray-500">
+                            {payload[0].payload.date}
+                          </p>
                           <div className="space-y-1 text-sm">
                             <p className="flex justify-between gap-8">
                               <span className="text-coral-600">Koreya:</span>
@@ -161,11 +154,16 @@ export function TrendCharts({ data, isLoading }: TrendChartsProps) {
               </div>
             ) : (
               data.top_skus.map((sku, i) => (
-                <div key={sku.product_id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                <div
+                  key={sku.product_id}
+                  className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                >
                   <div className="flex items-center gap-3 overflow-hidden">
                     <span className="text-lg font-bold text-coral-500 w-4">{i + 1}.</span>
                     <div className="overflow-hidden">
-                      <p className="truncate font-medium text-sm" title={sku.product_name}>{sku.product_name}</p>
+                      <p className="truncate font-medium text-sm" title={sku.product_name}>
+                        {sku.product_name}
+                      </p>
                       <p className="text-xs text-muted-foreground">{sku.units_sold} dona</p>
                     </div>
                   </div>
