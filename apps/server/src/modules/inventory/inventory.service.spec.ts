@@ -62,7 +62,16 @@ describe('InventoryService', () => {
         batchRef: 'new-ref',
       } as any);
 
-      const result = await inventoryService.updateBatch(batchId, { batch_ref: 'new-ref' }, adminId);
+      const result = await inventoryService.updateBatch(
+        batchId,
+        {
+          batch_ref: 'new-ref',
+          initial_qty: 1,
+          cost_price_krw: 1000,
+          received_at: '2026-01-01',
+        },
+        adminId
+      );
 
       expect(repository.updateBatch).toHaveBeenCalledWith(batchId, { batchRef: 'new-ref' }, [
         expect.objectContaining({
@@ -84,7 +93,15 @@ describe('InventoryService', () => {
       vi.mocked(repository.getBatchById).mockResolvedValue(mockBatch as any);
 
       await expect(
-        inventoryService.updateBatch(batchId, { initial_qty: 110 }, 'admin-1')
+        inventoryService.updateBatch(
+          batchId,
+          {
+            initial_qty: 110,
+            cost_price_krw: 1000,
+            received_at: '2026-01-01',
+          },
+          'admin-1'
+        )
       ).rejects.toThrow("Sotilgan partiyaning dastlabki miqdorini o'zgartirib bo'lmaydi");
     });
   });

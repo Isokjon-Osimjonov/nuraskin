@@ -124,6 +124,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                               type="number"
                               min="1"
                               {...field}
+                              value={(field.value as number) ?? ''}
                               disabled={isInitialQtyDisabled}
                               onChange={e =>
                                 field.onChange(
@@ -145,6 +146,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                             <Input
                               type="number"
                               {...field}
+                              value={(field.value as number) ?? ''}
                               onChange={e =>
                                 field.onChange(
                                   e.target.value === '' ? undefined : parseInt(e.target.value)
@@ -165,7 +167,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                         <FormItem>
                           <FormLabel>Expiry Date</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} value={field.value || ''} />
+                            <Input type="date" {...field} value={(field.value as string) || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -177,7 +179,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                         <FormItem>
                           <FormLabel>Received At</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input type="date" {...field} value={(field.value as string) ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

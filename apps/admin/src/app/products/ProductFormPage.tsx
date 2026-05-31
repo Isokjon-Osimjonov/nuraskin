@@ -287,7 +287,11 @@ export function ProductFormPage({
                     <FormItem>
                       <FormLabel>Product Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Lacto-Fit Collagen 50 Sticks" {...field} />
+                        <Input
+                          placeholder="Lacto-Fit Collagen 50 Sticks"
+                          {...field}
+                          value={(field.value as string) ?? ''}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -299,7 +303,11 @@ export function ProductFormPage({
                     <FormItem>
                       <FormLabel>Brand</FormLabel>
                       <FormControl>
-                        <Input placeholder="Lacto-Fit" {...field} />
+                        <Input
+                          placeholder="Lacto-Fit"
+                          {...field}
+                          value={(field.value as string) ?? ''}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -317,6 +325,7 @@ export function ProductFormPage({
                         className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         placeholder="Mahsulot haqida qisqacha ta'rif..."
                         {...field}
+                        value={(field.value as string) ?? ''}
                       />
                     </FormControl>
                     <FormMessage />
@@ -345,10 +354,14 @@ export function ProductFormPage({
                     <FormControl>
                       {isEdit ? (
                         <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
-                          {field.value}
+                          {field.value as string}
                         </div>
                       ) : (
-                        <Input placeholder="8801234567890" {...field} />
+                        <Input
+                          placeholder="8801234567890"
+                          {...field}
+                          value={(field.value as string) ?? ''}
+                        />
                       )}
                     </FormControl>
                     <FormMessage />
@@ -371,7 +384,11 @@ export function ProductFormPage({
                       </Tooltip>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="LF-COL-50" {...field} />
+                      <Input
+                        placeholder="LF-COL-50"
+                        {...field}
+                        value={(field.value as string) ?? ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -382,7 +399,7 @@ export function ProductFormPage({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -411,6 +428,7 @@ export function ProductFormPage({
                         min="0"
                         placeholder="0"
                         {...field}
+                        value={(field.value as string) ?? ''}
                         onChange={e =>
                           field.onChange(
                             e.target.value === '' ? undefined : parseInt(e.target.value)
@@ -433,7 +451,7 @@ export function ProductFormPage({
                       </div>
                     </div>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch checked={field.value as boolean} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -450,7 +468,7 @@ export function ProductFormPage({
                     <FormLabel>Tarkibi (Ingredients)</FormLabel>
                     <FormControl>
                       <TagInput
-                        value={field.value}
+                        value={field.value as string[]}
                         onChange={field.onChange}
                         placeholder="Add ingredient..."
                       />
@@ -467,7 +485,7 @@ export function ProductFormPage({
                     <FormLabel>Teri turi (Skin Types)</FormLabel>
                     <FormControl>
                       <TagInput
-                        value={field.value}
+                        value={field.value as string[]}
                         onChange={field.onChange}
                         placeholder="Add skin type..."
                         suggestions={['Quruq', "Yog'li", 'Kombinatsiyalashgan', 'Sezgir', 'Normal']}
@@ -487,7 +505,7 @@ export function ProductFormPage({
                     <FormLabel>Foydalari (Benefits)</FormLabel>
                     <FormControl>
                       <TagInput
-                        value={field.value}
+                        value={field.value as string[]}
                         onChange={field.onChange}
                         placeholder="Add benefit..."
                       />
@@ -507,7 +525,7 @@ export function ProductFormPage({
                         className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         placeholder="Qo'llash bo'yicha ko'rsatmalar..."
                         {...field}
-                        value={field.value || ''}
+                        value={(field.value as string) || ''}
                       />
                     </FormControl>
                     <FormMessage />

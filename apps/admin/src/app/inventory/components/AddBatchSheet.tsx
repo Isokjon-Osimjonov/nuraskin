@@ -97,6 +97,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                               min="1"
                               placeholder="0"
                               {...field}
+                              value={(field.value as number) ?? ''}
                               onChange={e =>
                                 field.onChange(
                                   e.target.value === '' ? undefined : parseInt(e.target.value)
@@ -118,6 +119,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                               type="number"
                               placeholder="0"
                               {...field}
+                              value={(field.value as number) ?? ''}
                               onChange={e =>
                                 field.onChange(
                                   e.target.value === '' ? undefined : parseInt(e.target.value)
@@ -157,7 +159,7 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                         <FormItem>
                           <FormLabel>Yaroqlilik muddati (Expiry Date)</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input type="date" {...field} value={(field.value as string) ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -171,7 +173,11 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       <FormItem>
                         <FormLabel>Partiya raqami (Zavod)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Zavod partiya raqami..." {...field} />
+                          <Input
+                            placeholder="Zavod partiya raqami..."
+                            {...field}
+                            value={(field.value as string) ?? ''}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -184,7 +190,11 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                       <FormItem>
                         <FormLabel>Izohlar</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ixtiyoriy izohlar..." {...field} />
+                          <Input
+                            placeholder="Ixtiyoriy izohlar..."
+                            {...field}
+                            value={(field.value as string) ?? ''}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

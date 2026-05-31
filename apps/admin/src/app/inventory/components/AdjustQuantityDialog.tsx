@@ -117,6 +117,7 @@ export function AdjustQuantityDialog({
                         type="number"
                         placeholder="+10 yoki -5"
                         {...field}
+                        value={(field.value as number) ?? ''}
                         onChange={e =>
                           field.onChange(
                             e.target.value === '' ? undefined : parseInt(e.target.value)
@@ -135,7 +136,11 @@ export function AdjustQuantityDialog({
                   <FormItem>
                     <FormLabel>Sababi (Reason)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Nima uchun o'zgartirilyapti..." {...field} />
+                      <Textarea
+                        placeholder="Nima uchun o'zgartirilyapti..."
+                        {...field}
+                        value={(field.value as string) ?? ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

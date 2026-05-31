@@ -3,15 +3,10 @@ import { z } from 'zod';
 export const addBatchSchema = z.object({
   productId: z.string().uuid(),
   batchRef: z.string().optional(),
-  initialQty: z.coerce.number().int().positive(),
-  costPrice: z.coerce.number().positive(),
+  initialQty: z.number().min(1),
+  costPrice: z.number().min(0),
   costCurrency: z.enum(['USD', 'UZS', 'KRW']).default('USD'),
-  expiryDate: z
-    .string()
-    .optional()
-    .refine(val => !val || !isNaN(Date.parse(val)), {
-      message: 'Invalid date format',
-    }),
+  expiryDate: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -36,32 +31,17 @@ export type StockMovementInput = z.infer<typeof stockMovementSchema>;
 
 export const updateBatchSchema = z.object({
   batch_ref: z.string().optional(),
-  initial_qty: z.coerce.number().int().positive().optional(),
-  cost_price_krw: z.coerce.number().int().positive().optional(),
-  expiry_date: z
-    .string()
-    .optional()
-    .refine(val => !val || !isNaN(Date.parse(val)), {
-      message: 'Invalid date format',
-    }),
-  received_at: z
-    .string()
-    .optional()
-    .refine(val => !val || !isNaN(Date.parse(val)), {
-      message: 'Invalid date format',
-    }),
+  initial_qty: z.number().min(0),
+  cost_price_krw: z.number().min(0),
+  expiry_date: z.string().optional(),
+  received_at: z.string(),
 });
 
 export type UpdateBatchInput = z.infer<typeof updateBatchSchema>;
 
 export const adjustQuantitySchema = z.object({
-  adjustment: z.coerce
-    .number()
-    .int()
-    .refine(val => val !== 0, {
-      message: 'Adjustment must be non-zero',
-    }),
-  reason: z.string().min(5),
+  adjustment: z.number(),
+  reason: z.string().optional(),
 });
 
 export type AdjustQuantityInput = z.infer<typeof adjustQuantitySchema>;
