@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm nx build server
+
+      - name: Build admin
+        run: pnpm nx build admin
+
+      - name: Build frontend
+        run: pnpm nx build frontend
+
+      # Add your deploy steps here:
+      # SSH to server, Docker push, etc.
+      # Placeholder for now:
+      - name: Deploy
+        run: echo "Deploy step — configure for your server"

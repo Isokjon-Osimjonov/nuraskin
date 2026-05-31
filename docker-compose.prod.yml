@@ -13,7 +13,7 @@ services:
     networks:
       - nuraskin-backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
       driver: json-file
       options:
         max-size: 10m
-        max-file: "3"
+        max-file: '3'
     deploy:
       resources:
         limits:
@@ -38,7 +38,7 @@ services:
     networks:
       - nuraskin-backend
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping"]
+      test: ['CMD-SHELL', 'redis-cli -a ${REDIS_PASSWORD} ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,7 +46,7 @@ services:
       driver: json-file
       options:
         max-size: 10m
-        max-file: "3"
+        max-file: '3'
     deploy:
       resources:
         limits:
@@ -57,7 +57,7 @@ services:
     container_name: nuraskin-server
     restart: unless-stopped
     ports:
-      - "127.0.0.1:4000:4000"
+      - '127.0.0.1:4000:4000'
     env_file:
       - apps/server/.env.production
     depends_on:
@@ -73,7 +73,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4000/api/health > /dev/null || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:4000/api/health > /dev/null || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -82,7 +82,7 @@ services:
       driver: json-file
       options:
         max-size: 20m
-        max-file: "5"
+        max-file: '5'
     deploy:
       resources:
         limits:
@@ -94,7 +94,7 @@ services:
     container_name: nuraskin-frontend
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3000:80"
+      - '127.0.0.1:3000:80'
     networks:
       - nuraskin-frontend
     security_opt:
@@ -105,7 +105,7 @@ services:
       - /var/cache/nginx
       - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost/ > /dev/null || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost/ > /dev/null || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -114,7 +114,7 @@ services:
       driver: json-file
       options:
         max-size: 10m
-        max-file: "3"
+        max-file: '3'
     deploy:
       resources:
         limits:
@@ -126,7 +126,7 @@ services:
     container_name: nuraskin-admin
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3001:80"
+      - '127.0.0.1:3001:80'
     networks:
       - nuraskin-frontend
     security_opt:
@@ -137,7 +137,7 @@ services:
       - /var/cache/nginx
       - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost/ > /dev/null || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost/ > /dev/null || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -146,7 +146,7 @@ services:
       driver: json-file
       options:
         max-size: 10m
-        max-file: "3"
+        max-file: '3'
     deploy:
       resources:
         limits:
@@ -163,6 +163,6 @@ volumes:
   postgres-data:
     driver: local
     labels:
-      com.nuraskin.backup: "true"
+      com.nuraskin.backup: 'true'
   redis-data:
     driver: local

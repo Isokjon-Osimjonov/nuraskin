@@ -87,6 +87,10 @@
     }
   },
   "targetDefaults": {
+    "lint": {
+      "cache": true,
+      "inputs": ["default", "{workspaceRoot}/eslint.config.js", "{workspaceRoot}/.prettierrc"]
+    },
     "@nx/js:tsc": {
       "cache": true,
       "dependsOn": ["^build"],

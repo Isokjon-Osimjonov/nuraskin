@@ -37,13 +37,13 @@ jobs:
         include:
           - service: server
             file: apps/server/Dockerfile
-            build-args: ""
+            build-args: ''
           - service: frontend
             file: apps/frontend/Dockerfile
-            build-args: "VITE_API_BASE_URL=https://api.nuraskin.uz"
+            build-args: 'VITE_API_BASE_URL=https://api.nuraskin.uz'
           - service: admin
             file: apps/admin/Dockerfile
-            build-args: "VITE_API_BASE_URL=https://api.nuraskin.uz"
+            build-args: 'VITE_API_BASE_URL=https://api.nuraskin.uz'
     steps:
       - uses: actions/checkout@v4
         with:
