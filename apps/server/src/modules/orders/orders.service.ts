@@ -365,7 +365,10 @@ export async function createOrder(
           : BigInt(regionalConfig.retailPrice);
 
       if (input.regionCode === 'UZB' && rateSnapshot) {
-        const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateSnapshot);
+        const prices = calculateUzbPrice(baseKrw, product.weightGrams, {
+          krwToUzs: parseFloat(rateSnapshot.krwToUzs),
+          cargoRateKrwPerKg: parseFloat(rateSnapshot.cargoRateKrwPerKg),
+        });
         unitPrice = prices.productPrice + prices.cargoFee;
         itemCargo = 0n;
       } else {
@@ -454,7 +457,10 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
       : BigInt(regionalConfig.retailPrice);
 
   if (order.regionCode === 'UZB' && rateSnapshot) {
-    const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateSnapshot);
+    const prices = calculateUzbPrice(baseKrw, product.weightGrams, {
+      krwToUzs: parseFloat(rateSnapshot.krwToUzs),
+      cargoRateKrwPerKg: parseFloat(rateSnapshot.cargoRateKrwPerKg),
+    });
     unitPrice = prices.productPrice + prices.cargoFee;
     itemCargo = 0n;
   } else {

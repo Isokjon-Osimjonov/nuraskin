@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
@@ -370,11 +371,11 @@ export function OrderCreatePage() {
                 </div>
                 <div className="w-24 space-y-2">
                   <Label>Miqdor</Label>
-                  <Input
-                    type="number"
-                    min="1"
+                  <NumberInput
+                    min={1}
                     value={addQty}
-                    onChange={e => setAddQty(parseInt(e.target.value) || 1)}
+                    onChange={v => setAddQty(v ?? 1)}
+                    allowDecimals={false}
                   />
                 </div>
                 <Button onClick={handleAddProduct} disabled={!selectedProductId}>

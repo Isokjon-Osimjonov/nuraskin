@@ -20,6 +20,7 @@ import {
 
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
   Table,
@@ -429,24 +430,20 @@ export function ManualOrderPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Input
-                              type="number"
+                            <NumberInput
                               className="h-9 text-center bg-white"
-                              value={item.quantity || ''}
-                              onChange={e =>
-                                updateItemQty(item.productId, parseInt(e.target.value) || 0)
-                              }
+                              value={item.quantity}
+                              onChange={v => updateItemQty(item.productId, v ?? 0)}
+                              allowDecimals={false}
                             />
                           </TableCell>
                           <TableCell>
                             <div className="relative">
-                              <Input
-                                type="number"
+                              <NumberInput
                                 className="h-9 text-right pr-7 bg-white font-mono"
-                                value={item.negotiatedPriceKrw || ''}
-                                onChange={e =>
-                                  updateItemPrice(item.productId, parseInt(e.target.value) || 0)
-                                }
+                                value={item.negotiatedPriceKrw}
+                                onChange={v => updateItemPrice(item.productId, v ?? 0)}
+                                allowDecimals={false}
                               />
                               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                                 ₩
@@ -583,16 +580,15 @@ export function ManualOrderPage() {
                           <FormLabel>Yetkazib berish narxi (Mijoz to'laydi)</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input
-                                type="number"
+                              <NumberInput
                                 className="h-12 text-lg font-mono"
-                                {...field}
-                                value={field.value ?? ''}
-                                onChange={e => {
-                                  const val = parseInt(e.target.value) || 0;
+                                value={field.value as number}
+                                onChange={v => {
+                                  const val = v ?? 0;
                                   field.onChange(val);
                                   form.setValue('deliveryFeeActual', val);
                                 }}
+                                allowDecimals={false}
                               />
                               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-stone-400">
                                 ₩
@@ -612,12 +608,11 @@ export function ManualOrderPage() {
                           <FormLabel>Haqiqiy yetkazib berish narxi (Biznes qoplaydi)</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input
-                                type="number"
+                              <NumberInput
                                 className="h-12 text-lg font-mono"
-                                {...field}
-                                value={field.value ?? ''}
-                                onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                value={field.value as number}
+                                onChange={v => field.onChange(v ?? 0)}
+                                allowDecimals={false}
                               />
                               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-stone-400">
                                 ₩

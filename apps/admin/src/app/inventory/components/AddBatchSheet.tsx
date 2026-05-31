@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Button } from '@/components/ui/button';
 import { inventoryApi, type ScannedProduct } from '../api/inventory.api';
 import { toast } from 'sonner';
@@ -92,17 +93,12 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                         <FormItem>
                           <FormLabel>Miqdor</FormLabel>
                           <FormControl>
-                            <Input
-                              type="number"
-                              min="1"
+                            <NumberInput
+                              min={1}
                               placeholder="0"
-                              {...field}
-                              value={(field.value as number) ?? ''}
-                              onChange={e =>
-                                field.onChange(
-                                  e.target.value === '' ? undefined : parseInt(e.target.value)
-                                )
-                              }
+                              value={field.value as number}
+                              onChange={field.onChange}
+                              allowDecimals={false}
                             />
                           </FormControl>
                           <FormMessage />
@@ -115,16 +111,11 @@ export function AddBatchSheet({ product, open, onOpenChange, onSuccess }: AddBat
                         <FormItem>
                           <FormLabel>Tan narxi (KRW)</FormLabel>
                           <FormControl>
-                            <Input
-                              type="number"
+                            <NumberInput
                               placeholder="0"
-                              {...field}
-                              value={(field.value as number) ?? ''}
-                              onChange={e =>
-                                field.onChange(
-                                  e.target.value === '' ? undefined : parseInt(e.target.value)
-                                )
-                              }
+                              value={field.value as number}
+                              onChange={field.onChange}
+                              allowDecimals={false}
                             />
                           </FormControl>
                           <FormMessage />

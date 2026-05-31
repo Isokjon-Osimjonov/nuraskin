@@ -253,6 +253,13 @@
       "when": 1780057867334,
       "tag": "0035_complete_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1780249347823,
+      "tag": "0036_slimy_prodigy",
+      "breakpoints": true
     }
   ]
 }

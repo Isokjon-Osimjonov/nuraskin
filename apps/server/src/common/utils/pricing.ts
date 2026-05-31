@@ -13,17 +13,27 @@ import { eq, asc } from 'drizzle-orm';
 export function calculateUzbPrice(
   priceKrw: bigint,
   weightGrams: number,
-  rate: { krwToUzs: number; cargoRateKrwPerKg: number }
+  rate: { krwToUzs: string | number; cargoRateKrwPerKg: string | number }
 ) {
-  const krwToUzs = BigInt(rate.krwToUzs);
-  const cargoRateKrw = BigInt(rate.cargoRateKrwPerKg);
+  const krwToUzs = typeof rate.krwToUzs === 'string' ? parseFloat(rate.krwToUzs) : rate.krwToUzs;
+  const cargoRateKrw =
+    typeof rate.cargoRateKrwPerKg === 'string'
+      ? parseFloat(rate.cargoRateKrwPerKg)
+      : rate.cargoRateKrwPerKg;
 
-  // KRW is whole units in DB.
-  // To get UZS minor units (tiyin), we multiply by krwToUzs and then by 100.
-  const productUzsMinor = priceKrw * krwToUzs * 100n;
+  // Since rates can be decimals (e.g. 14.5), we scale them by 10000 to maintain precision in BigInt math.
+  const SCALE = 10000n;
+  const krwToUzsScaled = BigInt(Math.round(krwToUzs * Number(SCALE)));
+  const cargoRateKrwScaled = BigInt(Math.round(cargoRateKrw * Number(SCALE)));
 
-  // cargoUzsMinor = (grams / 1000) * cargoRateKrw * krwToUzs * 100
-  const cargoUzsMinor = (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
+  // productUzsMinor = (priceKrw * krwToUzsScaled * 100) / SCALE
+  const productUzsMinor = (priceKrw * krwToUzsScaled * 100n) / SCALE;
+
+  // cargoUzsMinor = (grams / 1000) * cargoRateKrwScaled * krwToUzsScaled * 100 / (SCALE * SCALE)
+  // cargoFee (UZS) = weight (kg) * cargoRate (KRW/kg) * exchangeRate (UZS/KRW)
+  const weightKgScaled = BigInt(weightGrams) * SCALE; // scaled by SCALE
+  const cargoFeeUzsMinor =
+    (weightKgScaled * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
 
   // Rounding helper (nearest 1,000 UZS = 100,000 minor units)
   const round1000UZS = (val: bigint) =>
@@ -31,7 +41,7 @@ export function calculateUzbPrice(
 
   return {
     productPrice: round1000UZS(productUzsMinor),
-    cargoFee: round1000UZS(cargoUzsMinor),
+    cargoFee: round1000UZS(cargoFeeUzsMinor),
   };
 }
 

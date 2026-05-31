@@ -1,0 +1,2 @@
+ALTER TABLE "exchange_rate_snapshots" ALTER COLUMN "krw_to_uzs" SET DATA TYPE numeric(12, 4);--> statement-breakpoint
+ALTER TABLE "exchange_rate_snapshots" ALTER COLUMN "cargo_rate_krw_per_kg" SET DATA TYPE numeric(12, 4);

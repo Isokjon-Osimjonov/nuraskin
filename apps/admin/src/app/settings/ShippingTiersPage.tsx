@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -140,14 +140,11 @@ export function ShippingTiersPage() {
                     <FormItem>
                       <FormLabel>Maksimal summa (KRW)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
+                        <NumberInput
                           placeholder="Bo'sh qoldirilsa - cheksiz"
-                          {...field}
-                          value={field.value === null ? '' : field.value}
-                          onChange={e =>
-                            field.onChange(e.target.value === '' ? null : parseInt(e.target.value))
-                          }
+                          value={field.value as number}
+                          onChange={field.onChange}
+                          allowDecimals={false}
                         />
                       </FormControl>
                       <p className="text-[10px] text-muted-foreground">
@@ -164,11 +161,11 @@ export function ShippingTiersPage() {
                     <FormItem>
                       <FormLabel>Kargo narxi (KRW)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          {...field}
-                          onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                        <NumberInput
+                          value={field.value as number}
+                          onChange={field.onChange}
+                          allowDecimals={false}
+                          min={0}
                         />
                       </FormControl>
                       <FormMessage />
@@ -182,10 +179,10 @@ export function ShippingTiersPage() {
                     <FormItem>
                       <FormLabel>Tartib (Sort Order)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                        <NumberInput
+                          value={field.value as number}
+                          onChange={field.onChange}
+                          allowDecimals={false}
                         />
                       </FormControl>
                       <FormMessage />

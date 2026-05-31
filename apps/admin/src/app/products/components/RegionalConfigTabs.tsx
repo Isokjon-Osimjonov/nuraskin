@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FormLabel } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 
 export type RegionalConfig = {
   regionCode: 'UZB' | 'KOR';
@@ -58,16 +58,11 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <FormLabel>Retail Price (KRW)</FormLabel>
-            <Input
-              type="number"
+            <NumberInput
               placeholder="0"
-              value={currentConfig.retailPrice ?? ''}
-              onChange={e =>
-                handleChange(
-                  'retailPrice',
-                  e.target.value === '' ? undefined : parseInt(e.target.value)
-                )
-              }
+              value={currentConfig.retailPrice}
+              onChange={val => handleChange('retailPrice', val)}
+              allowDecimals={false}
             />
             <p className="text-[10px] text-muted-foreground mt-1">
               Ushbu narx asosida UZB uchun UZS hisoblanadi
@@ -75,46 +70,31 @@ export function RegionalConfigTabs({ configs, onChange }: RegionalConfigTabsProp
           </div>
           <div>
             <FormLabel>Wholesale Price (KRW)</FormLabel>
-            <Input
-              type="number"
+            <NumberInput
               placeholder="0"
-              value={currentConfig.wholesalePrice ?? ''}
-              onChange={e =>
-                handleChange(
-                  'wholesalePrice',
-                  e.target.value === '' ? undefined : parseInt(e.target.value)
-                )
-              }
+              value={currentConfig.wholesalePrice}
+              onChange={val => handleChange('wholesalePrice', val)}
+              allowDecimals={false}
             />
           </div>
           <div>
             <FormLabel>Min. Wholesale Qty</FormLabel>
-            <Input
-              type="number"
-              min="1"
+            <NumberInput
+              min={1}
               placeholder="0"
-              value={currentConfig.minWholesaleQty ?? ''}
-              onChange={e =>
-                handleChange(
-                  'minWholesaleQty',
-                  e.target.value === '' ? undefined : parseInt(e.target.value)
-                )
-              }
+              value={currentConfig.minWholesaleQty}
+              onChange={val => handleChange('minWholesaleQty', val)}
+              allowDecimals={false}
             />
           </div>
           <div>
             <FormLabel>Min. Order Qty</FormLabel>
-            <Input
-              type="number"
-              min="1"
+            <NumberInput
+              min={1}
               placeholder="0"
-              value={currentConfig.minOrderQty ?? ''}
-              onChange={e =>
-                handleChange(
-                  'minOrderQty',
-                  e.target.value === '' ? undefined : parseInt(e.target.value)
-                )
-              }
+              value={currentConfig.minOrderQty}
+              onChange={val => handleChange('minOrderQty', val)}
+              allowDecimals={false}
             />
           </div>
         </div>

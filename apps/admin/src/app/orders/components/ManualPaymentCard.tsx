@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -56,10 +57,10 @@ export function ManualPaymentCard({ order }: ManualPaymentCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>To'lov miqdori (₩)</Label>
-            <Input
-              type="number"
+            <NumberInput
               value={paymentAmount}
-              onChange={e => setPaymentAmount(parseInt(e.target.value) || 0)}
+              onChange={v => setPaymentAmount(v ?? 0)}
+              allowDecimals={false}
             />
           </div>
           <div className="space-y-2">

@@ -1,8 +1,14 @@
 import { z } from 'zod';
 
 export const createExchangeRateSchema = z.object({
-  krwToUzs: z.coerce.number().int().positive(),
-  cargoRateKrwPerKg: z.coerce.number().int().positive(),
+  krwToUzs: z.coerce.number().positive(),
+  cargoRateKrwPerKg: z.coerce.number().positive(),
+  note: z.string().optional(),
+});
+
+export const updateExchangeRateSchema = z.object({
+  krwToUzs: z.coerce.number().positive(),
+  cargoRateKrwPerKg: z.coerce.number().positive(),
   note: z.string().optional(),
 });
 

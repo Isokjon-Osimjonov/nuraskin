@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { UploadCloudIcon, Loader2 } from 'lucide-react';
@@ -179,11 +180,11 @@ export function AddExpenseSheet({
                 <FormItem>
                   <FormLabel>Summa (KRW)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
+                    <NumberInput
                       placeholder="0"
-                      {...field}
-                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      value={field.value as number}
+                      onChange={field.onChange}
+                      allowDecimals={false}
                     />
                   </FormControl>
                   <FormDescription className="text-blue-600 font-medium">

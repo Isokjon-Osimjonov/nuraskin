@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -121,11 +122,11 @@ export function RatesPage() {
                       <FormItem>
                         <FormLabel>1 KRW = ? UZS</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                          <NumberInput
+                            placeholder="14.5"
+                            allowDecimals={true}
+                            value={field.value as number}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -139,11 +140,11 @@ export function RatesPage() {
                       <FormItem>
                         <FormLabel>Kargo (KRW / kg)</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                          <NumberInput
+                            placeholder="10000"
+                            allowDecimals={false}
+                            value={field.value as number}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />

@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Button } from '@/components/ui/button';
 import { inventoryApi } from '../api/inventory.api';
 import { toast } from 'sonner';
@@ -113,16 +113,11 @@ export function AdjustQuantityDialog({
                   <FormItem>
                     <FormLabel>O'zgarish miqdori (Adjustment)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <NumberInput
                         placeholder="+10 yoki -5"
-                        {...field}
-                        value={(field.value as number) ?? ''}
-                        onChange={e =>
-                          field.onChange(
-                            e.target.value === '' ? undefined : parseInt(e.target.value)
-                          )
-                        }
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
                       />
                     </FormControl>
                     <FormMessage />

@@ -7,6 +7,7 @@ import { couponsApi } from './api/coupons.api';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import {
   Select,
   SelectContent,
@@ -403,21 +404,21 @@ export function CouponFormPage() {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label>Chegirma summasi (so'm) — O'zbekiston</Label>
-                        <Input
-                          type="number"
-                          value={form.value_uzs || ''}
-                          onChange={e => setForm({ ...form, value_uzs: e.target.value })}
+                        <NumberInput
+                          value={form.value_uzs ? parseFloat(form.value_uzs) : undefined}
+                          onChange={v => setForm({ ...form, value_uzs: v?.toString() ?? '' })}
                           placeholder="Masalan: 50000"
+                          allowDecimals={false}
                         />
                         <p className="text-xs text-stone-400">Mijoz so'mda ko'radi.</p>
                       </div>
                       <div className="space-y-2">
                         <Label>Chegirma summasi (₩) — Koreya</Label>
-                        <Input
-                          type="number"
-                          value={form.value_krw || ''}
-                          onChange={e => setForm({ ...form, value_krw: e.target.value })}
+                        <NumberInput
+                          value={form.value_krw ? parseFloat(form.value_krw) : undefined}
+                          onChange={v => setForm({ ...form, value_krw: v?.toString() ?? '' })}
                           placeholder="Masalan: 5000"
+                          allowDecimals={false}
                         />
                         <p className="text-xs text-stone-400">Mijoz vonda ko'radi.</p>
                       </div>
@@ -429,10 +430,10 @@ export function CouponFormPage() {
                           ? 'Foiz (%)'
                           : `Chegirma summasi (${form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'})`}
                       </Label>
-                      <Input
-                        type="number"
-                        value={form.value}
-                        onChange={e => setForm({ ...form, value: e.target.value })}
+                      <NumberInput
+                        value={form.value ? parseFloat(form.value) : undefined}
+                        onChange={v => setForm({ ...form, value: v?.toString() ?? '' })}
+                        allowDecimals={form.type === 'PERCENTAGE'}
                       />
                     </div>
                   ))}
@@ -442,20 +443,20 @@ export function CouponFormPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Maks. chegirma limiti (so'm) — UZB</Label>
-                      <Input
-                        type="number"
+                      <NumberInput
                         placeholder="Limitsiz"
-                        value={form.max_discount_uzs || ''}
-                        onChange={e => setForm({ ...form, max_discount_uzs: e.target.value })}
+                        value={form.max_discount_uzs ? parseFloat(form.max_discount_uzs) : undefined}
+                        onChange={v => setForm({ ...form, max_discount_uzs: v?.toString() ?? '' })}
+                        allowDecimals={false}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Maks. chegirma limiti (₩) — KOR</Label>
-                      <Input
-                        type="number"
+                      <NumberInput
                         placeholder="Limitsiz"
-                        value={form.max_discount_krw || ''}
-                        onChange={e => setForm({ ...form, max_discount_krw: e.target.value })}
+                        value={form.max_discount_krw ? parseFloat(form.max_discount_krw) : undefined}
+                        onChange={v => setForm({ ...form, max_discount_krw: v?.toString() ?? '' })}
+                        allowDecimals={false}
                       />
                     </div>
                   </div>
@@ -466,11 +467,11 @@ export function CouponFormPage() {
                       {form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'}
                       )
                     </Label>
-                    <Input
-                      type="number"
+                    <NumberInput
                       placeholder="Limitsiz"
-                      value={form.maxDiscountCap}
-                      onChange={e => setForm({ ...form, maxDiscountCap: e.target.value })}
+                      value={form.maxDiscountCap ? parseFloat(form.maxDiscountCap) : undefined}
+                      onChange={v => setForm({ ...form, maxDiscountCap: v?.toString() ?? '' })}
+                      allowDecimals={false}
                     />
                   </div>
                 ))}
@@ -818,18 +819,18 @@ export function CouponFormPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Minimal buyurtma summasi (so'm) — O'zbekiston</Label>
-                        <Input
-                          type="number"
-                          value={form.min_order_uzs || ''}
-                          onChange={e => setForm({ ...form, min_order_uzs: e.target.value })}
+                        <NumberInput
+                          value={form.min_order_uzs ? parseFloat(form.min_order_uzs) : undefined}
+                          onChange={v => setForm({ ...form, min_order_uzs: v?.toString() ?? '' })}
+                          allowDecimals={false}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Minimal buyurtma summasi (₩) — Koreya</Label>
-                        <Input
-                          type="number"
-                          value={form.min_order_krw || ''}
-                          onChange={e => setForm({ ...form, min_order_krw: e.target.value })}
+                        <NumberInput
+                          value={form.min_order_krw ? parseFloat(form.min_order_krw) : undefined}
+                          onChange={v => setForm({ ...form, min_order_krw: v?.toString() ?? '' })}
+                          allowDecimals={false}
                         />
                       </div>
                     </div>
@@ -841,19 +842,19 @@ export function CouponFormPage() {
                       {form.regionCode === 'UZB' ? "so'm" : form.regionCode === 'KOR' ? '₩' : 'KRW'}
                       )
                     </Label>
-                    <Input
-                      type="number"
-                      value={form.minOrderAmount}
-                      onChange={e => setForm({ ...form, minOrderAmount: e.target.value })}
+                    <NumberInput
+                      value={form.minOrderAmount ? parseFloat(form.minOrderAmount) : undefined}
+                      onChange={v => setForm({ ...form, minOrderAmount: v?.toString() ?? '' })}
+                      allowDecimals={false}
                     />
                   </div>
                 )}
                 <div className="space-y-2">
                   <Label>Minimal mahsulot miqdori</Label>
-                  <Input
-                    type="number"
+                  <NumberInput
                     value={form.minOrderQty}
-                    onChange={e => setForm({ ...form, minOrderQty: parseInt(e.target.value) || 1 })}
+                    onChange={v => setForm({ ...form, minOrderQty: v ?? 1 })}
+                    allowDecimals={false}
                   />
                 </div>
               </div>
@@ -987,11 +988,11 @@ export function CouponFormPage() {
               </div>
               <div className="space-y-2">
                 <Label>Umumiy foydalanish limiti</Label>
-                <Input
-                  type="number"
+                <NumberInput
                   placeholder="Limitsiz"
-                  value={form.maxUsesTotal}
-                  onChange={e => setForm({ ...form, maxUsesTotal: e.target.value })}
+                  value={form.maxUsesTotal ? parseFloat(form.maxUsesTotal) : undefined}
+                  onChange={v => setForm({ ...form, maxUsesTotal: v?.toString() ?? '' })}
+                  allowDecimals={false}
                 />
               </div>
             </CardContent>

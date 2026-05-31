@@ -3,6 +3,7 @@ import {
   uuid,
   bigint,
   integer,
+  numeric,
   varchar,
   text,
   timestamp,
@@ -65,8 +66,8 @@ export const exchangeRateSnapshots = pgTable(
   'exchange_rate_snapshots',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    krwToUzs: integer('krw_to_uzs').notNull(),
-    cargoRateKrwPerKg: integer('cargo_rate_krw_per_kg').notNull(),
+    krwToUzs: numeric('krw_to_uzs', { precision: 12, scale: 4 }).notNull(),
+    cargoRateKrwPerKg: numeric('cargo_rate_krw_per_kg', { precision: 12, scale: 4 }).notNull(),
     note: text('note'),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

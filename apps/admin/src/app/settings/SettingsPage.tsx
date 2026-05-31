@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -134,12 +135,11 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Standart Qarz Limiti (KRW)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="1"
-                        {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      <NumberInput
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
+                        min={0}
                       />
                     </FormControl>
                     <FormDescription>
@@ -166,12 +166,12 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>To'lov muddati (daqiqa)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="5"
-                        max="1440"
-                        {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 30)}
+                      <NumberInput
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
+                        min={5}
+                        max={1440}
                       />
                     </FormControl>
                     <FormDescription>
@@ -197,11 +197,11 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>O'zbekiston (UZS)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      <NumberInput
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
+                        min={0}
                       />
                     </FormControl>
                     <FormMessage />
@@ -215,11 +215,11 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Koreya (KRW)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      <NumberInput
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
+                        min={0}
                       />
                     </FormControl>
                     <FormMessage />
@@ -242,12 +242,11 @@ export function SettingsPage() {
                   <FormItem>
                     <FormLabel>Kam Qoldiq Chegarasi</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="1"
-                        {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      <NumberInput
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
+                        min={0}
                       />
                     </FormControl>
                     <FormDescription>

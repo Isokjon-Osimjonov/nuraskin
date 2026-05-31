@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -417,29 +418,24 @@ export function ProductFormPage({
                   </FormItem>
                 )}
               />
-              <FormField
-                name="weightGrams"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight (g)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder="0"
-                        {...field}
-                        value={(field.value as string) ?? ''}
-                        onChange={e =>
-                          field.onChange(
-                            e.target.value === '' ? undefined : parseInt(e.target.value)
-                          )
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  name="weightGrams"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weight (g)</FormLabel>
+                      <FormControl>
+                        <NumberInput
+                          min={0}
+                          placeholder="0"
+                          value={field.value as number}
+                          onChange={field.onChange}
+                          allowDecimals={false}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 name="showStockCount"
                 render={({ field }) => (
