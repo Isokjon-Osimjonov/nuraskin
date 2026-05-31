@@ -5,9 +5,11 @@ export async function adminUser(): Promise<void> {
   await db
     .insert(users)
     .values({
-      email: 'admin@nuraskin.com',
-      passwordHash: '$2b$10$34mSAtjy5qH4JfMcfT2qbeDukFEjGdS6mW1h8.z7oOQAGUJozG/M2',
+      email: 'manager@nuraskin.uz',
+      passwordHash: '$2b$12$3raw3XSDczRX5x4v9vlm9uPQ4wgycHaM/rXx0W/2A.A5eoV9ZjbDq',
       role: 'SUPER_ADMIN',
+      fullName: 'NuraSkin Manager',
+      isActive: true,
     })
     .onConflictDoNothing();
 }
