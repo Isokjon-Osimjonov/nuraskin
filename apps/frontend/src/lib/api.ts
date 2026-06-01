@@ -25,7 +25,8 @@ export async function storefrontApi<T>(
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`/api${path}`, {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  const res = await fetch(`${baseUrl}/api${path}`, {
     ...options,
     headers,
   });
