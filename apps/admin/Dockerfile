@@ -32,5 +32,5 @@ COPY --from=builder /app/dist/apps/admin /usr/share/nginx/html
 RUN chown -R nginx:nginx /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD curl -sf http://localhost/ > /dev/null || exit 1
+  CMD wget -qO- http://localhost/ > /dev/null || exit 1
 CMD ["nginx", "-g", "daemon off;"]
