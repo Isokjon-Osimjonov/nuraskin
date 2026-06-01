@@ -367,7 +367,7 @@ export async function createOrder(
       if (input.regionCode === 'UZB' && rateSnapshot) {
         const prices = calculateUzbPrice(baseKrw, product.weightGrams, {
           krwToUzs: parseFloat(rateSnapshot.krwToUzs),
-          cargoRateKrwPerKg: parseFloat(rateSnapshot.cargoRateKrwPerKg),
+          cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
         });
         unitPrice = prices.productPrice + prices.cargoFee;
         itemCargo = 0n;
@@ -459,7 +459,7 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
   if (order.regionCode === 'UZB' && rateSnapshot) {
     const prices = calculateUzbPrice(baseKrw, product.weightGrams, {
       krwToUzs: parseFloat(rateSnapshot.krwToUzs),
-      cargoRateKrwPerKg: parseFloat(rateSnapshot.cargoRateKrwPerKg),
+      cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
     });
     unitPrice = prices.productPrice + prices.cargoFee;
     itemCargo = 0n;

@@ -1,4 +1,4 @@
-import { queryKeys, formatDateTime } from '@nuraskin/shared-utils';
+import { queryKeys, formatDateTime, formatKrw } from '@nuraskin/shared-utils';
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -88,13 +88,13 @@ export function RatesPage() {
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">1 KRW =</span>
                   <span className="font-bold text-lg">
-                    {latestRate.krwToUzs.toLocaleString()} UZS
+                    {Number(latestRate.krwToUzs).toFixed(2)} UZS
                   </span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">Kargo (1 kg) =</span>
                   <span className="font-bold text-lg">
-                    {latestRate.cargoRateKrwPerKg.toLocaleString()} KRW
+                    {formatKrw(latestRate.cargoRateKrwPerKg)}
                   </span>
                 </div>
                 <div className="text-xs text-muted-foreground pt-2">
@@ -204,10 +204,10 @@ export function RatesPage() {
                         {formatDateTime(rate.createdAt)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {rate.krwToUzs.toLocaleString()}
+                        {Number(rate.krwToUzs).toFixed(2)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {rate.cargoRateKrwPerKg.toLocaleString()} ₩
+                        {formatKrw(rate.cargoRateKrwPerKg)}
                       </TableCell>
                       <TableCell className="text-muted-foreground min-w-[150px]">
                         {rate.note || '—'}

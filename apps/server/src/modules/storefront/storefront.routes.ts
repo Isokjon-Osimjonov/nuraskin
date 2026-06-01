@@ -8,6 +8,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware';
 import * as service from './storefront.service';
 import { db, customers } from '@nuraskin/database';
 import { eq } from 'drizzle-orm';
+import { env } from '../../common/config/env';
 
 const router = Router();
 
@@ -45,6 +46,64 @@ router.get('/settings', asyncHandler(ctrl.getSettings));
 router.get('/payment-info', asyncHandler(ctrl.getPaymentInfo));
 router.get('/rates/latest', asyncHandler(ctrl.getLatestRates));
 router.get('/shipping-tiers', asyncHandler(ctrl.listShippingTiers));
+router.get(
+  '/juso-search',
+  asyncHandler(async (req, res) => {
+    const keyword = req.query.q as string;
+    const apiKey = env.JUSO_API_KEY;
+
+    if (!apiKey || !keyword || keyword.length < 2) {
+      res.json({ results: [], fallback: true });
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams({
+        confmKey: apiKey ?? '',
+        currentPage: '1',
+        countPerPage: '10',
+        keyword: String(keyword || ''),
+        resultType: 'json',
+      });
+
+      const response = await fetch(
+        `https://business.juso.go.kr/addrlink/addrLinkApi.do?${params}`,
+        {
+          headers: {
+            Referer: 'https://nuraskin.uz',
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+          },
+        }
+      );
+
+      const data: any = await response.json();
+
+      if (data.results?.common?.errorCode !== '0') {
+        res.json({ results: [], fallback: true });
+        return;
+      }
+
+      const juso = data.results.juso || [];
+
+      res.json({
+        results: juso.map((j: any) => ({
+          roadAddr: j.roadAddr,
+          jibunAddr: j.jibunAddr,
+          zipNo: j.zipNo,
+          bdNm: j.bdNm,
+          siNm: j.siNm,
+          sggNm: j.sggNm,
+          emdNm: j.emdNm,
+        })),
+        fallback: false,
+      });
+    } catch (error) {
+      console.error('Juso search error:', error);
+      res.json({ results: [], fallback: true });
+    }
+  })
+);
 router.get('/promotions/active', asyncHandler(promoCtrl.getActivePromotions));
 router.post('/contact', asyncHandler(contactCtrl.send));
 
@@ -83,7 +142,6 @@ router.post('/addresses', asyncHandler(addressCtrl.create));
 router.patch('/addresses/:id', asyncHandler(addressCtrl.update));
 router.delete('/addresses/:id', asyncHandler(addressCtrl.remove));
 router.patch('/addresses/:id/set-default', asyncHandler(addressCtrl.setDefault));
-router.get('/addresses/juso-search', asyncHandler(ctrl.searchJuso));
 
 // Waitlist
 router.get('/waitlist', asyncHandler(ctrl.getMyWaitlist));

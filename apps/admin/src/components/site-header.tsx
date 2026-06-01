@@ -1,35 +1,10 @@
-import { Search, User, LogOut, Settings } from 'lucide-react';
-import { useLocation, useNavigate } from '@tanstack/react-router';
-import { useAuthStore } from '@/stores/auth.store';
-import { useShallow } from 'zustand/shallow';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { useLocation } from '@tanstack/react-router';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 
 export function SiteHeader() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore(
-    useShallow(s => ({
-      user: s.user,
-      logout: s.logout,
-    }))
-  );
-
-  const handleLogout = () => {
-    logout();
-    navigate({ to: '/login' });
-  };
 
   const getTitle = () => {
     const path = location.pathname;
@@ -47,9 +22,6 @@ export function SiteHeader() {
     return 'NuraSkin Admin';
   };
 
-  const userName = user?.fullName || 'Admin';
-  const userEmail = user?.email || 'admin@nuraskin.uz';
-
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur px-4 transition-[width,height] ease-linear">
       <div className="flex items-center gap-2">
@@ -66,40 +38,6 @@ export function SiteHeader() {
             className="h-9 w-64 rounded-md border border-input bg-background pl-9 text-sm outline-none focus:ring-1 focus:ring-ring"
           />
         </form>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="" alt={userName} />
-                <AvatarFallback>{userName.slice(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{userName}</p>
-                <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profil</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Sozlamalar</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Chiqish</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );

@@ -1,10 +1,4 @@
-import {
-  LogOutIcon,
-  MoreVerticalIcon,
-  UserCircleIcon,
-  BellIcon,
-  CreditCardIcon,
-} from 'lucide-react';
+import { LogOutIcon, MoreVerticalIcon, UserCircleIcon } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -90,14 +84,6 @@ export function NavUser({
               <DropdownMenuItem onClick={() => navigate({ to: '/settings/profile' })}>
                 <UserCircleIcon className="mr-2 size-5" />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon className="mr-2 size-5" />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon className="mr-2 size-5" />
-                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

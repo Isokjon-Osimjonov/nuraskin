@@ -445,7 +445,9 @@ export function CouponFormPage() {
                       <Label>Maks. chegirma limiti (so'm) — UZB</Label>
                       <NumberInput
                         placeholder="Limitsiz"
-                        value={form.max_discount_uzs ? parseFloat(form.max_discount_uzs) : undefined}
+                        value={
+                          form.max_discount_uzs ? parseFloat(form.max_discount_uzs) : undefined
+                        }
                         onChange={v => setForm({ ...form, max_discount_uzs: v?.toString() ?? '' })}
                         allowDecimals={false}
                       />
@@ -454,7 +456,9 @@ export function CouponFormPage() {
                       <Label>Maks. chegirma limiti (₩) — KOR</Label>
                       <NumberInput
                         placeholder="Limitsiz"
-                        value={form.max_discount_krw ? parseFloat(form.max_discount_krw) : undefined}
+                        value={
+                          form.max_discount_krw ? parseFloat(form.max_discount_krw) : undefined
+                        }
                         onChange={v => setForm({ ...form, max_discount_krw: v?.toString() ?? '' })}
                         allowDecimals={false}
                       />

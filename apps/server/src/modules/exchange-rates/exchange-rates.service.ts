@@ -12,7 +12,7 @@ export async function listRates() {
 export async function addRate(input: CreateExchangeRateInput, userId: string) {
   return await repository.create({
     krwToUzs: input.krwToUzs.toString(),
-    cargoRateKrwPerKg: input.cargoRateKrwPerKg.toString(),
+    cargoRateKrwPerKg: input.cargoRateKrwPerKg,
     note: input.note || null,
     createdBy: userId,
   });

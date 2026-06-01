@@ -151,7 +151,7 @@ export async function getTrend(region: string) {
   // 2. Fetch last 7 days directly from orders table
   const summaryDays = await db
     .select({
-      date: sql<string>`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')::text`,
+      date: sql<string>`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul')::text`,
       kor_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'KOR' then ${orders.totalAmount} else 0 end)::bigint`,
       uzb_revenue_krw: uzbRevenueKrwSql,
       total_orders: count(orders.id),
@@ -161,15 +161,15 @@ export async function getTrend(region: string) {
     .where(
       and(
         inArray(orders.status, PAID_STATUSES),
-        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
         isAll ? sql`1=1` : eq(orders.regionCode, region)
       )
     )
     .groupBy(
-      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul')`
     )
     .orderBy(
-      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')`
+      sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul')`
     );
 
   const revenueMap = new Map(summaryDays.map(d => [d.date, d]));
@@ -205,7 +205,7 @@ export async function getTrend(region: string) {
     .where(
       and(
         inArray(orders.status, PAID_STATUSES),
-        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
+        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') >= CURRENT_DATE AT TIME ZONE 'Asia/Seoul' - INTERVAL '6 days'`,
         isAll ? sql`1=1` : eq(orders.regionCode, region)
       )
     )

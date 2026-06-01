@@ -418,24 +418,24 @@ export function ProductFormPage({
                   </FormItem>
                 )}
               />
-                <FormField
-                  name="weightGrams"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Weight (g)</FormLabel>
-                      <FormControl>
-                        <NumberInput
-                          min={0}
-                          placeholder="0"
-                          value={field.value as number}
-                          onChange={field.onChange}
-                          allowDecimals={false}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                name="weightGrams"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight (g)</FormLabel>
+                    <FormControl>
+                      <NumberInput
+                        min={0}
+                        placeholder="0"
+                        value={field.value as number}
+                        onChange={field.onChange}
+                        allowDecimals={false}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 name="showStockCount"
                 render={({ field }) => (

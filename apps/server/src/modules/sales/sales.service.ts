@@ -78,7 +78,7 @@ export async function getLiveSales(from: string, to: string, regionCode?: string
 
   const rawData = await db.execute(sql`
     SELECT
-      DATE(COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as sale_date,
+      DATE(COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) AT TIME ZONE 'Asia/Seoul') as sale_date,
       o.region_code,
       o.cargo_fee,
       o.total_weight_grams,

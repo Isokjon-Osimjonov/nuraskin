@@ -27,7 +27,7 @@ async function main(): Promise<void> {
       .insert(exchangeRateSnapshots)
       .values({
         krwToUzs: '14',
-        cargoRateKrwPerKg: '10000',
+        cargoRateKrwPerKg: 10000,
         note: 'Initial rate — update before launch',
       })
       .onConflictDoNothing(),

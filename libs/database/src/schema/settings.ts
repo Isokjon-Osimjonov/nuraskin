@@ -67,7 +67,7 @@ export const exchangeRateSnapshots = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     krwToUzs: numeric('krw_to_uzs', { precision: 12, scale: 4 }).notNull(),
-    cargoRateKrwPerKg: numeric('cargo_rate_krw_per_kg', { precision: 12, scale: 4 }).notNull(),
+    cargoRateKrwPerKg: integer('cargo_rate_krw_per_kg').notNull().default(10000),
     note: text('note'),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -40,9 +40,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
 
       setLoading(true);
       try {
-        const data = await api.get<any>(
-          `/storefront/addresses/juso-search?q=${encodeURIComponent(query)}`
-        );
+        const data = await api.get<any>(`/storefront/juso-search?q=${encodeURIComponent(query)}`);
         setResults(data.results);
         setFallback(data.fallback);
       } catch (error) {

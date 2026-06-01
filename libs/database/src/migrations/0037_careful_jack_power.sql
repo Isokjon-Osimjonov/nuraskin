@@ -1,0 +1,2 @@
+ALTER TABLE "exchange_rate_snapshots" ALTER COLUMN "cargo_rate_krw_per_kg" SET DATA TYPE integer;--> statement-breakpoint
+ALTER TABLE "exchange_rate_snapshots" ALTER COLUMN "cargo_rate_krw_per_kg" SET DEFAULT 10000;

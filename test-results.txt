@@ -1,0 +1,55 @@
+
+=== PHASE 0: HEALTH ===
+[0;32m✅ Server is up[0m
+[0;32m✅ Admin token valid[0m
+[0;32m✅ Customer token valid[0m
+
+=== PHASE 1: SEED DATA ===
+[0;32m✅ Exchange rate (14)[0m
+
+=== PHASE 2: SEED CATEGORIES ===
+[0;32m✅ Category created[0m
+[0;32m✅ Category 2 created[0m
+
+=== PHASE 3: SEED PRODUCTS ===
+[0;32m✅ Product A created[0m
+[0;32m✅ Product B created[0m
+[0;32m✅ Product C created[0m
+
+=== PHASE 4: SEED INVENTORY BATCHES ===
+[0;32m✅ Batch A added[0m
+[0;32m✅ Batch B added[0m
+[0;32m✅ Batch C added[0m
+
+=== PHASE 5: SEED SETTINGS + SHIPPING ===
+[0;32m✅ Min order settings[0m
+
+=== PHASE 6: SEED COUPONS ===
+[0;32m✅ 10% coupon[0m
+[0;32m✅ Fixed 5k coupon[0m
+[0;32m✅ Free shipping coupon[0m
+[0;32m✅ Category coupon[0m
+
+=== PHASE 7: STOREFRONT === 
+[0;32m✅ Products public list[0m
+
+=== PHASE 8: COUPON VALIDATION ===
+[0;32m✅ Global 10% coupon valid[0m
+
+=== PHASE 9: CART ===
+[0;32m✅ Added to cart[0m
+
+=== PHASE 10: ADDRESSES ===
+[0;32m✅ KOR address[0m
+
+=== PHASE 11: ORDER 1 (KOR+10%) ===
+[0;32m✅ Order 1 created[0m
+[0;32m✅ Order 1 delivered[0m
+
+=== PHASE 12: ORDER 2 (UZB+FREESHIP) ===
+[0;32m✅ Order 2 created[0m
+[0;32m✅ Order 2 delivered[0m
+
+=== FINAL RESULTS ===
+[0;32mPASSED: 25[0m
+[0;31mFAILED: 0[0m
