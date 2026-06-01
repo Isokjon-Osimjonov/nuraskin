@@ -12,6 +12,7 @@ dotenv.config({ path: envPath });
 // Validate env immediately after loading — crashes on invalid config.
 import './common/config/env';
 
+import { runMigrations } from '@nuraskin/database';
 import { app } from './app';
 import { logger } from './common/utils/logger';
 import { env } from './common/config/env';
@@ -22,14 +23,25 @@ import './modules/queues';
 process.on('uncaughtException', err => {
   console.error('CRITICAL - Uncaught Exception:', err.message);
   console.error(err.stack);
-  // DO NOT call process.exit() — keep server running
 });
 
 process.on('unhandledRejection', reason => {
   console.error('CRITICAL - Unhandled Rejection:', reason);
-  // DO NOT call process.exit() — keep server running
 });
 
-app.listen(env.PORT, '0.0.0.0', () => {
-  logger.info(`Server running on port ${env.PORT}`);
-});
+async function bootstrap() {
+  // Run DB migrations on every startup
+  try {
+    await runMigrations();
+    logger.info('Migrations complete');
+  } catch (err) {
+    logger.error({ err }, 'Migration failed');
+    process.exit(1);
+  }
+
+  app.listen(env.PORT, '0.0.0.0', () => {
+    logger.info(`Server running on port ${env.PORT}`);
+  });
+}
+
+bootstrap();

@@ -113,7 +113,8 @@ jobs:
             export GHCR_USERNAME=${{ secrets.GHCR_USERNAME }}
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --no-deps server
-            sleep 25
+            sleep 30
+            echo "Server started, migrations run automatically via main.ts"
             docker compose -f docker-compose.prod.yml up -d --no-deps frontend
             sleep 10
             docker compose -f docker-compose.prod.yml up -d --no-deps admin
@@ -147,7 +148,8 @@ jobs:
             export GHCR_USERNAME=${{ secrets.GHCR_USERNAME }}
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --no-deps server
-            sleep 25
+            sleep 30
+            echo "Server started, migrations run automatically via main.ts"
             docker compose -f docker-compose.prod.yml up -d --no-deps frontend
             sleep 10
             docker compose -f docker-compose.prod.yml up -d --no-deps admin
