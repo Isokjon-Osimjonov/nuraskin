@@ -8,6 +8,6 @@ export async function runMigrations() {
   // migrations are in the same folder. In production, we must ensure
   // the migrations folder is copied to the correct location.
   const migrationsFolder = process.env['MIGRATIONS_PATH'] || resolve(__dirname, 'migrations');
-  
+
   await migrate(db, { migrationsFolder });
 }

@@ -24,7 +24,7 @@ export default tseslint.config(
     },
     rules: {
       // General TypeScript (non-type-aware)
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
 
       // Unused imports — auto-fixable
