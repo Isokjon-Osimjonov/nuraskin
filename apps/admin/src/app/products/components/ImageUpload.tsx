@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { UploadCloudIcon, X, LinkIcon } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
@@ -14,7 +13,15 @@ interface ImageUploadProps {
 
 export function ImageUpload({ urls, onChange }: ImageUploadProps) {
   const [uploading, setUploading] = React.useState(false);
+  const [urlInput, setUrlInput] = React.useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAddUrl = () => {
+    if (urlInput && urls.length < 8) {
+      onChange([...urls, urlInput]);
+      setUrlInput('');
+    }
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -122,20 +129,28 @@ export function ImageUpload({ urls, onChange }: ImageUploadProps) {
           </TabsContent>
           <TabsContent value="url" className="pt-3 space-y-2">
             <Label>Image URL</Label>
-            <Input
-              placeholder="https://example.com/image.jpg"
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const val = (e.target as HTMLInputElement).value;
-                  if (val && urls.length < 8) {
-                    onChange([...urls, val]);
-                    (e.target as HTMLInputElement).value = '';
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="Image URL kiriting"
+                value={urlInput}
+                onChange={e => setUrlInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddUrl();
                   }
-                }
-              }}
-            />
-            <p className="text-xs text-muted-foreground">Press Enter to add URL</p>
+                }}
+                className="flex-1 h-10 rounded-lg border border-stone-200 px-3 text-sm focus:outline-none focus:border-stone-400"
+              />
+              <button
+                type="button"
+                onClick={handleAddUrl}
+                className="px-4 h-10 rounded-lg bg-stone-900 text-white text-sm font-medium shrink-0 active:scale-95 transition-all"
+              >
+                + Qo'shish
+              </button>
+            </div>
           </TabsContent>
         </Tabs>
       )}

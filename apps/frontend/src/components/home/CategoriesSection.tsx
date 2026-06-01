@@ -52,14 +52,17 @@ export function CategoriesSection() {
                   key={cat.id}
                   to="/products"
                   search={{ category: cat.slug }}
-                  className="group shrink-0 w-64 flex flex-col rounded-2xl overflow-hidden border border-zinc-100 hover:border-zinc-200 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  className="group relative shrink-0 w-64 flex flex-col overflow-hidden rounded-2xl bg-white border border-stone-100 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
                 >
-                  {/* Image area — white background, generous padding */}
-                  <div className="bg-white flex items-center justify-center h-52 p-8">
+                  {/* Image area */}
+                  <div className="relative w-full aspect-[4/3] overflow-hidden bg-stone-50">
                     <img
                       src={cat.imageUrl || '/nsb.png'}
                       alt={cat.name}
-                      className="w-full h-full object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      onError={e => {
+                        e.currentTarget.src = '/nsb.png';
+                      }}
                     />
                   </div>
 
