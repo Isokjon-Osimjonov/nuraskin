@@ -3,7 +3,7 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 # Copy root workspace files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 # Copy all project package.json files to allow pnpm to create the workspace layout
 COPY apps/server/package.json ./apps/server/
