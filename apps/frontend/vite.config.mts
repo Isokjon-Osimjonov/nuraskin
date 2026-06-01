@@ -58,5 +58,21 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'UNRESOLVED_IMPORT') return;
+        warn(warning);
+      },
+    },
+  },
+  optimizeDeps: {
+    include: [
+      '@radix-ui/react-select',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-tabs',
+    ],
   },
 }));
