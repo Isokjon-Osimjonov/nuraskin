@@ -115,8 +115,8 @@ export class CouponNotApplicableError extends BadRequestError {
 }
 
 export class CouponMinAmountError extends BadRequestError {
-  constructor(amountNeeded: bigint) {
-    super(`Minimal buyurtma miqdori: ${Number(amountNeeded) / 100} so'm`, 'COUPON_MIN_AMOUNT', {
+  constructor(message: string, amountNeeded: bigint) {
+    super(message, 'COUPON_MIN_AMOUNT', {
       amountNeeded: amountNeeded.toString(),
     });
   }

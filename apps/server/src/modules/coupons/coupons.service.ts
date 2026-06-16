@@ -13,6 +13,7 @@ import type {
   UpdateCouponInput,
 } from '@nuraskin/shared-types';
 import { db, couponRedemptions } from '@nuraskin/database';
+import { formatKrw, formatUzs } from '@nuraskin/shared-utils';
 
 export async function validateAndApply(
   code: string,
@@ -109,7 +110,11 @@ export async function validateAndApply(
   }
 
   if (minAmount > 0n && applicableSubtotal < minAmount) {
-    throw new CouponMinAmountError(minAmount);
+    const description =
+      regionCode === 'KOR'
+        ? `Minimal buyurtma miqdori: ${formatKrw(minAmount)}`
+        : `Minimal buyurtma miqdori: ${formatUzs(minAmount)}`;
+    throw new CouponMinAmountError(description, minAmount);
   }
 
   if (applicableQty < coupon.minOrderQty) {
