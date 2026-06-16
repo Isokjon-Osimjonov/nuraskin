@@ -3,12 +3,15 @@ import { db, orders, customers, exchangeRateSnapshots } from '@nuraskin/database
 import { eq, sql, and, desc, count, inArray } from 'drizzle-orm';
 
 export async function listSalesOrders(
-  from: string,
-  to: string,
+  from?: string,
+  to?: string,
   regionCode?: string,
   page = 1,
   limit = 10
 ) {
+  const endDate = to || new Date().toISOString().split('T')[0];
+  const startDate = from || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   const offset = (page - 1) * limit;
   let regionFilter = sql`1=1`;
   if (regionCode && regionCode !== 'all') {
@@ -17,8 +20,8 @@ export async function listSalesOrders(
 
   const whereClauses = and(
     inArray(orders.status, PAID_STATUSES),
-    sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) >= (${from}::text || ' 00:00:00+09')::timestamptz`,
-    sql`COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) <= (${to}::text || ' 23:59:59.999+09')::timestamptz`,
+    sql`${orders.paymentConfirmedAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
+    sql`${orders.paymentConfirmedAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`,
     regionFilter
   );
 
@@ -70,15 +73,18 @@ export async function listSalesOrders(
   };
 }
 
-export async function getLiveSales(from: string, to: string, regionCode?: string) {
+export async function getLiveSales(from?: string, to?: string, regionCode?: string) {
+  const endDate = to || new Date().toISOString().split('T')[0];
+  const startDate = from || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   let regionFilter = sql`1=1`;
-  if (regionCode) {
+  if (regionCode && regionCode !== 'all') {
     regionFilter = sql`o.region_code = ${regionCode}`;
   }
 
   const rawData = await db.execute(sql`
     SELECT
-      DATE(COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) AT TIME ZONE 'Asia/Seoul') as sale_date,
+      DATE(o.payment_confirmed_at AT TIME ZONE 'Asia/Seoul') as sale_date,
       o.region_code,
       o.cargo_fee,
       o.total_weight_grams,
@@ -105,15 +111,15 @@ export async function getLiveSales(from: string, to: string, regionCode?: string
     JOIN products p ON oi.product_id = p.id
     LEFT JOIN exchange_rate_snapshots ers ON o.rate_snapshot_id = ers.id
     WHERE o.status IN ('PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED')
-      AND COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) >= (${from}::text || ' 00:00:00+09')::timestamptz
-      AND COALESCE(o.payment_confirmed_at, o.delivered_at, o.created_at) <= (${to}::text || ' 23:59:59.999+09')::timestamptz
+      AND o.payment_confirmed_at >= (${startDate}::text || ' 00:00:00+09')::timestamptz
+      AND o.payment_confirmed_at <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz
       AND ${regionFilter}
   `);
 
   return processSalesRows(rawData.rows as any[]);
 }
 
-export async function getSummarySales(from: string, to: string, regionCode?: string) {
+export async function getSummarySales(from?: string, to?: string, regionCode?: string) {
   // Use the exact same logic as getLiveSales so we don't depend on the daily rollup job latency
   return getLiveSales(from, to, regionCode);
 }

@@ -5,14 +5,12 @@ import { BadRequestError, ForbiddenError } from '../../common/errors/AppError';
 
 export async function getLiveSales(req: Request, res: Response) {
   const { from, to, region } = req.query;
-  if (!from || !to) throw new BadRequestError('from and to dates are required');
   const result = await service.getLiveSales(from as string, to as string, region as string);
   res.json(result);
 }
 
 export async function list(req: Request, res: Response) {
   const { from, to, region, page, limit } = req.query;
-  if (!from || !to) throw new BadRequestError('from and to dates are required');
   const result = await service.listSalesOrders(
     from as string,
     to as string,
@@ -25,7 +23,6 @@ export async function list(req: Request, res: Response) {
 
 export async function getSummarySales(req: Request, res: Response) {
   const { from, to, region } = req.query;
-  if (!from || !to) throw new BadRequestError('from and to dates are required');
   const result = await service.getSummarySales(from as string, to as string, region as string);
   res.json(result);
 }
