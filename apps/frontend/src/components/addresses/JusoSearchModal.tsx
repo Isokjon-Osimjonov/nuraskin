@@ -9,6 +9,9 @@ interface JusoResult {
   road_address: string;
   building_name: string;
   jibun_address: string;
+  roadAddr: string;
+  zipNo: string;
+  sggNm: string;
 }
 
 interface JusoSearchModalProps {
@@ -41,10 +44,25 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
       setLoading(true);
       try {
         const data = await api.get<any>(`/storefront/juso-search?q=${encodeURIComponent(query)}`);
-        setResults(data.results);
-        setFallback(data.fallback);
+        
+        if (data && data.results && data.results.length > 0) {
+          const mappedResults = data.results.map((r: any) => ({
+            postal_code: r.zipNo,
+            road_address: r.roadAddr,
+            building_name: r.bdNm,
+            jibun_address: r.jibunAddr,
+            roadAddr: r.roadAddr,
+            zipNo: r.zipNo,
+            sggNm: r.sggNm
+          }));
+          setResults(mappedResults);
+        } else {
+          setResults([]);
+        }
+        setFallback(data?.fallback || false);
       } catch (error) {
         console.error('Juso search failed:', error);
+        setResults([]);
       } finally {
         setLoading(false);
       }
@@ -82,26 +100,19 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
                 <p className="text-[13px]">Qidirilmoqda...</p>
               </div>
             ) : results.length > 0 ? (
-              <div className="space-y-2">
-                {results.map((item, idx) => (
+              <div className="space-y-0">
+                {results.map((addr, i) => (
                   <button
-                    key={idx}
-                    className="w-full text-left p-4 rounded-xl hover:bg-stone-50 border border-transparent hover:border-stone-100 transition-all group"
-                    onClick={() => onSelect(item)}
+                    key={i}
+                    type="button"
+                    onClick={() => onSelect(addr)}
+                    className="w-full text-left px-4 py-3 hover:bg-stone-50 border-b border-stone-100 last:border-0"
                   >
-                    <div className="flex items-start gap-3">
-                      <span className="text-[11px] font-normal bg-[#4A1525]/5 text-[#4A1525] px-2 py-0.5 rounded">
-                        {item.postal_code}
-                      </span>
-                      <p className="text-[13px] text-[#4A1525] font-normal group-hover:text-[#6B2540]">
-                        {item.road_address}
-                      </p>
-                    </div>
-                    {item.building_name && (
-                      <p className="text-[11px] text-stone-500 mt-1 ml-14">{item.building_name}</p>
-                    )}
-                    <p className="text-[11px] text-stone-400 mt-1 ml-14 line-clamp-1 italic">
-                      {item.jibun_address}
+                    <p className="text-sm font-medium">
+                      {addr.roadAddr}
+                    </p>
+                    <p className="text-xs text-stone-400">
+                      {addr.zipNo} · {addr.sggNm}
                     </p>
                   </button>
                 ))}

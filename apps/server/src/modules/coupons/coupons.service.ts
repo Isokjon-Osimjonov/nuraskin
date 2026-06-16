@@ -102,11 +102,10 @@ export async function validateAndApply(
   const applicableQty = applicableItems.reduce((acc, item) => acc + item.quantity, 0);
 
   let minAmount = 0n;
-  if (coupon.regionCode === 'ALL') {
-    minAmount =
-      regionCode === 'UZB' ? BigInt(coupon.minOrderUzs || 0) : BigInt(coupon.minOrderKrw || 0);
+  if (regionCode === 'UZB') {
+    minAmount = BigInt(coupon.minOrderUzs || 0);
   } else {
-    minAmount = BigInt(coupon.minOrderAmount || 0);
+    minAmount = BigInt(coupon.minOrderKrw || coupon.minOrderAmount || 0);
   }
 
   if (minAmount > 0n && applicableSubtotal < minAmount) {

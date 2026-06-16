@@ -27,7 +27,7 @@ export interface StorefrontCoupon {
   isStackable: boolean;
 }
 
-export const getAvailableCoupons = () => api.get<StorefrontCoupon[]>('/storefront/coupons');
+export const getAvailableCoupons = () => api.auth.get<StorefrontCoupon[]>('/storefront/coupons');
 
 export const validateCoupon = async (input: any) =>
-  api.post<CouponValidationResponse>('/storefront/coupons/validate', input);
+  api.auth.post<CouponValidationResponse>('/storefront/coupons/validate', input);
