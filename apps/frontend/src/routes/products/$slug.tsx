@@ -13,7 +13,8 @@ import {
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
-import { formatPrice, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
 import { toast } from 'sonner';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 

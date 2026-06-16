@@ -71,7 +71,20 @@ const SidebarProvider = React.forwardRef<
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen);
+    const [_open, _setOpen] = React.useState(() => {
+      // Read cookie but default to true if not set
+      try {
+        const cookie = document.cookie
+          .split('; ')
+          .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`));
+        if (cookie) {
+          return cookie.split('=')[1] === 'true';
+        }
+      } catch {
+        /* empty */
+      }
+      return defaultOpen ?? true;
+    });
     const open = openProp ?? _open;
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
@@ -131,6 +144,9 @@ const SidebarProvider = React.forwardRef<
               {
                 '--sidebar-width': SIDEBAR_WIDTH,
                 '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+                display: 'flex',
+                minHeight: '100svh',
+                width: '100%',
                 ...style,
               } as React.CSSProperties
             }
@@ -213,7 +229,7 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
-        className="group peer hidden text-sidebar-foreground md:block"
+        className={cn('group peer hidden text-sidebar-foreground md:block', 'flex-shrink-0')}
         data-state={state}
         data-collapsible={state === 'collapsed' ? collapsible : ''}
         data-variant={variant}
@@ -221,16 +237,25 @@ const Sidebar = React.forwardRef<
       >
         {/* This is what handles the sidebar gap on desktop */}
         <div
-          className={cn(
-            'relative w-[--sidebar-width] bg-transparent transition-[width] duration-200 ease-linear',
-            'group-data-[collapsible=offcanvas]:w-0',
-            'group-data-[side=right]:rotate-180',
-            variant === 'floating' || variant === 'inset'
-              ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]'
-              : 'group-data-[collapsible=icon]:w-[--sidebar-width-icon]'
-          )}
+          style={{
+            width:
+              state === 'collapsed' && collapsible === 'icon'
+                ? 'var(--sidebar-width-icon)'
+                : state === 'collapsed' && collapsible === 'offcanvas'
+                  ? '0px'
+                  : 'var(--sidebar-width)',
+            flexShrink: 0,
+            transition: 'width 200ms linear',
+          }}
         />
         <div
+          style={{
+            width:
+              state === 'collapsed' && collapsible === 'icon'
+                ? 'calc(var(--sidebar-width-icon) + 0.3rem)'
+                : 'var(--sidebar-width)',
+            transition: 'width 200ms linear',
+          }}
           className={cn(
             'fixed inset-y-0 z-30 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex',
             side === 'left'
@@ -317,9 +342,8 @@ const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<'main
       <main
         ref={ref}
         className={cn(
-          'relative flex min-h-svh flex-1 flex-col bg-background',
-          'peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow',
-          'peer-data-[variant=floating]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=floating]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=floating]:ml-2 md:peer-data-[variant=floating]:rounded-xl md:peer-data-[variant=floating]:shadow md:peer-data-[variant=floating]:border',
+          'relative flex flex-1 flex-col bg-background ',
+          'min-h-svh overflow-auto',
           className
         )}
         {...props}

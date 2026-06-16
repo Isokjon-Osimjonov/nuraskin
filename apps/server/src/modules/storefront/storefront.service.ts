@@ -662,7 +662,7 @@ export async function getPublicSettings() {
   const settingsRow = await storefrontRepository.getStorefrontSettings();
   return {
     minOrderAmountKrw: Number(settingsRow?.minOrderKorKrw || 0),
-    minOrderAmountUzs: Number(BigInt(settingsRow?.minOrderUzbUzs || 0n) / 100n),
+    minOrderAmountUzs: settingsRow?.minOrderUzbUzs ? settingsRow.minOrderUzbUzs.toString() : '0',
   };
 }
 

@@ -187,7 +187,7 @@ function SalesPage() {
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-6 bg-muted/20 min-h-[calc(100vh-4rem)]">
-      <div className="flex flex-col gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 p-4 rounded-xl shadow-sm border">
+      <div className="flex flex-col gap-4  bg-background/95 backdrop-blur  p-4 rounded-xl shadow-sm border">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2">
             <Button

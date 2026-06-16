@@ -1,7 +1,6 @@
-import { LogOutIcon, MoreVerticalIcon, UserCircleIcon } from 'lucide-react';
+import { LogOut, MoreVertical, UserCircle } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
-import { useAuthStore } from '@/stores/auth.store';
-
+import { useAuthStore } from '../../../stores/auth.store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -25,7 +24,8 @@ export function NavUser({
   user: {
     name: string;
     email: string;
-    avatar: string;
+    avatar?: string;
+    role: string;
   };
 }) {
   const { isMobile } = useSidebar();
@@ -56,7 +56,7 @@ export function NavUser({
                 <span className="truncate font-medium">{user.name}</span>
                 <span className="truncate text-xs text-muted-foreground">{user.email}</span>
               </div>
-              <MoreVerticalIcon className="ml-auto size-5" />
+              <MoreVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -75,21 +75,23 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {user.role}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => navigate({ to: '/settings/profile' })}>
-                <UserCircleIcon className="mr-2 size-5" />
-                Account
+                <UserCircle className="mr-2 h-4 w-4" />
+                Profil
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOutIcon className="mr-2 size-5" />
-              Log out
+              <LogOut className="mr-2 h-4 w-4" />
+              Chiqish
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

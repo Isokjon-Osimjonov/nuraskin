@@ -72,7 +72,6 @@ export function CouponFormPage() {
     status: 'DRAFT',
   });
 
-  const [allProducts, setAllProducts] = React.useState<any[]>([]);
   const [productSearch, setProductSearch] = React.useState('');
   const [showProductDropdown, setShowProductDropdown] = React.useState(false);
   const [selectedProducts, setSelectedProducts] = React.useState<
@@ -85,6 +84,9 @@ export function CouponFormPage() {
   >([]);
 
   const [allBrands, setAllBrands] = React.useState<string[]>([]);
+
+  const [productResults, setProductResults] = React.useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = React.useState(false);
 
   const [customerSearch, setCustomerSearch] = React.useState('');
   const [customerResults, setCustomerResults] = React.useState<any[]>([]);
@@ -102,52 +104,41 @@ export function CouponFormPage() {
   // Fetch Data on Scope Change
   React.useEffect(() => {
     if (form.scope === 'BRANDS') {
-      fetch(`/products/brands`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => res.json())
+      api.get<string[]>(`/products/brands`)
         .then(data => setAllBrands(data || []));
     }
-    if (form.scope === 'PRODUCTS' && allProducts.length === 0) {
-      fetch(`/products?limit=200`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => res.json())
-        .then(data =>
-          setAllProducts(Array.isArray(data) ? data : data.items || data.products || [])
-        );
-    }
     if (form.scope === 'CATEGORIES' && allCategories.length === 0) {
-      fetch(`/categories`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => res.json())
+      api.get<any>(`/categories`)
         .then(data => setAllCategories(data.data || data || []));
     }
-  }, [form.scope, token, allProducts.length, allCategories.length]);
+  }, [form.scope, allCategories.length]);
 
-  const filteredProducts = React.useMemo(() => {
-    if (!productSearch) return [];
-    const q = productSearch.toLowerCase();
-    return allProducts
-      .filter(
-        p =>
-          (p.name?.toLowerCase().includes(q) ||
-            p.barcode?.toLowerCase().includes(q) ||
-            p.sku?.toLowerCase().includes(q)) &&
-          !selectedProducts.find(s => s.id === p.id)
-      )
-      .slice(0, 10);
-  }, [allProducts, productSearch, selectedProducts]);
-
+  // Debounced Product Search
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      if (customerScope === 'SPECIFIC') {
+      if (form.scope === 'PRODUCTS' && productSearch.trim().length >= 2) {
+        setLoadingProducts(true);
+        api.get<any>(`/products?search=${productSearch}`)
+          .then(data => {
+            const items = Array.isArray(data) ? data : data.items || data.products || [];
+            setProductResults(items.filter((p: any) => !selectedProducts.find(s => s.id === p.id)));
+            setLoadingProducts(false);
+          })
+          .catch(() => setLoadingProducts(false));
+      } else {
+        setProductResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [productSearch, form.scope, selectedProducts]);
+
+  // Debounced Customer Search
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (customerScope === 'SPECIFIC' && customerSearch.trim().length >= 2) {
         setLoadingCustomers(true);
-        fetch(`/orders/customers/search?q=${customerSearch}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-          .then(res => res.json())
+        api.get<any>(`/orders/customers/search?q=${customerSearch}`)
           .then(data => {
             setCustomerResults(Array.isArray(data) ? data : data.items || []);
             setLoadingCustomers(false);
@@ -159,7 +150,7 @@ export function CouponFormPage() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [customerSearch, customerScope, token]);
+  }, [customerSearch, customerScope]);
 
   React.useEffect(() => {
     if (existingCoupon) {
@@ -532,19 +523,20 @@ export function CouponFormPage() {
 
                     {showProductDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-stone-100 rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
-                        {allProducts.length === 0 && (
-                          <div className="px-4 py-3 text-sm text-stone-400">
+                        {loadingProducts && (
+                          <div className="px-4 py-3 text-sm text-stone-400 flex items-center gap-2">
+                            <Loader2 className="w-3 h-3 animate-spin" />
                             Mahsulotlar yuklanmoqda...
                           </div>
                         )}
 
-                        {allProducts.length > 0 && filteredProducts.length === 0 && (
+                        {!loadingProducts && productResults.length === 0 && (
                           <div className="px-4 py-3 text-sm text-stone-400 italic">
-                            {productSearch ? 'Mahsulot topilmadi' : 'Qidirish uchun yozing...'}
+                            {productSearch ? 'Mahsulot topilmadi' : 'Qidirish uchun kamida 2 ta belgi yozing...'}
                           </div>
                         )}
 
-                        {filteredProducts.map(p => (
+                        {!loadingProducts && productResults.map(p => (
                           <div
                             key={p.id}
                             className="px-4 py-3 border-b border-stone-50 last:border-0 hover:bg-stone-50 cursor-pointer transition-colors"

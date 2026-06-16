@@ -58,8 +58,7 @@ function CartPage() {
   const minOrder =
     cartRegion === 'KOR' ? (settings?.minOrderAmountKrw ?? 0) : (settings?.minOrderAmountUzs ?? 0);
 
-  const subtotalSom = cartRegion === 'UZB' ? tiyinToSom(subtotal) : subtotal;
-  const isBelowMinOrder = minOrder > 0 && subtotalSom < minOrder;
+  const isBelowMinOrder = minOrder > 0 && subtotal < minOrder;
 
   const hasStockError = cart.some(item => item.quantity > (item.availableStock ?? 999));
 
@@ -299,9 +298,7 @@ function CartPage() {
               {isBelowMinOrder && (
                 <div className="rounded-lg bg-white/10 border border-red-400/50 px-4 py-3 mb-3">
                   <p className="text-sm text-red-300 font-normal">
-                    {cartRegion === 'KOR'
-                      ? `Minimal buyurtma: ${minOrder.toLocaleString()} ₩. Kamida shu miqdorda xarid qiling.`
-                      : `Minimal buyurtma: ${minOrder.toLocaleString()} so'm. Kamida shu miqdorda xarid qiling.`}
+                    Minimal buyurtma: {displayPrice(minOrder)}. Kamida shu miqdorda xarid qiling.
                   </p>
                 </div>
               )}

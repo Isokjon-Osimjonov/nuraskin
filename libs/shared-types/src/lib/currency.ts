@@ -1,6 +1,5 @@
 /**
  * CURRENCY UTILITIES — Single source of truth
- *
  * DB Storage:
  *   UZS: tiyin (×100). 213,000 so'm = 21300000
  *   KRW: whole won. 15,000 ₩ = 15000
@@ -10,13 +9,17 @@
 
 // DB tiyin → display so'm (rounded to nearest 1000)
 export function displayUzs(tiyin: string | number | bigint): number {
-  const som = Number(tiyin) / 100;
+  if (tiyin === null || tiyin === undefined || tiyin === '') return 0;
+  const raw = typeof tiyin === 'string' ? parseFloat(tiyin) : Number(tiyin);
+  const som = raw / 100;
   return Math.round(som / 1000) * 1000;
 }
 
 // DB won → display won (rounded to nearest 100)
 export function displayKrw(won: string | number | bigint): number {
-  return Math.round(Number(won) / 100) * 100;
+  if (won === null || won === undefined || won === '') return 0;
+  const raw = typeof won === 'string' ? parseFloat(won) : Number(won);
+  return Math.round(raw / 100) * 100;
 }
 
 // Format UZS for UI: 21300000 → "213,000 so'm"
@@ -42,5 +45,6 @@ export function somToTiyin(som: number): number {
 }
 
 export function tiyinToSom(tiyin: string | number | bigint): number {
+  if (tiyin === null || tiyin === undefined || tiyin === '') return 0;
   return Number(tiyin) / 100;
 }

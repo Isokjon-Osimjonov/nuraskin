@@ -4,7 +4,7 @@ import { STORE_INFO } from '@nuraskin/shared-utils';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlist, useToggleWaitlist } from '@/hooks/useWaitlist';
 import { useAddToCart } from '@/hooks/useCart';
-import { formatPrice } from '@/lib/utils';
+import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
 import type { ProductWaitlistResponse } from '@nuraskin/shared-types';
 
 export const Route = createFileRoute('/_protected/waiting-list')({

@@ -3,6 +3,7 @@ import React from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { useAppStore } from '@/stores/app.store';
+import { formatUzs } from '@/lib/utils';
 
 export const Route = createFileRoute('/account')({
   component: AccountPage,
@@ -79,7 +80,7 @@ function AccountPage() {
               <p className="text-zinc-400 text-xs mt-1">Buyurtmalar</p>
             </div>
             <div className="text-center">
-              <p className="font-normal text-lg text-[#4A1525]">0 UZS</p>
+              <p className="font-normal text-lg text-[#4A1525]">{formatUzs(0)}</p>
               <p className="text-zinc-400 text-xs mt-1">Qarz</p>
             </div>
             <div className="text-center">

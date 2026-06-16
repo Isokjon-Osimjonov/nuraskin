@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
 import { getMyOrders, uploadReceipt, getUploadUrl, cancelOrder } from '@/api/orders';
 import { getPaymentInfo } from '@/api/settings';
-import { formatPrice } from '@/lib/utils';
+import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
   ArrowLeft,
