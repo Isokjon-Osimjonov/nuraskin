@@ -14,8 +14,8 @@ export async function listSalesOrders(
 
   const offset = (page - 1) * limit;
   let regionFilter = sql`1=1`;
-  if (regionCode && regionCode !== 'all') {
-    regionFilter = sql`${orders.regionCode} = ${regionCode}`;
+  if (regionCode && regionCode.toLowerCase() !== 'all') {
+    regionFilter = sql`${orders.regionCode} = ${regionCode.toUpperCase()}`;
   }
 
   const whereClauses = and(
@@ -50,6 +50,7 @@ export async function listSalesOrders(
         ELSE COALESCE(${orders.discountAmount}, 0)
       END`,
       deliveredAt: orders.deliveredAt,
+      paymentConfirmedAt: orders.paymentConfirmedAt,
       customerName: customers.fullName,
       currency: orders.currency,
     })
@@ -57,7 +58,7 @@ export async function listSalesOrders(
     .leftJoin(customers, eq(orders.customerId, customers.id))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(whereClauses)
-    .orderBy(desc(orders.deliveredAt))
+    .orderBy(desc(orders.paymentConfirmedAt))
     .limit(limit)
     .offset(offset);
 
@@ -78,8 +79,8 @@ export async function getLiveSales(from?: string, to?: string, regionCode?: stri
   const startDate = from || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
   let regionFilter = sql`1=1`;
-  if (regionCode && regionCode !== 'all') {
-    regionFilter = sql`o.region_code = ${regionCode}`;
+  if (regionCode && regionCode.toLowerCase() !== 'all') {
+    regionFilter = sql`o.region_code = ${regionCode.toUpperCase()}`;
   }
 
   const rawData = await db.execute(sql`
