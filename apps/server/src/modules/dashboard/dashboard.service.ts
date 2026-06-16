@@ -7,6 +7,7 @@ import {
   inventoryBatches,
   settings,
   exchangeRateSnapshots,
+  orderExpenses,
 } from '@nuraskin/database';
 import { eq, sql, and, desc, sum, count, inArray, countDistinct } from 'drizzle-orm';
 
@@ -54,12 +55,21 @@ export async function getKPIs(region: string) {
     .where(commonWhere)
     .then(res => res[0]);
 
+  const shippingExpenseStats = await db
+    .select({
+      total: sql<bigint>`coalesce(sum(${orderExpenses.amountKrw}), 0)::bigint`,
+    })
+    .from(orderExpenses)
+    .innerJoin(orders, eq(orders.id, orderExpenses.orderId))
+    .where(and(eq(orderExpenses.type, 'SHIPPING'), commonWhere))
+    .then(res => res[0]);
+
   const rev = BigInt(orderStats?.revenue ?? '0');
   const discounts = BigInt(orderStats?.discounts ?? '0');
   const grossRev = rev + discounts;
   const cogs = BigInt(cogsStats?.cogs ?? '0');
-  const cargo = BigInt(orderStats?.cargo ?? '0');
-  const grossProfit = rev - cogs - cargo;
+  const shippingExpense = BigInt(shippingExpenseStats?.total ?? '0');
+  const grossProfit = rev - cogs - shippingExpense;
   const margin = rev > 0n ? Number((grossProfit * 10000n) / rev) / 100 : 0;
   const orderCount = Number(orderStats?.orderCount ?? 0);
 
