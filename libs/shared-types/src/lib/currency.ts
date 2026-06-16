@@ -15,11 +15,10 @@ export function displayUzs(tiyin: string | number | bigint): number {
   return Math.round(som / 1000) * 1000;
 }
 
-// DB won → display won (rounded to nearest 100)
+// DB won → display won
 export function displayKrw(won: string | number | bigint): number {
   if (won === null || won === undefined || won === '') return 0;
-  const raw = typeof won === 'string' ? parseFloat(won) : Number(won);
-  return Math.round(raw / 100) * 100;
+  return typeof won === 'string' ? parseFloat(won) : Number(won);
 }
 
 // Format UZS for UI: 21300000 → "213,000 so'm"

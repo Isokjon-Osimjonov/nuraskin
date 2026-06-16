@@ -72,6 +72,9 @@ export interface OrderItemResponse {
   quantity: number;
   unitPriceSnapshot: string; // Serialized BigInt
   subtotalSnapshot: string; // Serialized BigInt
+  retailPriceSnapshot?: string;
+  wholesalePriceSnapshot?: string;
+  costAtSaleKrw?: string;
   currencySnapshot: string;
   isScanned: boolean;
   scannedAt: string | null;

@@ -195,16 +195,23 @@ export async function downloadInvoice(req: Request, res: Response) {
   if (!order) throw new NotFoundError('Buyurtma topilmadi');
 
   // Calculate savings and price types
-  const totalSavings = 0;
+  let totalSavings = 0;
   const items = order.items.map((i: any) => {
     let priceType: 'ulgurji' | 'birlik' | 'kelishilgan' | undefined;
 
     // For manual orders we use negotiatedPriceKrw
     if (order.orderSource === 'MANUAL') {
       priceType = 'kelishilgan';
+    } else if (i.wholesalePriceSnapshot && i.unitPriceSnapshot === i.wholesalePriceSnapshot) {
+      priceType = 'ulgurji';
     } else {
-      // Logic for price type could be complex, for now we skip or use simple heuristic
-      // if we have regional config data. We'll skip for now and just show the price.
+      priceType = 'birlik';
+    }
+
+    const retail = i.retailPriceSnapshot ? BigInt(i.retailPriceSnapshot) : 0n;
+    const actual = BigInt(i.unitPriceSnapshot);
+    if (retail > actual) {
+      totalSavings += Number(retail - actual) * i.quantity;
     }
 
     return {
@@ -214,6 +221,8 @@ export async function downloadInvoice(req: Request, res: Response) {
       quantity: i.quantity,
       unitPrice: i.unitPriceSnapshot,
       subtotal: i.subtotalSnapshot,
+      retailPrice: i.retailPriceSnapshot,
+      wholesalePrice: i.wholesalePriceSnapshot,
       priceType,
     };
   });

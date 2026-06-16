@@ -146,6 +146,8 @@ export async function findById(id: string, txIn: any = db) {
       imageUrls: i.imageUrls,
       unitPriceSnapshot: i.item.unitPriceSnapshot.toString(),
       subtotalSnapshot: i.item.subtotalSnapshot.toString(),
+      retailPriceSnapshot: i.item.retailPriceSnapshot?.toString(),
+      wholesalePriceSnapshot: i.item.wholesalePriceSnapshot?.toString(),
     })),
   };
 }

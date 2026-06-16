@@ -155,6 +155,7 @@ export const productWaitlistSchema = z.object({
     brandName: z.string().optional(),
     inStock: z.boolean(),
     calculatedPrice: z.string(),
+    currency: z.string(),
     totalStock: z.number(),
   }),
 });

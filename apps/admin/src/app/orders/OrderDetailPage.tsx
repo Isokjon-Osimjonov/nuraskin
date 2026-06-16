@@ -130,6 +130,19 @@ export function OrderDetailPage() {
   if (!order) return <div className="p-6 text-center">Buyurtma topilmadi.</div>;
 
   const allScanned = order.items.every(i => i.isScanned);
+  const region = order.currency === 'UZS' ? 'UZB' : 'KOR';
+
+  const retailSum = order.items.reduce((acc, item) => {
+    const retail = item.retailPriceSnapshot
+      ? BigInt(item.retailPriceSnapshot)
+      : BigInt(item.unitPriceSnapshot);
+    return acc + retail * BigInt(item.quantity);
+  }, 0n);
+
+  const wholesaleSavings = retailSum - BigInt(order.subtotal);
+  const totalCogs = order.items.reduce((acc, item) => {
+    return acc + (item.costAtSaleKrw ? BigInt(item.costAtSaleKrw) * BigInt(item.quantity) : 0n);
+  }, 0n);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -218,10 +231,20 @@ export function OrderDetailPage() {
               </div>
               <div className="pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Chakana jami:</span>
+                  <span>{formatPrice(retailSum, region)}</span>
+                </div>
+
+                {wholesaleSavings > 0n && (
+                  <div className="flex justify-between text-sm text-emerald-600">
+                    <span className="text-muted-foreground font-medium">Ulgurji tejash:</span>
+                    <span>-{formatPrice(wholesaleSavings, region)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-sm font-medium pt-1">
                   <span className="text-muted-foreground">Mahsulotlar jami:</span>
-                  <span>
-                    {formatPrice(order.subtotal, order.currency === 'UZS' ? 'UZB' : 'KOR')}
-                  </span>
+                  <span>{formatPrice(order.subtotal, region)}</span>
                 </div>
 
                 {order.couponCode && BigInt(order.couponDiscount || '0') > 0n && (
@@ -229,37 +252,25 @@ export function OrderDetailPage() {
                     <span className="text-muted-foreground font-medium">
                       Kupon ({order.couponCode}):
                     </span>
-                    <span>
-                      -{formatPrice(order.couponDiscount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
-                    </span>
-                  </div>
-                )}
-
-                {BigInt(order.wholesaleDiscount || '0') > 0n && (
-                  <div className="flex justify-between text-sm text-emerald-600">
-                    <span className="text-muted-foreground font-medium">Ulgurji chegirma:</span>
-                    <span>
-                      -
-                      {formatPrice(
-                        order.wholesaleDiscount,
-                        order.currency === 'UZS' ? 'UZB' : 'KOR'
-                      )}
-                    </span>
+                    <span>-{formatPrice(order.couponDiscount, region)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Kargo:</span>
-                  <span>
-                    {formatPrice(order.cargoFee, order.currency === 'UZS' ? 'UZB' : 'KOR')}
-                  </span>
+                  <span>{formatPrice(order.cargoFee, region)}</span>
                 </div>
 
                 <div className="flex justify-between font-bold text-lg pt-2 border-t text-primary">
                   <span>JAMI:</span>
-                  <span>
-                    {formatPrice(order.totalAmount, order.currency === 'UZS' ? 'UZB' : 'KOR')}
-                  </span>
+                  <span>{formatPrice(order.totalAmount, region)}</span>
+                </div>
+
+                <div className="pt-4 border-t mt-4 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Umumiy COGS (KRW):</span>
+                    <span>{formatPrice(totalCogs, 'KOR')}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>

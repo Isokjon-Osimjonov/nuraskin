@@ -432,6 +432,8 @@ function Orders() {
     queryKey: ['my-orders'],
     queryFn: getMyOrders,
     enabled: !!token,
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
   });
 
   useEffect(() => {

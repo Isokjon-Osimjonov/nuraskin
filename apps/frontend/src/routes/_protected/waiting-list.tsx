@@ -37,8 +37,6 @@ function WaitingListPage() {
     );
   }
 
-  const displayPrice = (price: number | string) => formatPrice(price, regionCode as 'UZB' | 'KOR');
-
   return (
     <div className="bg-white min-h-screen py-10">
       <div className="max-w-[1280px] mx-auto px-6">
@@ -133,7 +131,10 @@ function WaitingListPage() {
                           </p>
                         </Link>
                         <p className="text-sm font-normal text-[#4A1525]">
-                          {displayPrice(product.calculatedPrice)}
+                          {formatPrice(
+                            product.calculatedPrice,
+                            product.currency === 'KRW' ? 'KOR' : 'UZB'
+                          )}
                         </p>
                       </div>
 

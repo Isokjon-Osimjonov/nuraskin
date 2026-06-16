@@ -117,6 +117,8 @@ export const orderItems = pgTable(
     batchId: uuid('batch_id').references(() => inventoryBatches.id, { onDelete: 'set null' }),
     quantity: integer('quantity').notNull(),
     costAtSaleKrw: bigint('cost_at_sale_krw', { mode: 'bigint' }),
+    retailPriceSnapshot: bigint('retail_price_snapshot', { mode: 'bigint' }),
+    wholesalePriceSnapshot: bigint('wholesale_price_snapshot', { mode: 'bigint' }),
     unitPriceSnapshot: bigint('unit_price_snapshot', { mode: 'bigint' }).notNull(),
     negotiatedPriceKrw: bigint('negotiated_price_krw', { mode: 'bigint' }),
     subtotalSnapshot: bigint('subtotal_snapshot', { mode: 'bigint' }).notNull(),

@@ -35,7 +35,15 @@ export async function storefrontApi<T>(
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message ?? body.error ?? `HTTP ${res.status}`);
   }
-  if (res.status === 204) return undefined as T;
+
+  // Handle empty success responses (201, 204, or empty 200)
+  if (res.status === 204 || res.status === 201) return undefined as T;
+
+  const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    return undefined as T;
+  }
+
   return res.json();
 }
 

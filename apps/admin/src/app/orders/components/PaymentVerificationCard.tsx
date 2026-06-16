@@ -134,12 +134,7 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
               </div>
             </div>
 
-            <div className="p-3 bg-white/50 rounded-lg border border-yellow-100 text-sm">
-              <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">
-                Karta ma'lumotlari (Mijozga ko'rsatilgan)
-              </p>
-              <p className="font-mono text-yellow-800">9860 **** **** 9012 (Kapital Bank)</p>
-            </div>
+            
           </div>
         </div>
       </CardContent>

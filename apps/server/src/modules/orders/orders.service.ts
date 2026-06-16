@@ -103,10 +103,36 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         const unitPrice = BigInt(itemInput.negotiatedPriceKrw);
         const subtotal = unitPrice * BigInt(itemInput.quantity);
 
+        let retailPrice = 0n;
+        let wholesalePrice = 0n;
+
+        const regionalConfig = product.regionalConfigs.find(c => c.regionCode === order.regionCode);
+        if (regionalConfig && rateSnapshot) {
+          const baseRetailKrw = BigInt(regionalConfig.retailPrice);
+          const baseWholesaleKrw = BigInt(regionalConfig.wholesalePrice);
+
+          if (order.regionCode === 'UZB') {
+            const rateData = {
+              krwToUzs: parseFloat(rateSnapshot.krwToUzs),
+              cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
+            };
+            const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
+            retailPrice = retailRes.productPrice + retailRes.cargoFee;
+
+            const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
+            wholesalePrice = wholesaleRes.productPrice + wholesaleRes.cargoFee;
+          } else {
+            retailPrice = calculateKorPrice(baseRetailKrw);
+            wholesalePrice = calculateKorPrice(baseWholesaleKrw);
+          }
+        }
+
         await tx.insert(orderItems).values({
           orderId: order.id,
           productId: itemInput.productId,
           quantity: itemInput.quantity,
+          retailPriceSnapshot: retailPrice,
+          wholesalePriceSnapshot: wholesalePrice,
           unitPriceSnapshot: unitPrice,
           negotiatedPriceKrw: unitPrice,
           subtotalSnapshot: subtotal,
@@ -368,22 +394,34 @@ export async function createOrder(
         throw new BadRequestError(`Product not available in region ${input.regionCode}`);
 
       let unitPrice = 0n;
+      let retailPrice = 0n;
+      let wholesalePrice = 0n;
       let itemCargo = 0n;
 
-      const baseKrw =
-        itemInput.quantity >= (regionalConfig.minWholesaleQty || 5)
-          ? BigInt(regionalConfig.wholesalePrice)
-          : BigInt(regionalConfig.retailPrice);
+      const baseRetailKrw = BigInt(regionalConfig.retailPrice);
+      const baseWholesaleKrw = BigInt(regionalConfig.wholesalePrice);
+      const isWholesale = itemInput.quantity >= (regionalConfig.minWholesaleQty || 5);
+      const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
 
       if (input.regionCode === 'UZB' && rateSnapshot) {
-        const prices = calculateUzbPrice(baseKrw, product.weightGrams, {
+        const rateData = {
           krwToUzs: parseFloat(rateSnapshot.krwToUzs),
           cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
-        });
+        };
+        const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
         unitPrice = prices.productPrice + prices.cargoFee;
+
+        const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
+        retailPrice = retailRes.productPrice + retailRes.cargoFee;
+
+        const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
+        wholesalePrice = wholesaleRes.productPrice + wholesaleRes.cargoFee;
+        
         itemCargo = 0n;
       } else {
         unitPrice = calculateKorPrice(baseKrw);
+        retailPrice = calculateKorPrice(baseRetailKrw);
+        wholesalePrice = calculateKorPrice(baseWholesaleKrw);
         itemCargo = 0n;
       }
 
@@ -400,6 +438,8 @@ export async function createOrder(
         orderId: order.id,
         productId: itemInput.productId,
         quantity: itemInput.quantity,
+        retailPriceSnapshot: retailPrice,
+        wholesalePriceSnapshot: wholesalePrice,
         unitPriceSnapshot: unitPrice,
         subtotalSnapshot: unitPrice * BigInt(itemInput.quantity),
         cargoFeeSnapshot: itemCargo,
@@ -460,22 +500,34 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
   }
 
   let unitPrice = 0n;
+  let retailPrice = 0n;
+  let wholesalePrice = 0n;
   let itemCargo = 0n;
 
-  const baseKrw =
-    input.quantity >= (regionalConfig.minWholesaleQty || 5)
-      ? BigInt(regionalConfig.wholesalePrice)
-      : BigInt(regionalConfig.retailPrice);
+  const baseRetailKrw = BigInt(regionalConfig.retailPrice);
+  const baseWholesaleKrw = BigInt(regionalConfig.wholesalePrice);
+  const isWholesale = input.quantity >= (regionalConfig.minWholesaleQty || 5);
+  const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
 
   if (order.regionCode === 'UZB' && rateSnapshot) {
-    const prices = calculateUzbPrice(baseKrw, product.weightGrams, {
+    const rateData = {
       krwToUzs: parseFloat(rateSnapshot.krwToUzs),
       cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
-    });
+    };
+    const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
     unitPrice = prices.productPrice + prices.cargoFee;
+
+    const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
+    retailPrice = retailRes.productPrice + retailRes.cargoFee;
+
+    const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
+    wholesalePrice = wholesaleRes.productPrice + wholesaleRes.cargoFee;
+
     itemCargo = 0n;
   } else {
     unitPrice = calculateKorPrice(baseKrw);
+    retailPrice = calculateKorPrice(baseRetailKrw);
+    wholesalePrice = calculateKorPrice(baseWholesaleKrw);
     itemCargo = 0n;
   }
 
@@ -493,6 +545,8 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
       orderId,
       productId: input.productId,
       quantity: input.quantity,
+      retailPriceSnapshot: retailPrice,
+      wholesalePriceSnapshot: wholesalePrice,
       unitPriceSnapshot: unitPrice,
       subtotalSnapshot: unitPrice * BigInt(input.quantity),
       cargoFeeSnapshot: itemCargo,

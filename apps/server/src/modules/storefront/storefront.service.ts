@@ -453,16 +453,21 @@ export async function createOrder(
             ),
           });
 
+          const baseKrw =
+            i.quantity >= (config.minWholesaleQty || 5)
+              ? BigInt(config.wholesalePrice)
+              : BigInt(config.retailPrice);
+
           let subtotal = 0n;
           if (customer.regionCode === 'UZB' && latestRate && config) {
             const { productPrice, cargoFee } = calculateUzbPrice(
-              config.retailPrice,
+              baseKrw,
               p?.weightGrams || 0,
               latestRate
             );
             subtotal = (productPrice + cargoFee) * BigInt(i.quantity);
           } else if (config) {
-            const productPrice = calculateKorPrice(config.retailPrice);
+            const productPrice = calculateKorPrice(baseKrw);
             subtotal = productPrice * BigInt(i.quantity);
           }
 

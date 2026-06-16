@@ -23,6 +23,8 @@ interface InvoiceData {
     quantity: number;
     unitPrice: string | bigint | number;
     subtotal: string | bigint | number;
+    retailPrice?: string | bigint | number;
+    wholesalePrice?: string | bigint | number;
     priceType?: 'ulgurji' | 'birlik' | 'kelishilgan';
   }>;
   savings?: number;
@@ -42,8 +44,13 @@ export function generateInvoiceHtml(data: InvoiceData): string {
       </td>
       <td style="padding: 8px; text-align: center; font-size: 12px;">${item.quantity}</td>
       <td style="padding: 8px; text-align: right; font-size: 12px;">
+        ${
+          item.retailPrice && BigInt(item.retailPrice) > BigInt(item.unitPrice)
+            ? `<div style="font-size: 10px; color: #888; text-decoration: line-through;">${formatPrice(item.retailPrice, region)}</div>`
+            : ''
+        }
         <div>${formatPrice(item.unitPrice, region)}</div>
-        ${item.priceType ? `<div style="font-size: 9px; color: #888;">(${item.priceType})</div>` : ''}
+        ${item.priceType === 'ulgurji' ? `<div style="font-size: 9px; color: #16a34a; font-weight: 500;">(ulgurji)</div>` : ''}
       </td>
       <td style="padding: 8px; text-align: right; font-size: 12px; font-weight: 500;">${formatPrice(item.subtotal, region)}</td>
     </tr>
@@ -52,6 +59,14 @@ export function generateInvoiceHtml(data: InvoiceData): string {
     .join('');
 
   const totalDelivery = Number(data.cargoFee) + Number(data.deliveryFeeCharged);
+
+  const retailSum = data.items.reduce((acc, item) => {
+    const retail = item.retailPrice ? BigInt(item.retailPrice) : BigInt(item.unitPrice);
+    return acc + retail * BigInt(item.quantity);
+  }, 0n);
+
+  const wholesaleSavings = retailSum - BigInt(data.subtotal);
+  const totalTejadingiz = wholesaleSavings + BigInt(data.couponDiscount || 0);
 
   return `
 <!DOCTYPE html>
@@ -198,6 +213,21 @@ export function generateInvoiceHtml(data: InvoiceData): string {
 
         <div class="totals">
             <div class="total-row">
+                <span>Chakana jami</span>
+                <span>${formatPrice(retailSum, region)}</span>
+            </div>
+            
+            ${
+              wholesaleSavings > 0n
+                ? `
+            <div class="total-row savings">
+                <span>Ulgurji chegirma</span>
+                <span>-${formatPrice(wholesaleSavings, region)}</span>
+            </div>`
+                : ''
+            }
+
+            <div class="total-row">
                 <span>Mahsulotlar jami</span>
                 <span>${formatPrice(data.subtotal, region)}</span>
             </div>
@@ -208,16 +238,6 @@ export function generateInvoiceHtml(data: InvoiceData): string {
             <div class="total-row savings">
                 <span>Kupon (${data.couponCode})</span>
                 <span>-${formatPrice(data.couponDiscount!, region)}</span>
-            </div>`
-                : ''
-            }
-
-            ${
-              Number(data.wholesaleDiscount) > 0
-                ? `
-            <div class="total-row savings">
-                <span>Ulgurji chegirma</span>
-                <span>-${formatPrice(data.wholesaleDiscount!, region)}</span>
             </div>`
                 : ''
             }
@@ -241,6 +261,16 @@ export function generateInvoiceHtml(data: InvoiceData): string {
                 <span>JAMI</span>
                 <span>${formatPrice(data.totalAmount, region)}</span>
             </div>
+
+            ${
+              totalTejadingiz > 0n
+                ? `
+            <div class="total-row savings" style="font-weight: 500; border-top: 0.5px dashed #16a34a; padding-top: 4px; margin-top: 4px;">
+                <span>Tejadingiz:</span>
+                <span>${formatPrice(totalTejadingiz, region)}</span>
+            </div>`
+                : ''
+            }
         </div>
 
         <div class="footer">
