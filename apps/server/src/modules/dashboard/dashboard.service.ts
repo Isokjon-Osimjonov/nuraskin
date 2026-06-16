@@ -8,7 +8,7 @@ import {
   settings,
   exchangeRateSnapshots,
 } from '@nuraskin/database';
-import { eq, sql, and, desc, sum, count, inArray } from 'drizzle-orm';
+import { eq, sql, and, desc, sum, count, inArray, countDistinct } from 'drizzle-orm';
 
 export async function getKPIs(region: string) {
   const isAll = region === 'ALL';
@@ -27,33 +27,41 @@ export async function getKPIs(region: string) {
   END`;
 
   // 1. Today's Revenue & Orders
-  const todayStats = await db
+  const commonWhere = and(
+    sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
+    inArray(orders.status, PAID_STATUSES),
+    isAll ? sql`1=1` : eq(orders.regionCode, region)
+  );
+
+  const orderStats = await db
     .select({
       revenue: sql<bigint>`coalesce(sum(${krwTotalAmountSql}), 0)::bigint`,
       discounts: sql<bigint>`coalesce(sum(${krwDiscountAmountSql}), 0)::bigint`,
-      orderCount: count(orders.id),
-      cogs: sql<bigint>`coalesce(sum(${orderItems.costAtSaleKrw} * ${orderItems.quantity}), 0)::bigint`,
-      cargo: sum(orders.cargoCostKrw),
+      orderCount: countDistinct(orders.id),
+      cargo: sql<bigint>`coalesce(sum(${orders.cargoCostKrw}), 0)::bigint`,
     })
     .from(orders)
-    .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
-    .where(
-      and(
-        sql`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul') = ${todayKst}::date`,
-        inArray(orders.status, PAID_STATUSES),
-        isAll ? sql`1=1` : eq(orders.regionCode, region)
-      )
-    )
+    .where(commonWhere)
     .then(res => res[0]);
 
-  const rev = BigInt(todayStats?.revenue ?? '0');
-  const discounts = BigInt(todayStats?.discounts ?? '0');
+  const cogsStats = await db
+    .select({
+      cogs: sql<bigint>`coalesce(sum(${orderItems.costAtSaleKrw} * ${orderItems.quantity}), 0)::bigint`,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orders.id, orderItems.orderId))
+    .where(commonWhere)
+    .then(res => res[0]);
+
+  const rev = BigInt(orderStats?.revenue ?? '0');
+  const discounts = BigInt(orderStats?.discounts ?? '0');
   const grossRev = rev + discounts;
-  const cogs = BigInt(todayStats?.cogs ?? '0');
-  const cargo = BigInt(todayStats?.cargo ?? '0');
+  const cogs = BigInt(cogsStats?.cogs ?? '0');
+  const cargo = BigInt(orderStats?.cargo ?? '0');
   const grossProfit = rev - cogs - cargo;
   const margin = rev > 0n ? Number((grossProfit * 10000n) / rev) / 100 : 0;
+  const orderCount = Number(orderStats?.orderCount ?? 0);
 
   // 2. Inventory Value (Live)
   const inventoryValue = await db
@@ -123,7 +131,7 @@ export async function getKPIs(region: string) {
     revenue_today_krw: rev.toString(),
     gross_revenue_today_krw: grossRev.toString(),
     discounts_today_krw: discounts.toString(),
-    orders_today: todayStats.orderCount,
+    orders_today: orderCount,
     margin_today_percent: margin,
     inventory_value_krw: inventoryValue.toString(),
     outstanding_debt_krw: debt.toString(),
@@ -154,7 +162,7 @@ export async function getTrend(region: string) {
       date: sql<string>`DATE(COALESCE(${orders.paymentConfirmedAt}, ${orders.deliveredAt}, ${orders.createdAt}) AT TIME ZONE 'Asia/Seoul')::text`,
       kor_revenue_krw: sql<bigint>`sum(case when ${orders.regionCode} = 'KOR' then ${orders.totalAmount} else 0 end)::bigint`,
       uzb_revenue_krw: uzbRevenueKrwSql,
-      total_orders: count(orders.id),
+      total_orders: countDistinct(orders.id),
     })
     .from(orders)
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
