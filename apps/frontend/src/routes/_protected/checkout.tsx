@@ -75,6 +75,12 @@ function CheckoutPage() {
     queryFn: () => getPaymentInfo(cartRegion),
   });
 
+  const { data: shippingTiers = [] } = useQuery({
+    queryKey: ['shipping-tiers'],
+    queryFn: () => api.get<any[]>('/storefront/shipping-tiers'),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponCode, setCouponCode] = useState(selectedCouponCode || '');
   const [jusoModalOpen, setJusoModalOpen] = useState(false);
@@ -107,12 +113,19 @@ function CheckoutPage() {
   // Handle tiered Korea cargo
   const korCargo = useMemo(() => {
     if (cartRegion !== 'KOR') return 0n;
-    if (subtotal >= 200000n) return 0n;
-    if (subtotal >= 100000n) return 2000n;
-    if (subtotal >= 50000n) return 3000n;
-    if (subtotal >= 30000n) return 4000n;
-    return 5000n;
-  }, [subtotal, cartRegion]);
+    if (!shippingTiers.length) return 0n;
+
+    const sorted = [...shippingTiers]
+      .filter(t => t.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    for (const tier of sorted) {
+      if (tier.maxOrderKrw === null || subtotal <= BigInt(tier.maxOrderKrw)) {
+        return BigInt(tier.cargoFeeKrw);
+      }
+    }
+    return 0n;
+  }, [subtotal, cartRegion, shippingTiers]);
 
   const discountAmount = appliedCoupon?.valid ? BigInt(appliedCoupon.discountAmount) : 0n;
   const isFreeShipping =

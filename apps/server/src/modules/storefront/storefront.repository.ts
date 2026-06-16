@@ -264,7 +264,11 @@ export async function getOrderForCustomer(orderId: string, customerId: string, t
 }
 
 export async function listShippingTiers() {
-  return await db.select().from(korShippingTiers).orderBy(asc(korShippingTiers.sortOrder));
+  return await db
+    .select()
+    .from(korShippingTiers)
+    .where(eq(korShippingTiers.isActive, true))
+    .orderBy(asc(korShippingTiers.sortOrder));
 }
 
 export async function createShippingTier(input: KorShippingTierInput) {
