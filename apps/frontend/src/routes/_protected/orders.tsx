@@ -397,7 +397,7 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
       {/* Footer */}
       <div className="border-t border-stone-200 pt-3 flex items-center justify-between mb-4">
         <p className="text-[14px] font-normal text-[#4A1525]">
-          {displayPrice(order.totalAmount, order.currency)}
+          {order.currency === 'KRW' ? formatKrw(order.totalAmount) : formatUzs(order.totalAmount)}
         </p>
         {order.cargoFee && Number(order.cargoFee) > 0 && (
           <p className="text-[10px] text-stone-400">Yetkazib berish bilan</p>

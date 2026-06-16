@@ -15,9 +15,7 @@ export function displayUzs(tiyin: string | number | bigint): number {
 export function displayKrw(won: string | number | bigint): number {
   if (won === null || won === undefined || won === '') return 0;
   // DB stores whole won (e.g. 15000 = 15,000 ₩)
-  // We round to nearest 100 for cleaner display
-  const raw = typeof won === 'string' ? parseFloat(won) : Number(won);
-  return Math.round(raw / 100) * 100;
+  return Number(won);
 }
 
 export function formatUzs(tiyin: string | number | bigint): string {
