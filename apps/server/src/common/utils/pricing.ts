@@ -31,9 +31,8 @@ export function calculateUzbPrice(
 
   // cargoUzsMinor = (grams / 1000) * cargoRateKrwScaled * krwToUzsScaled * 100 / (SCALE * SCALE)
   // cargoFee (UZS) = weight (kg) * cargoRate (KRW/kg) * exchangeRate (UZS/KRW)
-  const weightKgScaled = BigInt(weightGrams) * SCALE; // scaled by SCALE
   const cargoFeeUzsMinor =
-    (weightKgScaled * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
+    (BigInt(weightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
 
   // Rounding helper (nearest 1,000 UZS = 100,000 minor units)
   const round1000UZS = (val: bigint) =>
