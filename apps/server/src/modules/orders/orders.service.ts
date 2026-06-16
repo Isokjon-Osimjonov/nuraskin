@@ -1016,40 +1016,8 @@ export async function completePacking(orderId: string, adminId?: string) {
   return result;
 }
 
+// Deprecated: Shipping is now handled via kor_shipping_tiers and promotions.
+// We no longer automatically add a separate subsidy entry for KOR free shipping based on settings.
 async function tryAddFreeShippingSubsidy(orderId: string) {
-  try {
-    const order = await repository.findById(orderId);
-    if (!order || order.regionCode !== 'KOR') return;
-
-    const [settingsRow] = await db.select().from(settings).limit(1);
-    if (
-      !settingsRow ||
-      !settingsRow.freeShippingThresholdKrw ||
-      !settingsRow.standardShippingFeeKrw
-    )
-      return;
-
-    if (BigInt(order.totalAmount) >= BigInt(settingsRow.freeShippingThresholdKrw)) {
-      const existing = await db
-        .select()
-        .from(orderExpenses)
-        .where(
-          and(eq(orderExpenses.orderId, orderId), eq(orderExpenses.type, 'FREE_SHIPPING_SUBSIDY'))
-        )
-        .limit(1);
-
-      if (existing.length === 0) {
-        await orderExpensesRepository.create({
-          orderId: order.id,
-          type: 'FREE_SHIPPING_SUBSIDY',
-          amountKrw: BigInt(settingsRow.standardShippingFeeKrw),
-          note: `Auto: free shipping for KOR order over ₩${settingsRow.freeShippingThresholdKrw}`,
-          isAuto: true,
-          createdBy: null as any,
-        });
-      }
-    }
-  } catch (error) {
-    logger.error({ err: error }, 'Failed to auto-create free shipping subsidy');
-  }
+  /* No-op */
 }

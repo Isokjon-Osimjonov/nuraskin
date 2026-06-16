@@ -267,6 +267,13 @@
       "when": 1780268182187,
       "tag": "0037_careful_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1781637230903,
+      "tag": "0038_pretty_catseye",
+      "breakpoints": true
     }
   ]
 }

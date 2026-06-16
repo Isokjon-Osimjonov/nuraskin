@@ -27,12 +27,6 @@ export const settings = pgTable('settings', {
   minOrderKorKrw: bigint('min_order_kor_krw', { mode: 'bigint' })
     .notNull()
     .default(sql`0`),
-  freeShippingThresholdKrw: bigint('free_shipping_threshold_krw', { mode: 'bigint' })
-    .notNull()
-    .default(sql`200000`),
-  standardShippingFeeKrw: bigint('standard_shipping_fee_krw', { mode: 'bigint' })
-    .notNull()
-    .default(sql`3000`),
   paymentTimeoutMinutes: integer('payment_timeout_minutes').notNull().default(30),
   telegramUrl: varchar('telegram_url', { length: 200 }),
   instagramUrl: varchar('instagram_url', { length: 200 }),
