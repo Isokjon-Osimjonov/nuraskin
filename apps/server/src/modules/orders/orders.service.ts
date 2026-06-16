@@ -210,6 +210,17 @@ export async function confirmManualPayment(
       note: `Manual payment confirmed: ${input.paymentMethod}`,
     });
 
+    if (order.cargoFee && BigInt(order.cargoFee) > 0n) {
+      await tx.insert(orderExpenses).values({
+        orderId,
+        type: 'SHIPPING',
+        amountKrw: BigInt(order.cargoFee),
+        note: `Auto kargo: #${order.orderNumber}`,
+        createdBy: adminId,
+        isAuto: true,
+      });
+    }
+
     return await repository.findById(orderId, tx);
   });
 
@@ -794,6 +805,17 @@ export async function transitionOrderStatus(
       changedBy: adminId,
       note: input.note || input.paymentNote,
     });
+
+    if (to === 'PAYMENT_CONFIRMED' && order.cargoFee && BigInt(order.cargoFee) > 0n) {
+      await tx.insert(orderExpenses).values({
+        orderId,
+        type: 'SHIPPING',
+        amountKrw: BigInt(order.cargoFee),
+        note: `Auto kargo: #${order.orderNumber}`,
+        createdBy: adminId,
+        isAuto: true,
+      });
+    }
 
     return await repository.findById(orderId, tx);
   });

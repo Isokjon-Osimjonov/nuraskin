@@ -21,8 +21,8 @@ export async function runSalesRollup(targetDateStr?: string) {
     FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN products p ON oi.product_id = p.id
-    WHERE o.status IN ('SHIPPED', 'DELIVERED')
-      AND (DATE(o.shipped_at) = ${dateStr}::date OR DATE(o.delivered_at) = ${dateStr}::date)
+    WHERE o.status IN ('PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED')
+      AND DATE(o.payment_confirmed_at) = ${dateStr}::date
   `);
 
   const aggregates: Record<string, any> = {};
