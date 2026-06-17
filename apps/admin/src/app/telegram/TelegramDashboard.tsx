@@ -99,10 +99,16 @@ export function TelegramDashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Telegram Boshqaruvi</h1>
           <p className="text-muted-foreground">Kanal va postlarni boshqarish</p>
         </div>
-        <Button onClick={() => navigate({ to: '/telegram/posts/new' } as any)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Yangi post
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate({ to: '/telegram/channels' } as any)}>
+            <Radio className="mr-2 h-4 w-4" />
+            Kanallar
+          </Button>
+          <Button onClick={() => navigate({ to: '/telegram/posts/new' } as any)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Yangi post
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -133,15 +139,20 @@ export function TelegramDashboard() {
             <div className="text-2xl font-bold">{stats.failed}</div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ulangan kanallar</CardTitle>
-            <Radio className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.channelsCount}</div>
-          </CardContent>
-        </Card>
+        <Link to="/telegram/channels" className="block transition-transform hover:scale-[1.01] active:scale-[0.99]">
+          <Card className="shadow-sm h-full border-primary/20 bg-primary/[0.02] hover:bg-primary/[0.04]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ulangan kanallar</CardTitle>
+              <Radio className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{stats.channelsCount}</div>
+              <p className="text-[10px] text-muted-foreground mt-1 flex items-center">
+                Boshqarish uchun bosing
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="space-y-4">

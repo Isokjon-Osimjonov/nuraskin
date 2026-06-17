@@ -13,6 +13,7 @@ import {
   Settings2,
   Tag,
   Truck,
+  Radio,
 } from 'lucide-react';
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
@@ -57,7 +58,10 @@ const navMain = [
   },
   {
     title: 'Marketing',
-    items: [{ title: 'Telegram', url: '/telegram', icon: Send }],
+    items: [
+      { title: 'Telegram Postlar', url: '/telegram', icon: Send },
+      { title: 'Telegram Kanallar', url: '/telegram/channels', icon: Radio },
+    ],
   },
   {
     title: 'Tizim',
