@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Search, SlidersHorizontal, X, ShoppingBag, Bell } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ShoppingBag, Bell, Info } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useAppStore } from '@/stores/app.store';
@@ -10,6 +10,12 @@ import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { typography } from '@/lib/typography';
 import { EmptySection } from '@/components/shared/EmptySection';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const Route = createFileRoute('/products/')({
   component: CategoryPage,
@@ -272,9 +278,26 @@ function CategoryPage() {
                       </Link>
 
                       <div className="mt-auto flex items-center justify-between">
-                        <span className={typography.cardPrice}>
-                          {displayPrice(product.calculatedPrice)}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className={typography.cardPrice}>
+                            {displayPrice(product.calculatedPrice)}
+                          </span>
+                          {regionCode === 'UZB' && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-[10px] text-emerald-600 font-normal uppercase tracking-tight flex items-center gap-0.5 cursor-help">
+                                    Kargo ichida
+                                    <Info className="w-2.5 h-2.5" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-[200px] text-[11px] leading-tight">
+                                  Narxga yetkazib berish va qadoqlash xarajati kiritilgan.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                         {product.availableStock === 0 ? (
                           <button
                             aria-label="Xabardor qiling"

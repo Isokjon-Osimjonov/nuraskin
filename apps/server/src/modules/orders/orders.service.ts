@@ -14,6 +14,8 @@ import {
   orderStatusHistory,
   coupons,
   orderExpenses,
+  orderBoxes,
+  shippingBoxes,
   exchangeRateSnapshots,
 } from '@nuraskin/database';
 import { eq, sql, and, asc, gt, or, like } from 'drizzle-orm';
@@ -265,6 +267,45 @@ export async function confirmManualPayment(
         createdBy: adminId,
         isAuto: true,
       });
+    }
+
+    // Auto packaging expense and box assignment
+    if (order.regionCode === 'UZB') {
+      const activeBoxes = await getActiveBoxes(tx);
+      const itemsWithWeight = await tx
+        .select({
+          quantity: orderItems.quantity,
+          weightGrams: products.weightGrams,
+        })
+        .from(orderItems)
+        .innerJoin(products, eq(orderItems.productId, products.id))
+        .where(eq(orderItems.orderId, orderId));
+
+      const totalWeight = itemsWithWeight.reduce(
+        (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
+        0
+      );
+      const { boxes: recommendedBoxesList } = recommendBoxes(totalWeight, activeBoxes);
+
+      for (const box of recommendedBoxesList) {
+        await tx.insert(orderBoxes).values({
+          orderId,
+          boxId: box.boxId,
+          quantity: box.quantity,
+        });
+
+        const boxConfig = activeBoxes.find(b => b.id === box.boxId);
+        if (boxConfig && BigInt(boxConfig.costPriceKrw) > 0n) {
+          await tx.insert(orderExpenses).values({
+            orderId,
+            type: 'PACKAGING',
+            amountKrw: BigInt(boxConfig.costPriceKrw) * BigInt(box.quantity),
+            note: `Auto quticha: ${box.quantity}x ${box.name}`,
+            createdBy: adminId,
+            isAuto: true,
+          });
+        }
+      }
     }
 
     return await repository.findById(orderId, tx);
@@ -967,6 +1008,45 @@ export async function transitionOrderStatus(
         createdBy: adminId,
         isAuto: true,
       });
+    }
+
+    // Auto packaging expense and box assignment
+    if (to === 'PAYMENT_CONFIRMED' && order.regionCode === 'UZB') {
+      const activeBoxes = await getActiveBoxes(tx);
+      const itemsWithWeight = await tx
+        .select({
+          quantity: orderItems.quantity,
+          weightGrams: products.weightGrams,
+        })
+        .from(orderItems)
+        .innerJoin(products, eq(orderItems.productId, products.id))
+        .where(eq(orderItems.orderId, orderId));
+
+      const totalWeight = itemsWithWeight.reduce(
+        (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
+        0
+      );
+      const { boxes: recommendedBoxesList } = recommendBoxes(totalWeight, activeBoxes);
+
+      for (const box of recommendedBoxesList) {
+        await tx.insert(orderBoxes).values({
+          orderId,
+          boxId: box.boxId,
+          quantity: box.quantity,
+        });
+
+        const boxConfig = activeBoxes.find(b => b.id === box.boxId);
+        if (boxConfig && BigInt(boxConfig.costPriceKrw) > 0n) {
+          await tx.insert(orderExpenses).values({
+            orderId,
+            type: 'PACKAGING',
+            amountKrw: BigInt(boxConfig.costPriceKrw) * BigInt(box.quantity),
+            note: `Auto quticha: ${box.quantity}x ${box.name}`,
+            createdBy: adminId,
+            isAuto: true,
+          });
+        }
+      }
     }
 
     return await repository.findById(orderId, tx);

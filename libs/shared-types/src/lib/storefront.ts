@@ -141,6 +141,31 @@ export interface KorShippingTierResponse {
   createdAt: string;
 }
 
+export const shippingBoxSchema = z.object({
+  name: z.string().min(1),
+  label: z.string().min(1),
+  maxWeightGrams: z.coerce.number().int().positive(),
+  tareWeightGrams: z.coerce.number().int().positive(),
+  costPriceKrw: z.coerce.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+  sortOrder: z.coerce.number().int().default(0),
+});
+
+export type ShippingBoxInput = z.infer<typeof shippingBoxSchema>;
+
+export interface ShippingBoxResponse {
+  id: string;
+  name: string;
+  label: string;
+  maxWeightGrams: number;
+  tareWeightGrams: number;
+  costPriceKrw: string; // BigInt string
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Waitlist Schemas
 export const productWaitlistSchema = z.object({
   id: z.string().uuid(),

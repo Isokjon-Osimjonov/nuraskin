@@ -9,10 +9,11 @@ import {
   customers,
   settings,
   korShippingTiers,
+  shippingBoxes,
   stockReservations,
 } from '@nuraskin/database';
 import { eq, and, isNull, sql, desc, inArray, asc } from 'drizzle-orm';
-import type { KorShippingTierInput } from '@nuraskin/shared-types';
+import type { KorShippingTierInput, ShippingBoxInput } from '@nuraskin/shared-types';
 
 export async function findActiveProducts(filters: {
   categoryId?: string;
@@ -299,4 +300,36 @@ export async function updateShippingTier(id: string, input: Partial<KorShippingT
 
 export async function deleteShippingTier(id: string) {
   await db.delete(korShippingTiers).where(eq(korShippingTiers.id, id));
+}
+
+// Shipping Boxes
+export async function listShippingBoxes() {
+  return await db.select().from(shippingBoxes).orderBy(asc(shippingBoxes.sortOrder));
+}
+
+export async function createShippingBox(input: ShippingBoxInput) {
+  const [row] = await db
+    .insert(shippingBoxes)
+    .values({
+      ...input,
+      costPriceKrw: BigInt(input.costPriceKrw),
+    })
+    .returning();
+  return row;
+}
+
+export async function updateShippingBox(id: string, input: Partial<ShippingBoxInput>) {
+  const updateData: any = { ...input };
+  if (input.costPriceKrw !== undefined) updateData.costPriceKrw = BigInt(input.costPriceKrw);
+
+  const [row] = await db
+    .update(shippingBoxes)
+    .set(updateData)
+    .where(eq(shippingBoxes.id, id))
+    .returning();
+  return row;
+}
+
+export async function deleteShippingBox(id: string) {
+  await db.delete(shippingBoxes).where(eq(shippingBoxes.id, id));
 }

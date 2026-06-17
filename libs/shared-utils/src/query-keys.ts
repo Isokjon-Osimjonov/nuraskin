@@ -35,6 +35,9 @@ export const queryKeys = {
   shippingTiers: {
     all: () => ['shipping-tiers'] as const,
   },
+  shippingBoxes: {
+    all: () => ['shipping-boxes'] as const,
+  },
   team: {
     all: () => ['team'] as const,
   },

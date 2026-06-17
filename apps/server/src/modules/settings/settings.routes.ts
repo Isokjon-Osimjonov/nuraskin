@@ -19,4 +19,10 @@ router.post('/shipping-tiers', asyncHandler(ctrl.createTier));
 router.patch('/shipping-tiers/:id', asyncHandler(ctrl.updateTier));
 router.delete('/shipping-tiers/:id', asyncHandler(ctrl.removeTier));
 
+// Shipping Boxes
+router.get('/shipping-boxes', asyncHandler(ctrl.listBoxes));
+router.post('/shipping-boxes', asyncHandler(ctrl.createBox));
+router.patch('/shipping-boxes/:id', asyncHandler(ctrl.updateBox));
+router.delete('/shipping-boxes/:id', asyncHandler(ctrl.removeBox));
+
 export default router;

@@ -1,5 +1,11 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ShoppingBag, Bell } from 'lucide-react';
+import { ShoppingBag, Bell, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAppStore } from '@/stores/app.store';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
@@ -115,9 +121,26 @@ export function RecentProductsSection() {
                       </Link>
 
                       <div className="flex items-center justify-between mt-auto">
-                        <span className={typography.cardPrice}>
-                          {displayPrice(product.calculatedPrice)}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className={typography.cardPrice}>
+                            {displayPrice(product.calculatedPrice)}
+                          </span>
+                          {regionCode === 'UZB' && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-[10px] text-emerald-600 font-normal uppercase tracking-tight flex items-center gap-0.5 cursor-help">
+                                    Kargo ichida
+                                    <Info className="w-2.5 h-2.5" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-[200px] text-[11px] leading-tight">
+                                  Narxga yetkazib berish va qadoqlash xarajati kiritilgan.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                         {!product.inStock || product.availableStock <= 0 ? (
                           <button
                             aria-label="Xabardor qiling"

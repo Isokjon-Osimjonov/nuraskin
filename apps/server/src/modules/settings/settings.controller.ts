@@ -4,6 +4,7 @@ import {
   updateSettingsSchema,
   korShippingTierSchema,
   updatePaymentInfoSchema,
+  shippingBoxSchema,
 } from '@nuraskin/shared-types';
 
 export async function get(req: Request, res: Response) {
@@ -63,5 +64,28 @@ export async function updateTier(req: Request, res: Response) {
 
 export async function removeTier(req: Request, res: Response) {
   await service.deleteShippingTier(req.params.id);
+  res.status(204).end();
+}
+
+// Shipping Boxes
+export async function listBoxes(req: Request, res: Response) {
+  const result = await service.listShippingBoxes();
+  res.json(result);
+}
+
+export async function createBox(req: Request, res: Response) {
+  const input = shippingBoxSchema.parse(req.body);
+  const result = await service.createShippingBox(input);
+  res.status(201).json(result);
+}
+
+export async function updateBox(req: Request, res: Response) {
+  const input = shippingBoxSchema.partial().parse(req.body);
+  const result = await service.updateShippingBox(req.params.id, input);
+  res.json(result);
+}
+
+export async function removeBox(req: Request, res: Response) {
+  await service.deleteShippingBox(req.params.id);
   res.status(204).end();
 }

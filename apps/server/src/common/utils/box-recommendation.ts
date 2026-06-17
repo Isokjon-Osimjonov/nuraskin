@@ -8,8 +8,8 @@ interface BoxSelection {
   tareWeightGrams: number;
 }
 
-export async function getActiveBoxes(): Promise<ShippingBox[]> {
-  return await db.select().from(shippingBoxes).where(eq(shippingBoxes.isActive, true));
+export async function getActiveBoxes(tx: any = db): Promise<ShippingBox[]> {
+  return await tx.select().from(shippingBoxes).where(eq(shippingBoxes.isActive, true));
 }
 
 export function recommendBoxes(

@@ -4,6 +4,8 @@ import type {
   UpdateSettingsInput,
   KorShippingTierResponse,
   KorShippingTierInput,
+  ShippingBoxResponse,
+  ShippingBoxInput,
 } from '@nuraskin/shared-types';
 
 export const settingsApi = {
@@ -25,4 +27,17 @@ export const settingsApi = {
 
   deleteShippingTier: (id: string): Promise<void> =>
     api.delete<any>(`/settings/shipping-tiers/${id}`),
+
+  // Shipping Boxes
+  listShippingBoxes: (): Promise<ShippingBoxResponse[]> =>
+    api.get<any>('/settings/shipping-boxes'),
+
+  createShippingBox: (data: ShippingBoxInput): Promise<ShippingBoxResponse> =>
+    api.post<any>('/settings/shipping-boxes', data),
+
+  updateShippingBox: (id: string, data: Partial<ShippingBoxInput>): Promise<ShippingBoxResponse> =>
+    api.patch<any>(`/settings/shipping-boxes/${id}`, data),
+
+  deleteShippingBox: (id: string): Promise<void> =>
+    api.delete<any>(`/settings/shipping-boxes/${id}`),
 };

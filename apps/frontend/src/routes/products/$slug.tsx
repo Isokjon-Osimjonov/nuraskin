@@ -9,7 +9,14 @@ import {
   Truck,
   Bell,
   BellOff,
+  Info,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
@@ -159,9 +166,21 @@ function ProductPage() {
                   </span>
                 )}
                 {regionCode === 'UZB' && (
-                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-normal uppercase tracking-tight">
-                    Kargo ichida
-                  </span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-normal uppercase tracking-tight flex items-center gap-1 cursor-help">
+                          Kargo ichida
+                          <Info className="w-3 h-3" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[280px] text-[12px] leading-relaxed">
+                        Narxga yetkazib berish va qadoqlash xarajati kiritilgan. Bir nechta
+                        mahsulotni birga buyurtma qilsangiz, ular bitta qutida yuborilgani uchun narx
+                        biroz arzonlashishi mumkin.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
               <div className="flex flex-col gap-1 text-sm text-stone-500">

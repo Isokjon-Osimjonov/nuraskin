@@ -69,6 +69,7 @@ const navMain = [
       { title: 'Sozlamalar', url: '/settings', icon: Settings2 },
       { title: 'Valyuta kurslari', url: '/settings/rates', icon: TrendingUp },
       { title: 'Yetkazib berish', url: '/settings/shipping-tiers', icon: Truck },
+      { title: 'Kargo qutilari', url: '/settings/shipping-boxes', icon: Boxes },
       { title: 'Jamoa', url: '/settings/team', icon: Users },
     ],
   },

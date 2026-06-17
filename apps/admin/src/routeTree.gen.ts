@@ -26,6 +26,7 @@ import { Route as AppCouponsIndexRouteImport } from './routes/_app/coupons/index
 import { Route as AppTelegramChannelsRouteImport } from './routes/_app/telegram/channels'
 import { Route as AppSettingsTeamRouteImport } from './routes/_app/settings/team'
 import { Route as AppSettingsShippingTiersRouteImport } from './routes/_app/settings/shipping-tiers'
+import { Route as AppSettingsShippingBoxesRouteImport } from './routes/_app/settings/shipping-boxes'
 import { Route as AppSettingsRatesRouteImport } from './routes/_app/settings/rates'
 import { Route as AppSettingsProfileRouteImport } from './routes/_app/settings/profile'
 import { Route as AppProductsNewRouteImport } from './routes/_app/products/new'
@@ -127,6 +128,12 @@ const AppSettingsShippingTiersRoute =
     path: '/settings/shipping-tiers',
     getParentRoute: () => AppRoute,
   } as any)
+const AppSettingsShippingBoxesRoute =
+  AppSettingsShippingBoxesRouteImport.update({
+    id: '/settings/shipping-boxes',
+    path: '/settings/shipping-boxes',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppSettingsRatesRoute = AppSettingsRatesRouteImport.update({
   id: '/settings/rates',
   path: '/settings/rates',
@@ -221,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/products/new': typeof AppProductsNewRoute
   '/settings/profile': typeof AppSettingsProfileRoute
   '/settings/rates': typeof AppSettingsRatesRoute
+  '/settings/shipping-boxes': typeof AppSettingsShippingBoxesRoute
   '/settings/shipping-tiers': typeof AppSettingsShippingTiersRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/telegram/channels': typeof AppTelegramChannelsRoute
@@ -254,6 +262,7 @@ export interface FileRoutesByTo {
   '/products/new': typeof AppProductsNewRoute
   '/settings/profile': typeof AppSettingsProfileRoute
   '/settings/rates': typeof AppSettingsRatesRoute
+  '/settings/shipping-boxes': typeof AppSettingsShippingBoxesRoute
   '/settings/shipping-tiers': typeof AppSettingsShippingTiersRoute
   '/settings/team': typeof AppSettingsTeamRoute
   '/telegram/channels': typeof AppTelegramChannelsRoute
@@ -289,6 +298,7 @@ export interface FileRoutesById {
   '/_app/products/new': typeof AppProductsNewRoute
   '/_app/settings/profile': typeof AppSettingsProfileRoute
   '/_app/settings/rates': typeof AppSettingsRatesRoute
+  '/_app/settings/shipping-boxes': typeof AppSettingsShippingBoxesRoute
   '/_app/settings/shipping-tiers': typeof AppSettingsShippingTiersRoute
   '/_app/settings/team': typeof AppSettingsTeamRoute
   '/_app/telegram/channels': typeof AppTelegramChannelsRoute
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/settings/profile'
     | '/settings/rates'
+    | '/settings/shipping-boxes'
     | '/settings/shipping-tiers'
     | '/settings/team'
     | '/telegram/channels'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/settings/profile'
     | '/settings/rates'
+    | '/settings/shipping-boxes'
     | '/settings/shipping-tiers'
     | '/settings/team'
     | '/telegram/channels'
@@ -391,6 +403,7 @@ export interface FileRouteTypes {
     | '/_app/products/new'
     | '/_app/settings/profile'
     | '/_app/settings/rates'
+    | '/_app/settings/shipping-boxes'
     | '/_app/settings/shipping-tiers'
     | '/_app/settings/team'
     | '/_app/telegram/channels'
@@ -534,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsShippingTiersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings/shipping-boxes': {
+      id: '/_app/settings/shipping-boxes'
+      path: '/settings/shipping-boxes'
+      fullPath: '/settings/shipping-boxes'
+      preLoaderRoute: typeof AppSettingsShippingBoxesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings/rates': {
       id: '/_app/settings/rates'
       path: '/settings/rates'
@@ -658,6 +678,7 @@ interface AppRouteChildren {
   AppProductsNewRoute: typeof AppProductsNewRoute
   AppSettingsProfileRoute: typeof AppSettingsProfileRoute
   AppSettingsRatesRoute: typeof AppSettingsRatesRoute
+  AppSettingsShippingBoxesRoute: typeof AppSettingsShippingBoxesRoute
   AppSettingsShippingTiersRoute: typeof AppSettingsShippingTiersRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppTelegramChannelsRoute: typeof AppTelegramChannelsRoute
@@ -690,6 +711,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProductsNewRoute: AppProductsNewRoute,
   AppSettingsProfileRoute: AppSettingsProfileRoute,
   AppSettingsRatesRoute: AppSettingsRatesRoute,
+  AppSettingsShippingBoxesRoute: AppSettingsShippingBoxesRoute,
   AppSettingsShippingTiersRoute: AppSettingsShippingTiersRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppTelegramChannelsRoute: AppTelegramChannelsRoute,

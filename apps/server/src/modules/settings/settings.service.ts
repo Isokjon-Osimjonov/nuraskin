@@ -1,5 +1,9 @@
 import * as repository from './settings.repository';
-import type { UpdateSettingsInput, KorShippingTierInput } from '@nuraskin/shared-types';
+import type {
+  UpdateSettingsInput,
+  KorShippingTierInput,
+  ShippingBoxInput,
+} from '@nuraskin/shared-types';
 import * as storefrontService from '../storefront/storefront.service';
 
 export async function getSettings() {
@@ -63,4 +67,21 @@ export async function updateShippingTier(id: string, input: Partial<KorShippingT
 
 export async function deleteShippingTier(id: string) {
   return await storefrontService.deleteShippingTier(id);
+}
+
+// Delegate shipping boxes to storefront service
+export async function listShippingBoxes() {
+  return await storefrontService.listShippingBoxes();
+}
+
+export async function createShippingBox(input: ShippingBoxInput) {
+  return await storefrontService.createShippingBox(input);
+}
+
+export async function updateShippingBox(id: string, input: Partial<ShippingBoxInput>) {
+  return await storefrontService.updateShippingBox(id, input);
+}
+
+export async function deleteShippingBox(id: string) {
+  return await storefrontService.deleteShippingBox(id);
 }

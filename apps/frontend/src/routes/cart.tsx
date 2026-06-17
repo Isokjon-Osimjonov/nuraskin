@@ -11,7 +11,14 @@ import {
   ShoppingBag,
   CheckCircle2,
   AlertTriangle,
+  Info,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAppStore } from '@/stores/app.store';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
@@ -284,7 +291,24 @@ function CartPage() {
 
                 {cartRegion === 'UZB' && (
                   <div className="flex justify-between items-center text-white/70 text-[13px] font-light">
-                    <span>Kargo (kiritilgan):</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="flex items-center gap-1 cursor-help underline underline-offset-2 decoration-white/20">
+                            Kargo (kiritilgan):
+                            <Info className="w-3 h-3" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="left"
+                          className="max-w-[250px] text-[12px] leading-relaxed bg-stone-800 border-stone-700 text-white"
+                        >
+                          Narxga yetkazib berish va qadoqlash xarajati kiritilgan. Bir nechta
+                          mahsulotni birga buyurtma qilsangiz, ular bitta qutida yuborilgani uchun
+                          narx biroz arzonlashishi mumkin.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <span className="text-emerald-400 font-normal">BEPUL ✓</span>
                   </div>
                 )}

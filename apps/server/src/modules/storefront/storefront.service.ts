@@ -41,6 +41,7 @@ import type {
   ValidateCouponInput,
   CouponValidationResponse,
   KorShippingTierInput,
+  ShippingBoxInput,
 } from '@nuraskin/shared-types';
 
 // Initialize Cloudinary
@@ -749,6 +750,23 @@ export async function updateShippingTier(id: string, input: Partial<KorShippingT
 
 export async function deleteShippingTier(id: string) {
   return await storefrontRepository.deleteShippingTier(id);
+}
+
+// Shipping Boxes
+export async function listShippingBoxes() {
+  return await storefrontRepository.listShippingBoxes();
+}
+
+export async function createShippingBox(input: ShippingBoxInput) {
+  return await storefrontRepository.createShippingBox(input);
+}
+
+export async function updateShippingBox(id: string, input: Partial<ShippingBoxInput>) {
+  return await storefrontRepository.updateShippingBox(id, input);
+}
+
+export async function deleteShippingBox(id: string) {
+  return await storefrontRepository.deleteShippingBox(id);
 }
 
 export async function getMyOrders(customerId: string) {
