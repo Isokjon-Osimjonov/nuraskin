@@ -16,3 +16,4 @@ export * from './coupons';
 export * from './telegram-marketing';
 export * from './expenses';
 export * from './daily-sales';
+export * from './shipping-boxes';

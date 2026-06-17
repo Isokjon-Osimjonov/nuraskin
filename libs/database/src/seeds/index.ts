@@ -1,5 +1,11 @@
 import { db } from '../client';
-import { healthChecks, settings, exchangeRateSnapshots, korShippingTiers } from '../schema';
+import {
+  healthChecks,
+  settings,
+  exchangeRateSnapshots,
+  korShippingTiers,
+  shippingBoxes,
+} from '../schema';
 import { adminUser } from './admin-user';
 
 async function main(): Promise<void> {
@@ -40,6 +46,41 @@ async function main(): Promise<void> {
         { maxOrderKrw: 200000n, cargoFeeKrw: 8000n, sortOrder: 2 },
         { maxOrderKrw: 300000n, cargoFeeKrw: 6000n, sortOrder: 3 },
         { maxOrderKrw: null, cargoFeeKrw: 0n, sortOrder: 4 },
+      ])
+      .onConflictDoNothing(),
+
+    // Shipping boxes
+    db
+      .insert(shippingBoxes)
+      .values([
+        {
+          name: 'S',
+          label: 'Kichik (1kg gacha)',
+          maxWeightGrams: 1000,
+          tareWeightGrams: 50,
+          sortOrder: 1,
+        },
+        {
+          name: 'M',
+          label: "O'rta (3kg gacha)",
+          maxWeightGrams: 3000,
+          tareWeightGrams: 90,
+          sortOrder: 2,
+        },
+        {
+          name: 'L',
+          label: 'Katta (6kg gacha)',
+          maxWeightGrams: 6000,
+          tareWeightGrams: 140,
+          sortOrder: 3,
+        },
+        {
+          name: 'XL',
+          label: 'Juda katta (12kg gacha)',
+          maxWeightGrams: 12000,
+          tareWeightGrams: 220,
+          sortOrder: 4,
+        },
       ])
       .onConflictDoNothing(),
   ]);
