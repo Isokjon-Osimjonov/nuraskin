@@ -15,10 +15,10 @@ export async function getKPIs(region: string) {
   const isAll = region === 'ALL';
   const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
 
-  const krwTotalAmountSql = sql`CASE 
-    WHEN ${orders.regionCode} = 'KOR' THEN ${orders.totalAmount}
-    WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
-    ELSE ${orders.totalAmount}
+  const krwSubtotalAmountSql = sql`CASE 
+    WHEN ${orders.regionCode} = 'KOR' THEN ${orders.subtotal}
+    WHEN ${orders.regionCode} = 'UZB' THEN ROUND((${orders.subtotal}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric)
+    ELSE ${orders.subtotal}
   END`;
 
   const krwDiscountAmountSql = sql`CASE 
@@ -36,7 +36,7 @@ export async function getKPIs(region: string) {
 
   const orderStats = await db
     .select({
-      revenue: sql<bigint>`coalesce(sum(${krwTotalAmountSql}), 0)::bigint`,
+      revenue: sql<bigint>`coalesce(sum(${krwSubtotalAmountSql}), 0)::bigint`,
       discounts: sql<bigint>`coalesce(sum(${krwDiscountAmountSql}), 0)::bigint`,
       orderCount: countDistinct(orders.id),
       cargo: sql<bigint>`coalesce(sum(${orders.cargoCostKrw}), 0)::bigint`,
@@ -55,22 +55,12 @@ export async function getKPIs(region: string) {
     .where(commonWhere)
     .then(res => res[0]);
 
-  const shippingExpenseStats = await db
-    .select({
-      total: sql<bigint>`coalesce(sum(${orderExpenses.amountKrw}), 0)::bigint`,
-    })
-    .from(orderExpenses)
-    .innerJoin(orders, eq(orders.id, orderExpenses.orderId))
-    .where(and(eq(orderExpenses.type, 'SHIPPING'), commonWhere))
-    .then(res => res[0]);
-
-  const rev = BigInt(orderStats?.revenue ?? '0');
+  const grossRev = BigInt(orderStats?.revenue ?? '0');
   const discounts = BigInt(orderStats?.discounts ?? '0');
-  const grossRev = rev + discounts;
+  const netRev = grossRev - discounts;
   const cogs = BigInt(cogsStats?.cogs ?? '0');
-  const shippingExpense = BigInt(shippingExpenseStats?.total ?? '0');
-  const grossProfit = rev - cogs - shippingExpense;
-  const margin = rev > 0n ? Number((grossProfit * 10000n) / rev) / 100 : 0;
+  const grossProfit = netRev - cogs;
+  const margin = netRev > 0n ? Number((grossProfit * 10000n) / netRev) / 100 : 0;
   const orderCount = Number(orderStats?.orderCount ?? 0);
 
   // 2. Inventory Value (Live)
@@ -84,7 +74,7 @@ export async function getKPIs(region: string) {
 
   // 3. Outstanding Debt
   const debt = await db
-    .select({ total: sql<bigint>`coalesce(sum(${krwTotalAmountSql}), 0)::bigint` })
+    .select({ total: sql<bigint>`coalesce(sum(${krwSubtotalAmountSql}), 0)::bigint` })
     .from(orders)
     .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(sql`${orders.status} IN ('PENDING_PAYMENT', 'PAYMENT_SUBMITTED')`)
@@ -138,7 +128,7 @@ export async function getKPIs(region: string) {
     .having(sql`coalesce(sum(${inventoryBatches.currentQty}), 0) < ${globalThreshold}`);
 
   return {
-    revenue_today_krw: rev.toString(),
+    revenue_today_krw: netRev.toString(),
     gross_revenue_today_krw: grossRev.toString(),
     discounts_today_krw: discounts.toString(),
     orders_today: orderCount,
@@ -157,7 +147,7 @@ export async function getKPIs(region: string) {
 export async function getTrend(region: string) {
   const isAll = region === 'ALL';
 
-  const uzbRevenueKrwSql = sql<bigint>`coalesce(sum(case when ${orders.regionCode} = 'UZB' then ROUND((${orders.totalAmount}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric) else 0 end), 0)::bigint`;
+  const uzbRevenueKrwSql = sql<bigint>`coalesce(sum(case when ${orders.regionCode} = 'UZB' then ROUND((${orders.subtotal}::numeric / 100) / COALESCE(${exchangeRateSnapshots.krwToUzs}, (SELECT krw_to_uzs FROM exchange_rate_snapshots ORDER BY created_at DESC LIMIT 1))::numeric) else 0 end), 0)::bigint`;
 
   // 1. Generate last 7 days in Asia/Seoul
   const last7DaysStrings = Array.from({ length: 7 }, (_, i) => {

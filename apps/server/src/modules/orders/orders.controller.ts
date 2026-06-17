@@ -7,6 +7,7 @@ import {
   updateOrderStatusSchema,
   scanItemSchema,
   createOrderExpenseSchema,
+  updateOrderExpenseSchema,
   createManualOrderSchema,
   confirmManualPaymentSchema,
 } from '@nuraskin/shared-types';
@@ -100,6 +101,22 @@ export async function createOrderExpense(req: Request, res: Response) {
   if (!adminId) throw new UnauthorizedError();
   const result = await orderExpensesService.createOrderExpense(req.params.id, input, adminId);
   res.status(201).json(result);
+}
+
+export async function updateOrderExpense(req: Request, res: Response) {
+  const input = updateOrderExpenseSchema.parse(req.body);
+  const adminId = req.user?.sub;
+  if (!adminId) throw new UnauthorizedError();
+  const isAdminSuper = req.user?.role === 'SUPER_ADMIN';
+
+  const result = await orderExpensesService.updateOrderExpense(
+    req.params.id,
+    req.params.expenseId,
+    input,
+    adminId,
+    isAdminSuper
+  );
+  res.json(result);
 }
 
 export async function deleteOrderExpense(req: Request, res: Response) {

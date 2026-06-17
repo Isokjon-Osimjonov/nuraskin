@@ -65,10 +65,14 @@ export function AddExpenseSheet({
     if (open) {
       if (expense) {
         form.reset({
-          category: expense.category,
-          amountKrw: expense.amountKrw,
-          description: expense.description,
-          expenseDate: expense.expenseDate,
+          category: expense.category || 'OTHER',
+          amountKrw: Number(expense.amountKrw),
+          description: expense.description || expense.note || '',
+          expenseDate:
+            expense.expenseDate ||
+            (expense.createdAt
+              ? expense.createdAt.split('T')[0]
+              : new Date().toISOString().split('T')[0]),
           receiptUrl: expense.receiptUrl || '',
         });
       } else {
@@ -88,11 +92,31 @@ export function AddExpenseSheet({
       if (isEdit) {
         // Only send changed fields
         const changedFields: any = {};
+        const oldValues = {
+          category: expense.category,
+          amountKrw: Number(expense.amountKrw),
+          description: expense.description || expense.note || '',
+          expenseDate:
+            expense.expenseDate ||
+            (expense.createdAt
+              ? expense.createdAt.split('T')[0]
+              : new Date().toISOString().split('T')[0]),
+          receiptUrl: expense.receiptUrl || '',
+        };
+
         Object.keys(data).forEach(key => {
-          if ((data as any)[key] !== (expense as any)[key]) {
-            changedFields[key] = (data as any)[key];
+          if ((data as any)[key] !== (oldValues as any)[key]) {
+            if (expense.orderId && key === 'description') {
+              changedFields.note = (data as any)[key];
+            } else {
+              changedFields[key] = (data as any)[key];
+            }
           }
         });
+
+        if (expense.orderId) {
+          return accountingApi.updateOrderExpense(expense.orderId, expense.id, changedFields);
+        }
         return accountingApi.updateExpense(expense.id, changedFields);
       }
       return accountingApi.createExpense(data);
@@ -154,18 +178,36 @@ export function AddExpenseSheet({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Kategoriya</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isEdit && !!expense.orderId}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Kategoriyani tanlang" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PACKAGING">Qadoqlash</SelectItem>
-                      <SelectItem value="PLATFORM_FEE">Platforma to'lovi</SelectItem>
-                      <SelectItem value="SUPPLIES">Materiallar</SelectItem>
-                      <SelectItem value="WAGES">Ish haqi</SelectItem>
-                      <SelectItem value="OTHER">Boshqa</SelectItem>
+                      {isEdit && expense.orderId ? (
+                        <SelectItem value={expense.category || 'OTHER'}>
+                          {expense.type === 'SHIPPING'
+                            ? 'Yetkazib berish (Auto)'
+                            : expense.type === 'FREE_SHIPPING_SUBSIDY'
+                              ? 'Tekin yetkazish (Subsidya)'
+                              : expense.type === 'CARGO_OVERAGE'
+                                ? 'Kargo farqi'
+                                : expense.type || 'Buyurtma xarajati'}
+                        </SelectItem>
+                      ) : (
+                        <>
+                          <SelectItem value="PACKAGING">Qadoqlash</SelectItem>
+                          <SelectItem value="PLATFORM_FEE">Platforma to'lovi</SelectItem>
+                          <SelectItem value="SUPPLIES">Materiallar</SelectItem>
+                          <SelectItem value="WAGES">Ish haqi</SelectItem>
+                          <SelectItem value="OTHER">Boshqa</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

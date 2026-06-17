@@ -128,7 +128,12 @@ export interface OrderResponse {
   items: OrderItemResponse[];
 }
 
-export const orderExpenseTypeSchema = z.enum(['FREE_SHIPPING_SUBSIDY', 'CARGO_OVERAGE', 'OTHER']);
+export const orderExpenseTypeSchema = z.enum([
+  'SHIPPING',
+  'FREE_SHIPPING_SUBSIDY',
+  'CARGO_OVERAGE',
+  'OTHER',
+]);
 
 export type OrderExpenseType = z.infer<typeof orderExpenseTypeSchema>;
 
@@ -139,6 +144,13 @@ export const createOrderExpenseSchema = z.object({
 });
 
 export type CreateOrderExpenseInput = z.infer<typeof createOrderExpenseSchema>;
+
+export const updateOrderExpenseSchema = z.object({
+  amountKrw: z.number().int().positive(),
+  note: z.string().max(500).optional(),
+});
+
+export type UpdateOrderExpenseInput = z.infer<typeof updateOrderExpenseSchema>;
 
 export const createManualOrderSchema = z.object({
   customerId: z.string().uuid(),

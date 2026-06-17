@@ -86,6 +86,7 @@ export async function getMonthlyExpenseSummary(month: string) {
   }
 
   const orderExpensesByType = {
+    SHIPPING: 0n,
     FREE_SHIPPING_SUBSIDY: 0n,
     CARGO_OVERAGE: 0n,
     OTHER: 0n,
@@ -109,6 +110,7 @@ export async function getMonthlyExpenseSummary(month: string) {
       OTHER: byCategory.OTHER.toString(),
     },
     orderExpensesByType: {
+      SHIPPING: orderExpensesByType.SHIPPING.toString(),
       FREE_SHIPPING_SUBSIDY: orderExpensesByType.FREE_SHIPPING_SUBSIDY.toString(),
       CARGO_OVERAGE: orderExpensesByType.CARGO_OVERAGE.toString(),
       OTHER: orderExpensesByType.OTHER.toString(),
@@ -155,14 +157,17 @@ export async function getAccountingSummary(month: string) {
 
   const netRevenue = korRevenue + uzbRevenue;
   const totalDiscounts = korDiscounts + uzbDiscounts;
-  const grossRevenue = netRevenue + totalDiscounts; // Net Revenue + Discounts = Gross Revenue
+  const grossRevenue = netRevenue + totalDiscounts;
 
-  const grossProfit = netRevenue - totalCogs - totalCargo; // Net Revenue is what we actually received
+  const shippingExpense = BigInt(expensesSummary.orderExpensesByType.SHIPPING);
+  const grossProfit = netRevenue - totalCogs - shippingExpense;
   const grossMarginPercent =
     netRevenue > 0n ? Number((grossProfit * 10000n) / netRevenue) / 100 : 0;
 
-  const grandTotalExpenses = BigInt(expensesSummary.grandTotalKrw);
-  const netProfit = grossProfit - grandTotalExpenses;
+  // Standalone expenses + other order-linked expenses (excluding SHIPPING which is already in grossProfit)
+  const otherExpenses =
+    BigInt(expensesSummary.grandTotalKrw) - shippingExpense;
+  const netProfit = grossProfit - otherExpenses;
   const netMarginPercent = netRevenue > 0n ? Number((netProfit * 10000n) / netRevenue) / 100 : 0;
 
   let inventoryTotalValue = 0n;
@@ -198,7 +203,8 @@ export async function getAccountingSummary(month: string) {
       total_krw: totalCogs.toString(),
     },
     cargo: {
-      total_krw: totalCargo.toString(),
+      collected_krw: totalCargo.toString(),
+      paid_krw: shippingExpense.toString(),
     },
     gross_profit: {
       total_krw: grossProfit.toString(),
@@ -293,7 +299,7 @@ export async function exportAccountingToExcel(month: string) {
   });
   plSheet.addRow({ label: 'Jami netto daromad', value: Number(summary.revenue.total_krw) });
   plSheet.addRow({ label: 'COGS', value: -Number(summary.cogs.total_krw) });
-  plSheet.addRow({ label: 'Yetkazib berish', value: -Number(summary.cargo.total_krw) });
+  plSheet.addRow({ label: 'Yetkazib berish', value: -Number(summary.cargo.collected_krw) });
   plSheet.addRow({
     label: 'Yalpi foyda',
     value: Number(summary.gross_profit.total_krw),

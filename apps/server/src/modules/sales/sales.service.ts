@@ -9,8 +9,10 @@ export async function listSalesOrders(
   page = 1,
   limit = 10
 ) {
-  const endDate = to || new Date().toISOString().split('T')[0];
-  const startDate = from || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const seoulTodayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  const endDate = to || seoulTodayStr;
+  const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const startDate = from || new Date(seoulNow.setDate(seoulNow.getDate() - 30)).toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
   const offset = (page - 1) * limit;
   let regionFilter = sql`1=1`;
@@ -20,8 +22,8 @@ export async function listSalesOrders(
 
   const whereClauses = and(
     inArray(orders.status, PAID_STATUSES),
-    sql`${orders.paymentConfirmedAt} >= (${startDate}::text || ' 00:00:00+09')::timestamptz`,
-    sql`${orders.paymentConfirmedAt} <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz`,
+    sql`DATE(${orders.paymentConfirmedAt} AT TIME ZONE 'Asia/Seoul') >= ${startDate}::date`,
+    sql`DATE(${orders.paymentConfirmedAt} AT TIME ZONE 'Asia/Seoul') <= ${endDate}::date`,
     regionFilter
   );
 
@@ -75,8 +77,10 @@ export async function listSalesOrders(
 }
 
 export async function getLiveSales(from?: string, to?: string, regionCode?: string) {
-  const endDate = to || new Date().toISOString().split('T')[0];
-  const startDate = from || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const seoulTodayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  const endDate = to || seoulTodayStr;
+  const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const startDate = from || new Date(seoulNow.setDate(seoulNow.getDate() - 30)).toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
   let regionFilter = sql`1=1`;
   if (regionCode && regionCode.toLowerCase() !== 'all') {
@@ -112,8 +116,8 @@ export async function getLiveSales(from?: string, to?: string, regionCode?: stri
     JOIN products p ON oi.product_id = p.id
     LEFT JOIN exchange_rate_snapshots ers ON o.rate_snapshot_id = ers.id
     WHERE o.status IN ('PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED')
-      AND o.payment_confirmed_at >= (${startDate}::text || ' 00:00:00+09')::timestamptz
-      AND o.payment_confirmed_at <= (${endDate}::text || ' 23:59:59.999+09')::timestamptz
+      AND DATE(o.payment_confirmed_at AT TIME ZONE 'Asia/Seoul') >= ${startDate}::date
+      AND DATE(o.payment_confirmed_at AT TIME ZONE 'Asia/Seoul') <= ${endDate}::date
       AND ${regionFilter}
   `);
 
@@ -210,7 +214,7 @@ function formatResponse(
   const netRevenue = totalRevenue - totalDiscounts;
   const marginStr =
     netRevenue > 0n
-      ? ((Number(netRevenue - totalCogs - totalCargo) / Number(netRevenue)) * 100).toFixed(1) + '%'
+      ? ((Number(netRevenue - totalCogs) / Number(netRevenue)) * 100).toFixed(1) + '%'
       : '0.0%';
 
   return {
@@ -240,7 +244,7 @@ function formatResponse(
         grossMargin:
           p.revenueKrw > 0n
             ? (
-                (Number(p.revenueKrw - p.cogsKrw - p.cargoKrw) / Number(p.revenueKrw)) *
+                (Number(p.revenueKrw - p.cogsKrw) / Number(p.revenueKrw)) *
                 100
               ).toFixed(1) + '%'
             : '0.0%',

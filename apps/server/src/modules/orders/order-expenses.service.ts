@@ -30,6 +30,32 @@ export async function getOrderExpenses(orderId: string) {
   return await repository.findByOrderId(orderId);
 }
 
+export async function updateOrderExpense(
+  orderId: string,
+  expenseId: string,
+  input: { amountKrw?: number; note?: string },
+  adminId: string,
+  isAdminSuper: boolean
+) {
+  const expense = await repository.findById(expenseId);
+  if (!expense || expense.orderId !== orderId) throw new NotFoundError('Order expense not found');
+
+  if (expense.createdBy !== adminId && !isAdminSuper) {
+    throw new ForbiddenError('Only SUPER_ADMIN or the creator can edit this expense');
+  }
+
+  const updateData: any = {};
+  if (input.amountKrw !== undefined) updateData.amountKrw = BigInt(input.amountKrw);
+  if (input.note !== undefined) updateData.note = input.note || null;
+  updateData.isAuto = false; // Mark as manual once edited
+
+  const result = await repository.update(expenseId, updateData);
+  return {
+    ...result,
+    amountKrw: result.amountKrw.toString(),
+  };
+}
+
 export async function deleteOrderExpense(
   orderId: string,
   expenseId: string,

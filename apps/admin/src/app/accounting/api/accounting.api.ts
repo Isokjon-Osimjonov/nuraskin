@@ -30,8 +30,12 @@ export const accountingApi = {
     return await api.delete<any>(`/admin/expenses/${id}`);
   },
 
+  updateOrderExpense: async (orderId: string, expenseId: string, data: any) => {
+    return await api.patch<any>(`/orders/${orderId}/expenses/${expenseId}`, data);
+  },
+
   deleteOrderExpense: async (orderId: string, expenseId: string) => {
-    return await api.delete<any>(`/admin/orders/${orderId}/expenses/${expenseId}`);
+    return await api.delete<any>(`/orders/${orderId}/expenses/${expenseId}`);
   },
 
   getUploadUrl: async (): Promise<{

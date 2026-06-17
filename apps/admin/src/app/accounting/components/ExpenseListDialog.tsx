@@ -135,7 +135,7 @@ export function ExpenseListDialog({
                     </div>
 
                     <div className="flex items-center gap-1 ml-4">
-                      {!isOrderLinked && onEdit && (
+                      {onEdit && (
                         <Button
                           variant="ghost"
                           size="icon"

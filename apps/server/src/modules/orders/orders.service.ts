@@ -14,6 +14,7 @@ import {
   orderStatusHistory,
   coupons,
   orderExpenses,
+  exchangeRateSnapshots,
 } from '@nuraskin/database';
 import { eq, sql, and, asc, gt, or, like } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
@@ -236,11 +237,11 @@ export async function confirmManualPayment(
       note: `Manual payment confirmed: ${input.paymentMethod}`,
     });
 
-    if (order.cargoFee && BigInt(order.cargoFee) > 0n) {
+    if (order.cargoCostKrw && BigInt(order.cargoCostKrw) > 0n) {
       await tx.insert(orderExpenses).values({
         orderId,
         type: 'SHIPPING',
-        amountKrw: BigInt(order.cargoFee),
+        amountKrw: BigInt(order.cargoCostKrw),
         note: `Auto kargo: #${order.orderNumber}`,
         createdBy: adminId,
         isAuto: true,
@@ -409,15 +410,14 @@ export async function createOrder(
           cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
         };
         const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
-        unitPrice = prices.productPrice + prices.cargoFee;
+        unitPrice = prices.productPrice;
+        itemCargo = prices.cargoFee;
 
         const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
-        retailPrice = retailRes.productPrice + retailRes.cargoFee;
+        retailPrice = retailRes.productPrice;
 
         const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
-        wholesalePrice = wholesaleRes.productPrice + wholesaleRes.cargoFee;
-        
-        itemCargo = 0n;
+        wholesalePrice = wholesaleRes.productPrice;
       } else {
         unitPrice = calculateKorPrice(baseKrw);
         retailPrice = calculateKorPrice(baseRetailKrw);
@@ -515,15 +515,14 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
       cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
     };
     const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
-    unitPrice = prices.productPrice + prices.cargoFee;
+    unitPrice = prices.productPrice;
+    itemCargo = prices.cargoFee;
 
     const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
-    retailPrice = retailRes.productPrice + retailRes.cargoFee;
+    retailPrice = retailRes.productPrice;
 
     const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
-    wholesalePrice = wholesaleRes.productPrice + wholesaleRes.cargoFee;
-
-    itemCargo = 0n;
+    wholesalePrice = wholesaleRes.productPrice;
   } else {
     unitPrice = calculateKorPrice(baseKrw);
     retailPrice = calculateKorPrice(baseRetailKrw);
@@ -600,6 +599,26 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     totalCargo = await calculateKorCargo(subtotal);
   }
 
+  let cargoCostKrw = 0n;
+  if (order.regionCode === 'KOR') {
+    cargoCostKrw = totalCargo;
+  } else if (order.regionCode === 'UZB') {
+    const rateSnapshot = order.rateSnapshotId
+      ? await tx
+          .select()
+          .from(exchangeRateSnapshots)
+          .where(eq(exchangeRateSnapshots.id, order.rateSnapshotId))
+          .limit(1)
+          .then((res: any[]) => res[0])
+      : await repository.getLatestRateSnapshot();
+
+    if (rateSnapshot) {
+      const weightKg = totalWeight / 1000;
+      const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
+      cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));
+    }
+  }
+
   let discount = BigInt(order.discountAmount || 0n);
 
   if (order.couponId) {
@@ -618,6 +637,7 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     .set({
       subtotal,
       cargoFee: totalCargo,
+      cargoCostKrw,
       totalAmount,
       totalWeightGrams: totalWeight,
       updatedAt: new Date(),
@@ -860,11 +880,11 @@ export async function transitionOrderStatus(
       note: input.note || input.paymentNote,
     });
 
-    if (to === 'PAYMENT_CONFIRMED' && order.cargoFee && BigInt(order.cargoFee) > 0n) {
+    if (to === 'PAYMENT_CONFIRMED' && order.cargoCostKrw && BigInt(order.cargoCostKrw) > 0n) {
       await tx.insert(orderExpenses).values({
         orderId,
         type: 'SHIPPING',
-        amountKrw: BigInt(order.cargoFee),
+        amountKrw: BigInt(order.cargoCostKrw),
         note: `Auto kargo: #${order.orderNumber}`,
         createdBy: adminId,
         isAuto: true,

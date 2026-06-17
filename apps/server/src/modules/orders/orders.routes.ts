@@ -75,6 +75,11 @@ router.post(
   requirePermission('orders:write'),
   asyncHandler(ctrl.createOrderExpense)
 );
+router.patch(
+  '/:id/expenses/:expenseId',
+  requirePermission('orders:write'),
+  asyncHandler(ctrl.updateOrderExpense)
+);
 router.delete(
   '/:id/expenses/:expenseId',
   requirePermission('orders:write'),

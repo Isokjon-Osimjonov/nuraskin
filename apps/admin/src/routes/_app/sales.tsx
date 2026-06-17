@@ -49,25 +49,44 @@ function SalesPage() {
   const [region, setRegion] = React.useState<Region>('all');
 
   const { from, to, prevFrom, prevTo } = React.useMemo(() => {
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const today = new Date();
-    const to = today.toISOString().split('T')[0];
+    const to = formatDate(today);
 
     let days = 30;
     if (period === '7d') days = 7;
     if (period === '90d') days = 90;
-    if (period === 'year') days = 365;
+    if (period === 'year') {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      const from = formatDate(startOfYear);
+      // For "this year", we compare against the same period last year
+      const prevToDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+      const prevFromDate = new Date(today.getFullYear() - 1, 0, 1);
+      return { 
+        from, 
+        to, 
+        prevFrom: formatDate(prevFromDate), 
+        prevTo: formatDate(prevToDate) 
+      };
+    }
 
-    const fromDate = new Date();
+    const fromDate = new Date(today);
     fromDate.setDate(today.getDate() - days);
-    const from = fromDate.toISOString().split('T')[0];
+    const from = formatDate(fromDate);
 
     const prevToDate = new Date(fromDate);
     prevToDate.setDate(prevToDate.getDate() - 1);
-    const prevTo = prevToDate.toISOString().split('T')[0];
+    const prevTo = formatDate(prevToDate);
 
     const prevFromDate = new Date(prevToDate);
     prevFromDate.setDate(prevFromDate.getDate() - days);
-    const prevFrom = prevFromDate.toISOString().split('T')[0];
+    const prevFrom = formatDate(prevFromDate);
 
     return { from, to, prevFrom, prevTo };
   }, [period]);
