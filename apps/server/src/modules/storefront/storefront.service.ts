@@ -109,7 +109,7 @@ export async function listProducts(
     let wholesalePrice = '0';
     if (region === 'UZB' && latestRate) {
       const scalingFactor = getWeightScalingFactor(p.weightGrams, activeBoxes);
-      const adjustedWeight = p.weightGrams * scalingFactor;
+      const adjustedWeight = Math.round(p.weightGrams * scalingFactor);
 
       const { productPrice, cargoFee } = calculateUzbPrice(
         BigInt(config.retailPrice),
@@ -165,7 +165,7 @@ export async function getProductBySlug(
   let wholesalePrice = '0';
   if (region === 'UZB' && latestRate) {
     const scalingFactor = getWeightScalingFactor(p.weightGrams, activeBoxes);
-    const adjustedWeight = p.weightGrams * scalingFactor;
+    const adjustedWeight = Math.round(p.weightGrams * scalingFactor);
 
     const { productPrice, cargoFee } = calculateUzbPrice(
       BigInt(config.retailPrice),

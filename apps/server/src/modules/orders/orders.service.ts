@@ -131,7 +131,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         let finalItemCargo = prices.itemCargo;
 
         if (order.regionCode === 'UZB' && rateSnapshot) {
-          const adjustedWeight = product.weightGrams * scalingFactor;
+          const adjustedWeight = Math.round(product.weightGrams * scalingFactor);
           const rateData = {
             krwToUzs: parseFloat(rateSnapshot.krwToUzs),
             cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
@@ -375,7 +375,7 @@ export async function createOrder(
     logger.info({ orderNumber, boxes, totalTareWeightGrams }, 'Recommended boxes for order');
 
 
-    const adjustedTotalWeight = totalWeightGrams * scalingFactor;
+    const adjustedTotalWeight = Math.round(totalWeightGrams * scalingFactor);
 
     let cargoCostKrw = 0n;
     if (input.regionCode === 'UZB' && rateSnapshot) {
@@ -480,7 +480,7 @@ function calculateOrderItemPrices(
   const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
 
   if (regionCode === 'UZB' && rateSnapshot) {
-    const adjustedWeight = product.weightGrams * scalingFactor;
+    const adjustedWeight = Math.round(product.weightGrams * scalingFactor);
     const rateData = {
       krwToUzs: parseFloat(rateSnapshot.krwToUzs),
       cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
@@ -691,7 +691,7 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
   if (order.regionCode === 'KOR') {
     cargoCostKrw = totalCargo;
   } else if (order.regionCode === 'UZB' && rateSnapshot) {
-    const adjustedTotalWeight = totalWeight * scalingFactor;
+    const adjustedTotalWeight = Math.round(totalWeight * scalingFactor);
     const weightKg = adjustedTotalWeight / 1000;
     const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
     cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));

@@ -15,6 +15,7 @@ export function calculateUzbPrice(
   weightGrams: number,
   rate: { krwToUzs: string | number; cargoRateKrwPerKg: string | number }
 ) {
+  const safeWeightGrams = Math.round(weightGrams);
   const krwToUzs = typeof rate.krwToUzs === 'string' ? parseFloat(rate.krwToUzs) : rate.krwToUzs;
   const cargoRateKrw =
     typeof rate.cargoRateKrwPerKg === 'string'
@@ -32,7 +33,7 @@ export function calculateUzbPrice(
   // cargoUzsMinor = (grams / 1000) * cargoRateKrwScaled * krwToUzsScaled * 100 / (SCALE * SCALE)
   // cargoFee (UZS) = weight (kg) * cargoRate (KRW/kg) * exchangeRate (UZS/KRW)
   const cargoFeeUzsMinor =
-    (BigInt(weightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
+    (BigInt(safeWeightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
 
   // Rounding helper (nearest 1,000 UZS = 100,000 minor units)
   const round1000UZS = (val: bigint) =>

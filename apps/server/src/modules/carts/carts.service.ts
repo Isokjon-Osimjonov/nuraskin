@@ -86,7 +86,7 @@ export async function addToCart(
       }
       const activeBoxes = await getActiveBoxes();
       const scalingFactor = getWeightScalingFactor(product?.weightGrams || 0, activeBoxes);
-      const adjustedWeight = (product?.weightGrams || 0) * scalingFactor;
+      const adjustedWeight = Math.round((product?.weightGrams || 0) * scalingFactor);
 
       const { productPrice, cargoFee } = calculateUzbPrice(
         basePrice,
@@ -152,7 +152,7 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
         const product = await storefrontRepository.findProductById(productId);
         const activeBoxes = await getActiveBoxes();
         const scalingFactor = getWeightScalingFactor(product?.weightGrams || 0, activeBoxes);
-        const adjustedWeight = (product?.weightGrams || 0) * scalingFactor;
+        const adjustedWeight = Math.round((product?.weightGrams || 0) * scalingFactor);
 
         const { productPrice, cargoFee } = calculateUzbPrice(
           basePrice,

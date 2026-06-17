@@ -75,7 +75,7 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
     let displayPrice = BigInt(item.priceSnapshot);
 
     if (cart.regionCode === 'UZB' && rateSnapshot) {
-      const adjustedWeight = item.weightGrams * scalingFactor;
+      const adjustedWeight = Math.round(item.weightGrams * scalingFactor);
 
       const rPrices = calculateUzbPrice(
         BigInt(item.retailPrice || 0),
