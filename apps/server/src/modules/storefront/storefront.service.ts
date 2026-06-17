@@ -27,6 +27,10 @@ import { NotificationService } from '../notifications/notification.service';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '../../common/config/env';
 import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
+import {
+  getActiveBoxes,
+  getWeightScalingFactor,
+} from '../../common/utils/box-recommendation';
 import { reservationTimeoutQueue } from '../queues';
 import axios from 'axios';
 import type {
@@ -61,6 +65,19 @@ async function getCachedLatestRate() {
   return cachedRate;
 }
 
+let cachedBoxes: any = null;
+let cachedBoxesTime: number = 0;
+
+async function getCachedActiveBoxes() {
+  const now = Date.now();
+  if (cachedBoxes && now - cachedBoxesTime < 5 * 60 * 1000) {
+    return cachedBoxes;
+  }
+  cachedBoxes = await getActiveBoxes();
+  cachedBoxesTime = now;
+  return cachedBoxes;
+}
+
 export async function listCategories(): Promise<any[]> {
   return await db
     .select()
@@ -78,6 +95,7 @@ export async function listProducts(
 ): Promise<StorefrontProductListItem[]> {
   const rawProducts = await storefrontRepository.findActiveProducts({ categoryId, search, limit });
   const latestRate = await getCachedLatestRate();
+  const activeBoxes = region === 'UZB' ? await getCachedActiveBoxes() : [];
 
   const results: StorefrontProductListItem[] = [];
 
@@ -90,14 +108,17 @@ export async function listProducts(
     let calculatedPrice = '0';
     let wholesalePrice = '0';
     if (region === 'UZB' && latestRate) {
+      const scalingFactor = getWeightScalingFactor(p.weightGrams, activeBoxes);
+      const adjustedWeight = p.weightGrams * scalingFactor;
+
       const { productPrice, cargoFee } = calculateUzbPrice(
         BigInt(config.retailPrice),
-        p.weightGrams,
+        adjustedWeight,
         latestRate
       );
       calculatedPrice = (productPrice + cargoFee).toString();
 
-      const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
+      const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), adjustedWeight, latestRate);
       wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
     } else {
       calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();
@@ -137,19 +158,23 @@ export async function getProductBySlug(
   if (!config) throw new NotFoundError('Mahsulot bu mintaqada sotilmaydi');
 
   const latestRate = await getCachedLatestRate();
+  const activeBoxes = region === 'UZB' ? await getCachedActiveBoxes() : [];
   const availableStock = await inventoryRepository.getAvailableStock(p.id);
 
   let calculatedPrice = '0';
   let wholesalePrice = '0';
   if (region === 'UZB' && latestRate) {
+    const scalingFactor = getWeightScalingFactor(p.weightGrams, activeBoxes);
+    const adjustedWeight = p.weightGrams * scalingFactor;
+
     const { productPrice, cargoFee } = calculateUzbPrice(
       BigInt(config.retailPrice),
-      p.weightGrams,
+      adjustedWeight,
       latestRate
     );
     calculatedPrice = (productPrice + cargoFee).toString();
 
-    const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), p.weightGrams, latestRate);
+    const wsPrices = calculateUzbPrice(BigInt(config.wholesalePrice), adjustedWeight, latestRate);
     wholesalePrice = (wsPrices.productPrice + wsPrices.cargoFee).toString();
   } else {
     calculatedPrice = calculateKorPrice(BigInt(config.retailPrice)).toString();

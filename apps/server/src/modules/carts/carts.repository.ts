@@ -9,6 +9,10 @@ import {
 } from '@nuraskin/database';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
+import {
+  getActiveBoxes,
+  getWeightScalingFactor,
+} from '../../common/utils/box-recommendation';
 
 export async function findByCustomerId(customerId: string, tx: any = db) {
   const [cart] = await tx.select().from(carts).where(eq(carts.customerId, customerId)).limit(1);
@@ -54,35 +58,55 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
       productRegionalConfigs.currency
     );
 
+  const totalProductWeight = items.reduce(
+    (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
+    0
+  );
+  const activeBoxes = cart.regionCode === 'UZB' ? await getActiveBoxes() : [];
+  const scalingFactor = getWeightScalingFactor(totalProductWeight, activeBoxes);
+
   let total = 0n;
 
   const rateSnapshot = await getLatestRateSnapshot(tx);
 
   const formattedItems = items.map((item: any) => {
-    const subtotal = BigInt(item.priceSnapshot) * BigInt(item.quantity);
-    total += subtotal;
-
     let calculatedRetail = '0';
     let calculatedWholesale = '0';
+    let displayPrice = BigInt(item.priceSnapshot);
 
     if (cart.regionCode === 'UZB' && rateSnapshot) {
+      const adjustedWeight = item.weightGrams * scalingFactor;
+
       const rPrices = calculateUzbPrice(
         BigInt(item.retailPrice || 0),
-        item.weightGrams,
+        adjustedWeight,
         rateSnapshot
       );
       calculatedRetail = (rPrices.productPrice + rPrices.cargoFee).toString();
 
       const wPrices = calculateUzbPrice(
         BigInt(item.wholesalePrice || 0),
-        item.weightGrams,
+        adjustedWeight,
         rateSnapshot
       );
       calculatedWholesale = (wPrices.productPrice + wPrices.cargoFee).toString();
+
+      // Recalculate display price based on current quantity tier and scaling
+      const isWholesale = item.quantity >= (item.minWholesaleQty || 5);
+      const basePrice = isWholesale ? BigInt(item.wholesalePrice) : BigInt(item.retailPrice);
+      const { productPrice, cargoFee } = calculateUzbPrice(
+        basePrice,
+        adjustedWeight,
+        rateSnapshot
+      );
+      displayPrice = productPrice + cargoFee;
     } else {
       calculatedRetail = calculateKorPrice(BigInt(item.retailPrice || 0)).toString();
       calculatedWholesale = calculateKorPrice(BigInt(item.wholesalePrice || 0)).toString();
     }
+
+    const subtotal = displayPrice * BigInt(item.quantity);
+    total += subtotal;
 
     return {
       id: item.id,
@@ -92,7 +116,7 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
       imageUrls: item.imageUrls,
       quantity: item.quantity,
       priceSnapshot: item.priceSnapshot.toString(),
-      price: item.priceSnapshot.toString(),
+      price: displayPrice.toString(),
       subtotal: subtotal.toString(),
       weightGrams: item.weightGrams,
       slug: item.slug,

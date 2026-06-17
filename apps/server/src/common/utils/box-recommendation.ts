@@ -1,10 +1,15 @@
-import { ShippingBox } from '@nuraskin/database';
+import { db, shippingBoxes, ShippingBox } from '@nuraskin/database';
+import { eq } from 'drizzle-orm';
 
 interface BoxSelection {
   boxId: string;
   name: string;
   quantity: number;
   tareWeightGrams: number;
+}
+
+export async function getActiveBoxes(): Promise<ShippingBox[]> {
+  return await db.select().from(shippingBoxes).where(eq(shippingBoxes.isActive, true));
 }
 
 export function recommendBoxes(
@@ -52,4 +57,15 @@ export function recommendBoxes(
     ],
     totalTareWeightGrams: largest.tareWeightGrams * qty,
   };
+}
+
+export function getWeightScalingFactor(
+  totalProductWeightGrams: number,
+  activeBoxes: ShippingBox[]
+): number {
+  if (totalProductWeightGrams <= 0) {
+    return 1; // no weight, no scaling
+  }
+  const { totalTareWeightGrams } = recommendBoxes(totalProductWeightGrams, activeBoxes);
+  return 1 + totalTareWeightGrams / totalProductWeightGrams;
 }

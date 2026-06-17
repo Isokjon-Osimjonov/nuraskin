@@ -26,6 +26,11 @@ import {
   calculateKorCargo,
 } from '../../common/utils/pricing';
 import {
+  getActiveBoxes,
+  getWeightScalingFactor,
+  recommendBoxes,
+} from '../../common/utils/box-recommendation';
+import {
   NotFoundError,
   BadRequestError,
   InsufficientStockError,
@@ -52,12 +57,18 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
     const finalOrder = await db.transaction(async (tx: any) => {
       const orderNumber = await generateManualOrderNumber();
       const rateSnapshot = await repository.getLatestRateSnapshot();
+      const activeBoxes = input.region === 'UZB' ? await getActiveBoxes() : [];
 
-      // Check stock for all items
+      let totalProductWeight = 0;
+      // Check stock and calculate weight
       for (const item of input.items) {
+        const product = await productsRepository.findById(item.productId);
+        if (product?.weightGrams) {
+          totalProductWeight += product.weightGrams * item.quantity;
+        }
+
         const available = await repository.getAvailableStock(item.productId, tx);
         if (item.quantity > available && !input.forceCreate) {
-          const product = await productsRepository.findById(item.productId);
           throw new BadRequestError(`INSUFFICIENT_STOCK: ${product?.name}`, 'INSUFFICIENT_STOCK', {
             productId: item.productId,
             productName: product?.name,
@@ -66,6 +77,10 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
           });
         }
       }
+
+      const scalingFactor = getWeightScalingFactor(totalProductWeight, activeBoxes);
+      const { boxes, totalTareWeightGrams } = recommendBoxes(totalProductWeight, activeBoxes);
+      logger.info({ orderNumber, boxes, totalTareWeightGrams }, 'Recommended boxes for manual order');
 
       const orderData: NewOrder = {
         orderNumber,
@@ -101,41 +116,45 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         const product = await productsRepository.findById(itemInput.productId);
         if (!product) throw new NotFoundError(`Product ${itemInput.productId} not found`);
 
-        const unitPrice = BigInt(itemInput.negotiatedPriceKrw);
-        const subtotal = unitPrice * BigInt(itemInput.quantity);
+        const unitPriceBase = BigInt(itemInput.negotiatedPriceKrw);
 
-        let retailPrice = 0n;
-        let wholesalePrice = 0n;
+        const prices = calculateOrderItemPrices(
+          product,
+          itemInput.quantity,
+          order.regionCode,
+          rateSnapshot,
+          scalingFactor
+        );
 
-        const regionalConfig = product.regionalConfigs.find(c => c.regionCode === order.regionCode);
-        if (regionalConfig && rateSnapshot) {
-          const baseRetailKrw = BigInt(regionalConfig.retailPrice);
-          const baseWholesaleKrw = BigInt(regionalConfig.wholesalePrice);
+        // Override unitPrice and itemCargo using negotiated price if UZB
+        let finalUnitPrice = prices.unitPrice;
+        let finalItemCargo = prices.itemCargo;
 
-          if (order.regionCode === 'UZB') {
-            const rateData = {
-              krwToUzs: parseFloat(rateSnapshot.krwToUzs),
-              cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
-            };
-            const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
-            retailPrice = retailRes.productPrice + retailRes.cargoFee;
-
-            const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
-            wholesalePrice = wholesaleRes.productPrice + wholesaleRes.cargoFee;
-          } else {
-            retailPrice = calculateKorPrice(baseRetailKrw);
-            wholesalePrice = calculateKorPrice(baseWholesaleKrw);
-          }
+        if (order.regionCode === 'UZB' && rateSnapshot) {
+          const adjustedWeight = product.weightGrams * scalingFactor;
+          const rateData = {
+            krwToUzs: parseFloat(rateSnapshot.krwToUzs),
+            cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
+          };
+          const negotiatedRes = calculateUzbPrice(unitPriceBase, adjustedWeight, rateData);
+          finalUnitPrice = negotiatedRes.productPrice;
+          finalItemCargo = negotiatedRes.cargoFee;
+        } else if (order.regionCode === 'KOR') {
+          finalUnitPrice = calculateKorPrice(unitPriceBase);
+          finalItemCargo = 0n;
         }
+
+        const subtotal = (finalUnitPrice + finalItemCargo) * BigInt(itemInput.quantity);
 
         await tx.insert(orderItems).values({
           orderId: order.id,
           productId: itemInput.productId,
           quantity: itemInput.quantity,
-          retailPriceSnapshot: retailPrice,
-          wholesalePriceSnapshot: wholesalePrice,
-          unitPriceSnapshot: unitPrice,
-          negotiatedPriceKrw: unitPrice,
+          retailPriceSnapshot: prices.retailPrice,
+          wholesalePriceSnapshot: prices.wholesalePrice,
+          unitPriceSnapshot: finalUnitPrice,
+          cargoFeeSnapshot: finalItemCargo,
+          negotiatedPriceKrw: unitPriceBase,
           subtotalSnapshot: subtotal,
           currencySnapshot: order.currency,
         });
@@ -333,6 +352,7 @@ export async function createOrder(
       throw new BadRequestError('No active rate snapshot found for UZB pricing');
     }
 
+    const activeBoxes = input.regionCode === 'UZB' ? await getActiveBoxes() : [];
     let totalWeightGrams = 0;
     if (input.regionCode === 'UZB') {
       for (const itemInput of input.items) {
@@ -350,9 +370,16 @@ export async function createOrder(
       }
     }
 
+    const scalingFactor = getWeightScalingFactor(totalWeightGrams, activeBoxes);
+    const { boxes, totalTareWeightGrams } = recommendBoxes(totalWeightGrams, activeBoxes);
+    logger.info({ orderNumber, boxes, totalTareWeightGrams }, 'Recommended boxes for order');
+
+
+    const adjustedTotalWeight = totalWeightGrams * scalingFactor;
+
     let cargoCostKrw = 0n;
     if (input.regionCode === 'UZB' && rateSnapshot) {
-      const weightKg = totalWeightGrams / 1000;
+      const weightKg = adjustedTotalWeight / 1000;
       const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
       cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));
     }
@@ -394,36 +421,13 @@ export async function createOrder(
       if (!regionalConfig)
         throw new BadRequestError(`Product not available in region ${input.regionCode}`);
 
-      let unitPrice = 0n;
-      let retailPrice = 0n;
-      let wholesalePrice = 0n;
-      let itemCargo = 0n;
-
-      const baseRetailKrw = BigInt(regionalConfig.retailPrice);
-      const baseWholesaleKrw = BigInt(regionalConfig.wholesalePrice);
-      const isWholesale = itemInput.quantity >= (regionalConfig.minWholesaleQty || 5);
-      const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
-
-      if (input.regionCode === 'UZB' && rateSnapshot) {
-        const rateData = {
-          krwToUzs: parseFloat(rateSnapshot.krwToUzs),
-          cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
-        };
-        const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
-        unitPrice = prices.productPrice;
-        itemCargo = prices.cargoFee;
-
-        const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
-        retailPrice = retailRes.productPrice;
-
-        const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
-        wholesalePrice = wholesaleRes.productPrice;
-      } else {
-        unitPrice = calculateKorPrice(baseKrw);
-        retailPrice = calculateKorPrice(baseRetailKrw);
-        wholesalePrice = calculateKorPrice(baseWholesaleKrw);
-        itemCargo = 0n;
-      }
+      const prices = calculateOrderItemPrices(
+        product,
+        itemInput.quantity,
+        input.regionCode,
+        rateSnapshot,
+        scalingFactor
+      );
 
       const [batch] = await tx
         .select({ costPrice: inventoryBatches.costPrice })
@@ -438,11 +442,11 @@ export async function createOrder(
         orderId: order.id,
         productId: itemInput.productId,
         quantity: itemInput.quantity,
-        retailPriceSnapshot: retailPrice,
-        wholesalePriceSnapshot: wholesalePrice,
-        unitPriceSnapshot: unitPrice,
-        subtotalSnapshot: unitPrice * BigInt(itemInput.quantity),
-        cargoFeeSnapshot: itemCargo,
+        retailPriceSnapshot: prices.retailPrice,
+        wholesalePriceSnapshot: prices.wholesalePrice,
+        unitPriceSnapshot: prices.unitPrice,
+        subtotalSnapshot: (prices.unitPrice + prices.itemCargo) * BigInt(itemInput.quantity),
+        cargoFeeSnapshot: prices.itemCargo,
         costAtSaleKrw: costAtSaleKrw,
         currencySnapshot: order.currency,
       });
@@ -453,6 +457,52 @@ export async function createOrder(
   });
 
   return await repository.findById(orderId, runner);
+}
+
+interface ItemPriceResult {
+  unitPrice: bigint;
+  retailPrice: bigint;
+  wholesalePrice: bigint;
+  itemCargo: bigint;
+}
+
+function calculateOrderItemPrices(
+  product: any,
+  quantity: number,
+  regionCode: string,
+  rateSnapshot: any,
+  scalingFactor: number
+): ItemPriceResult {
+  const regionalConfig = product.regionalConfigs.find((c: any) => c.regionCode === regionCode);
+  const baseRetailKrw = BigInt(regionalConfig?.retailPrice || 0);
+  const baseWholesaleKrw = BigInt(regionalConfig?.wholesalePrice || 0);
+  const isWholesale = quantity >= (regionalConfig?.minWholesaleQty || 5);
+  const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
+
+  if (regionCode === 'UZB' && rateSnapshot) {
+    const adjustedWeight = product.weightGrams * scalingFactor;
+    const rateData = {
+      krwToUzs: parseFloat(rateSnapshot.krwToUzs),
+      cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
+    };
+    const prices = calculateUzbPrice(baseKrw, adjustedWeight, rateData);
+    const retailRes = calculateUzbPrice(baseRetailKrw, adjustedWeight, rateData);
+    const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, adjustedWeight, rateData);
+
+    return {
+      unitPrice: prices.productPrice,
+      itemCargo: prices.cargoFee,
+      retailPrice: retailRes.productPrice + retailRes.cargoFee,
+      wholesalePrice: wholesaleRes.productPrice + wholesaleRes.cargoFee,
+    };
+  } else {
+    return {
+      unitPrice: calculateKorPrice(baseKrw),
+      retailPrice: calculateKorPrice(baseRetailKrw),
+      wholesalePrice: calculateKorPrice(baseWholesaleKrw),
+      itemCargo: 0n,
+    };
+  }
 }
 
 async function generateOrderNumber() {
@@ -499,36 +549,26 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
     throw new BadRequestError('No active rate snapshot found for UZB pricing');
   }
 
-  let unitPrice = 0n;
-  let retailPrice = 0n;
-  let wholesalePrice = 0n;
-  let itemCargo = 0n;
-
-  const baseRetailKrw = BigInt(regionalConfig.retailPrice);
-  const baseWholesaleKrw = BigInt(regionalConfig.wholesalePrice);
-  const isWholesale = input.quantity >= (regionalConfig.minWholesaleQty || 5);
-  const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
-
-  if (order.regionCode === 'UZB' && rateSnapshot) {
-    const rateData = {
-      krwToUzs: parseFloat(rateSnapshot.krwToUzs),
-      cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
-    };
-    const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
-    unitPrice = prices.productPrice;
-    itemCargo = prices.cargoFee;
-
-    const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
-    retailPrice = retailRes.productPrice;
-
-    const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
-    wholesalePrice = wholesaleRes.productPrice;
-  } else {
-    unitPrice = calculateKorPrice(baseKrw);
-    retailPrice = calculateKorPrice(baseRetailKrw);
-    wholesalePrice = calculateKorPrice(baseWholesaleKrw);
-    itemCargo = 0n;
+  const activeBoxes = order.regionCode === 'UZB' ? await getActiveBoxes() : [];
+  let totalProductWeight = 0;
+  if (order.regionCode === 'UZB') {
+    const existingItems = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+    for (const item of existingItems) {
+      const p = await productsRepository.findById(item.productId);
+      totalProductWeight += (p?.weightGrams || 0) * item.quantity;
+    }
+    totalProductWeight += (product.weightGrams || 0) * input.quantity;
   }
+
+  const scalingFactor = getWeightScalingFactor(totalProductWeight, activeBoxes);
+
+  const prices = calculateOrderItemPrices(
+    product,
+    input.quantity,
+    order.regionCode,
+    rateSnapshot,
+    scalingFactor
+  );
 
   const [batch] = await db
     .select({ costPrice: inventoryBatches.costPrice })
@@ -544,11 +584,11 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
       orderId,
       productId: input.productId,
       quantity: input.quantity,
-      retailPriceSnapshot: retailPrice,
-      wholesalePriceSnapshot: wholesalePrice,
-      unitPriceSnapshot: unitPrice,
-      subtotalSnapshot: unitPrice * BigInt(input.quantity),
-      cargoFeeSnapshot: itemCargo,
+      retailPriceSnapshot: prices.retailPrice,
+      wholesalePriceSnapshot: prices.wholesalePrice,
+      unitPriceSnapshot: prices.unitPrice,
+      subtotalSnapshot: (prices.unitPrice + prices.itemCargo) * BigInt(input.quantity),
+      cargoFeeSnapshot: prices.itemCargo,
       costAtSaleKrw: costAtSaleKrw,
       currencySnapshot: order.currency,
     });
@@ -582,15 +622,63 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     .limit(1)
     .then((rows: any[]) => rows[0]);
 
-  let subtotal = 0n;
-  let totalCargo = 0n;
   let totalWeight = 0;
-
   for (const item of items) {
-    subtotal += item.subtotalSnapshot;
-    totalCargo += item.cargoFeeSnapshot;
     const product = await productsRepository.findById(item.productId);
     totalWeight += (product?.weightGrams || 0) * item.quantity;
+  }
+
+  const activeBoxes = order.regionCode === 'UZB' ? await getActiveBoxes() : [];
+  const scalingFactor = getWeightScalingFactor(totalWeight, activeBoxes);
+  const { boxes, totalTareWeightGrams } = recommendBoxes(totalWeight, activeBoxes);
+  logger.info({ orderId, boxes, totalTareWeightGrams }, 'Recommended boxes during recalculation');
+
+  const rateSnapshot = order.rateSnapshotId
+    ? await tx
+        .select()
+        .from(exchangeRateSnapshots)
+        .where(eq(exchangeRateSnapshots.id, order.rateSnapshotId))
+        .limit(1)
+        .then((res: any[]) => res[0])
+    : await repository.getLatestRateSnapshot();
+
+  // If DRAFT, redistribute cargo fees based on new scaling factor
+  if (order.status === 'DRAFT' && order.regionCode === 'UZB' && rateSnapshot) {
+    for (const item of items) {
+      const product = await productsRepository.findById(item.productId);
+      if (!product) continue;
+
+      const prices = calculateOrderItemPrices(
+        product,
+        item.quantity,
+        order.regionCode,
+        rateSnapshot,
+        scalingFactor
+      );
+
+      await tx
+        .update(orderItems)
+        .set({
+          unitPriceSnapshot: prices.unitPrice,
+          cargoFeeSnapshot: prices.itemCargo,
+          retailPriceSnapshot: prices.retailPrice,
+          wholesalePriceSnapshot: prices.wholesalePrice,
+          subtotalSnapshot: (prices.unitPrice + prices.itemCargo) * BigInt(item.quantity),
+          updatedAt: new Date(),
+        })
+        .where(eq(orderItems.id, item.id));
+    }
+  }
+
+  // Fetch updated items
+  const updatedItems = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+
+  let subtotal = 0n;
+  let totalCargo = 0n;
+
+  for (const item of updatedItems) {
+    subtotal += item.subtotalSnapshot;
+    totalCargo += item.cargoFeeSnapshot;
   }
 
   if (order.orderSource === 'MANUAL') {
@@ -602,21 +690,11 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
   let cargoCostKrw = 0n;
   if (order.regionCode === 'KOR') {
     cargoCostKrw = totalCargo;
-  } else if (order.regionCode === 'UZB') {
-    const rateSnapshot = order.rateSnapshotId
-      ? await tx
-          .select()
-          .from(exchangeRateSnapshots)
-          .where(eq(exchangeRateSnapshots.id, order.rateSnapshotId))
-          .limit(1)
-          .then((res: any[]) => res[0])
-      : await repository.getLatestRateSnapshot();
-
-    if (rateSnapshot) {
-      const weightKg = totalWeight / 1000;
-      const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
-      cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));
-    }
+  } else if (order.regionCode === 'UZB' && rateSnapshot) {
+    const adjustedTotalWeight = totalWeight * scalingFactor;
+    const weightKg = adjustedTotalWeight / 1000;
+    const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
+    cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));
   }
 
   let discount = BigInt(order.discountAmount || 0n);
