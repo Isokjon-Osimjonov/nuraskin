@@ -3,6 +3,7 @@ import * as storefrontRepository from '../storefront/storefront.repository';
 import { db, inventoryBatches, productRegionalConfigs } from '@nuraskin/database';
 import { BadRequestError, NotFoundError, ConflictError } from '../../common/errors/AppError';
 import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
+import { getActiveBoxes, getWeightScalingFactor } from '../../common/utils/box-recommendation';
 import { eq, and, sql } from 'drizzle-orm';
 
 async function getAvailableStock(productId: string, tx: any = db) {
@@ -83,9 +84,13 @@ export async function addToCart(
       if (!rateSnapshot) {
         throw new BadRequestError('Valyuta kursi topilmadi');
       }
+      const activeBoxes = await getActiveBoxes();
+      const scalingFactor = getWeightScalingFactor(product?.weightGrams || 0, activeBoxes);
+      const adjustedWeight = (product?.weightGrams || 0) * scalingFactor;
+
       const { productPrice, cargoFee } = calculateUzbPrice(
         basePrice,
-        product?.weightGrams || 0,
+        adjustedWeight,
         rateSnapshot
       );
       priceSnapshot = productPrice + cargoFee;
@@ -145,9 +150,13 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
           throw new BadRequestError('Valyuta kursi topilmadi');
         }
         const product = await storefrontRepository.findProductById(productId);
+        const activeBoxes = await getActiveBoxes();
+        const scalingFactor = getWeightScalingFactor(product?.weightGrams || 0, activeBoxes);
+        const adjustedWeight = (product?.weightGrams || 0) * scalingFactor;
+
         const { productPrice, cargoFee } = calculateUzbPrice(
           basePrice,
-          product?.weightGrams || 0,
+          adjustedWeight,
           rateSnapshot
         );
         priceSnapshot = productPrice + cargoFee;
