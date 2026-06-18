@@ -292,7 +292,9 @@ function CategoryPage() {
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-[200px] text-[11px] leading-tight">
-                                  Narxga yetkazib berish va qadoqlash xarajati kiritilgan.
+                                  Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan.
+                                  Qadoqlash (quticha) narxi buyurtma tasdiqlashda alohida
+                                  ko'rsatiladi.
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

@@ -35,6 +35,7 @@ router.use(requireAuth);
 router.use(resolveCustomer);
 
 router.get('/', asyncHandler(ctrl.getCart));
+router.get('/box-options', asyncHandler(ctrl.getBoxOptions));
 router.post('/items', asyncHandler(ctrl.addToCart));
 router.patch('/items/:itemId', asyncHandler(ctrl.updateItemQuantity));
 router.delete('/items/:itemId', asyncHandler(ctrl.removeItem));

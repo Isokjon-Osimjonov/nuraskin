@@ -26,10 +26,10 @@ import {
   calculateUzbPrice,
   calculateKorPrice,
   calculateKorCargo,
+  calculateBoxFeeUzs,
 } from '../../common/utils/pricing';
 import {
   getActiveBoxes,
-  getWeightScalingFactor,
   recommendBoxes,
 } from '../../common/utils/box-recommendation';
 import {
@@ -80,9 +80,13 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         }
       }
 
-      const scalingFactor = getWeightScalingFactor(totalProductWeight, activeBoxes);
-      const { boxes, totalTareWeightGrams } = recommendBoxes(totalProductWeight, activeBoxes);
-      logger.info({ orderNumber, boxes, totalTareWeightGrams }, 'Recommended boxes for manual order');
+      const { selectedBoxes, boxFeeUzs } = await resolveOrderBox(
+        totalProductWeight,
+        activeBoxes,
+        rateSnapshot,
+        input.boxId
+      );
+      logger.info({ orderNumber, selectedBoxes, boxFeeUzs }, 'Resolved boxes for manual order');
 
       const orderData: NewOrder = {
         orderNumber,
@@ -97,6 +101,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         deliveryCoveredBy: input.deliveryFeeCoveredBy,
         cargoFee: BigInt(input.deliveryFeeCharged),
         cargoCostKrw: BigInt(input.deliveryFeeActual),
+        boxFeeUzs,
         adminNote: input.adminNotes || null,
         createdBy: adminId,
         rateSnapshotId: rateSnapshot?.id || null,
@@ -104,6 +109,15 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
 
       const [order] = await tx.insert(orders).values(orderData).returning();
       if (!order) throw new Error('Failed to create manual order');
+
+      // Store selected boxes immediately
+      for (const box of selectedBoxes) {
+        await tx.insert(orderBoxes).values({
+          orderId: order.id,
+          boxId: box.boxId,
+          quantity: box.quantity,
+        });
+      }
 
       await tx.insert(orderStatusHistory).values({
         orderId: order.id,
@@ -124,8 +138,7 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
           product,
           itemInput.quantity,
           order.regionCode,
-          rateSnapshot,
-          scalingFactor
+          rateSnapshot
         );
 
         // Override unitPrice and itemCargo using negotiated price if UZB
@@ -133,12 +146,11 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         let finalItemCargo = prices.itemCargo;
 
         if (order.regionCode === 'UZB' && rateSnapshot) {
-          const adjustedWeight = Math.round(product.weightGrams * scalingFactor);
           const rateData = {
             krwToUzs: parseFloat(rateSnapshot.krwToUzs),
             cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
           };
-          const negotiatedRes = calculateUzbPrice(unitPriceBase, adjustedWeight, rateData);
+          const negotiatedRes = calculateUzbPrice(unitPriceBase, product.weightGrams, rateData);
           finalUnitPrice = negotiatedRes.productPrice;
           finalItemCargo = negotiatedRes.cargoFee;
         } else if (order.regionCode === 'KOR') {
@@ -269,37 +281,25 @@ export async function confirmManualPayment(
       });
     }
 
-    // Auto packaging expense and box assignment
+    // Auto packaging expense based on pre-selected boxes
     if (order.regionCode === 'UZB') {
-      const activeBoxes = await getActiveBoxes(tx);
-      const itemsWithWeight = await tx
+      const boxes = await tx
         .select({
-          quantity: orderItems.quantity,
-          weightGrams: products.weightGrams,
+          quantity: orderBoxes.quantity,
+          boxId: orderBoxes.boxId,
+          name: shippingBoxes.name,
+          costPriceKrw: shippingBoxes.costPriceKrw,
         })
-        .from(orderItems)
-        .innerJoin(products, eq(orderItems.productId, products.id))
-        .where(eq(orderItems.orderId, orderId));
+        .from(orderBoxes)
+        .innerJoin(shippingBoxes, eq(orderBoxes.boxId, shippingBoxes.id))
+        .where(eq(orderBoxes.orderId, orderId));
 
-      const totalWeight = itemsWithWeight.reduce(
-        (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
-        0
-      );
-      const { boxes: recommendedBoxesList } = recommendBoxes(totalWeight, activeBoxes);
-
-      for (const box of recommendedBoxesList) {
-        await tx.insert(orderBoxes).values({
-          orderId,
-          boxId: box.boxId,
-          quantity: box.quantity,
-        });
-
-        const boxConfig = activeBoxes.find(b => b.id === box.boxId);
-        if (boxConfig && BigInt(boxConfig.costPriceKrw) > 0n) {
+      for (const box of boxes) {
+        if (BigInt(box.costPriceKrw) > 0n) {
           await tx.insert(orderExpenses).values({
             orderId,
             type: 'PACKAGING',
-            amountKrw: BigInt(boxConfig.costPriceKrw) * BigInt(box.quantity),
+            amountKrw: BigInt(box.costPriceKrw) * BigInt(box.quantity),
             note: `Auto quticha: ${box.quantity}x ${box.name}`,
             createdBy: adminId,
             isAuto: true,
@@ -376,6 +376,82 @@ async function generateManualOrderNumber() {
   return `${prefix}${seq.toString().padStart(4, '0')}`;
 }
 
+/**
+ * Resolves which boxes to use for an order and calculates the total box fee in UZS.
+ */
+async function resolveOrderBox(
+  totalWeightGrams: number,
+  activeBoxes: any[],
+  rateSnapshot: any,
+  requestedBoxId?: string
+) {
+  if (activeBoxes.length === 0 || totalWeightGrams <= 0) {
+    return { selectedBoxes: [], boxFeeUzs: 0n };
+  }
+
+  const rateData = rateSnapshot
+    ? {
+        krwToUzs: parseFloat(rateSnapshot.krwToUzs),
+        cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
+      }
+    : null;
+
+  if (requestedBoxId) {
+    const box = activeBoxes.find(b => b.id === requestedBoxId);
+    if (!box) throw new BadRequestError('Tanlangan quti topilmadi');
+
+    // If weight exceeds single box, and it's not the largest box, it's an error
+    const sorted = [...activeBoxes].sort((a, b) => b.maxWeightGrams - a.maxWeightGrams);
+    const largest = sorted[0];
+
+    let quantity = 1;
+    if (totalWeightGrams > box.maxWeightGrams) {
+      if (box.id !== largest.id) {
+        throw new BadRequestError(
+          `Tanlangan quti (${box.name}) juda kichik. Maksimal vazn: ${box.maxWeightGrams}g, jami vazn: ${totalWeightGrams}g`
+        );
+      }
+      quantity = Math.ceil(totalWeightGrams / box.maxWeightGrams);
+    }
+
+    const selectedBoxes = [
+      {
+        boxId: box.id,
+        name: box.name,
+        quantity,
+        tareWeightGrams: box.tareWeightGrams,
+        costPriceKrw: box.costPriceKrw,
+      },
+    ];
+
+    let boxFeeUzs = 0n;
+    if (rateData) {
+      const singleBoxFee = calculateBoxFeeUzs(box, rateData);
+      boxFeeUzs = singleBoxFee * BigInt(quantity);
+    }
+
+    return { selectedBoxes, boxFeeUzs };
+  } else {
+    // Auto-recommend
+    const { boxes } = recommendBoxes(totalWeightGrams, activeBoxes);
+    let boxFeeUzs = 0n;
+    if (rateData && boxes.length > 0) {
+      // recommendBoxes only returns one type of box in multiples
+      const box = activeBoxes.find(b => b.id === boxes[0].boxId);
+      if (box) {
+        const singleBoxFee = calculateBoxFeeUzs(box, rateData);
+        boxFeeUzs = singleBoxFee * BigInt(boxes[0].quantity);
+      }
+    }
+    // We need costPriceKrw for expenses later
+    const boxesWithCost = boxes.map(b => {
+      const config = activeBoxes.find(ab => ab.id === b.boxId);
+      return { ...b, costPriceKrw: config?.costPriceKrw || 0n };
+    });
+    return { selectedBoxes: boxesWithCost, boxFeeUzs };
+  }
+}
+
 export async function createOrder(
   input: CreateOrderInput & {
     couponId?: string | null;
@@ -411,16 +487,17 @@ export async function createOrder(
       }
     }
 
-    const scalingFactor = getWeightScalingFactor(totalWeightGrams, activeBoxes);
-    const { boxes, totalTareWeightGrams } = recommendBoxes(totalWeightGrams, activeBoxes);
-    logger.info({ orderNumber, boxes, totalTareWeightGrams }, 'Recommended boxes for order');
-
-
-    const adjustedTotalWeight = Math.round(totalWeightGrams * scalingFactor);
+    const { selectedBoxes, boxFeeUzs } = await resolveOrderBox(
+      totalWeightGrams,
+      activeBoxes,
+      rateSnapshot,
+      input.boxId
+    );
+    logger.info({ orderNumber, selectedBoxes, boxFeeUzs }, 'Resolved boxes for order');
 
     let cargoCostKrw = 0n;
     if (input.regionCode === 'UZB' && rateSnapshot) {
-      const weightKg = adjustedTotalWeight / 1000;
+      const weightKg = totalWeightGrams / 1000;
       const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
       cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));
     }
@@ -436,11 +513,21 @@ export async function createOrder(
       couponCode: input.couponCode || null,
       discountAmount: input.discountAmount || 0n,
       cargoCostKrw,
+      boxFeeUzs,
       rateSnapshotId: rateSnapshot?.id || null,
     };
 
     const [order] = await tx.insert(orders).values(orderData).returning();
     if (!order) throw new Error('Failed to create order');
+
+    // Store selected boxes immediately
+    for (const box of selectedBoxes) {
+      await tx.insert(orderBoxes).values({
+        orderId: order.id,
+        boxId: box.boxId,
+        quantity: box.quantity,
+      });
+    }
 
     await tx.insert(orderStatusHistory).values({
       orderId: order.id,
@@ -466,8 +553,7 @@ export async function createOrder(
         product,
         itemInput.quantity,
         input.regionCode,
-        rateSnapshot,
-        scalingFactor
+        rateSnapshot
       );
 
       const [batch] = await tx
@@ -511,8 +597,7 @@ function calculateOrderItemPrices(
   product: any,
   quantity: number,
   regionCode: string,
-  rateSnapshot: any,
-  scalingFactor: number
+  rateSnapshot: any
 ): ItemPriceResult {
   const regionalConfig = product.regionalConfigs.find((c: any) => c.regionCode === regionCode);
   const baseRetailKrw = BigInt(regionalConfig?.retailPrice || 0);
@@ -521,14 +606,13 @@ function calculateOrderItemPrices(
   const baseKrw = isWholesale ? baseWholesaleKrw : baseRetailKrw;
 
   if (regionCode === 'UZB' && rateSnapshot) {
-    const adjustedWeight = Math.round(product.weightGrams * scalingFactor);
     const rateData = {
       krwToUzs: parseFloat(rateSnapshot.krwToUzs),
       cargoRateKrwPerKg: rateSnapshot.cargoRateKrwPerKg,
     };
-    const prices = calculateUzbPrice(baseKrw, adjustedWeight, rateData);
-    const retailRes = calculateUzbPrice(baseRetailKrw, adjustedWeight, rateData);
-    const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, adjustedWeight, rateData);
+    const prices = calculateUzbPrice(baseKrw, product.weightGrams, rateData);
+    const retailRes = calculateUzbPrice(baseRetailKrw, product.weightGrams, rateData);
+    const wholesaleRes = calculateUzbPrice(baseWholesaleKrw, product.weightGrams, rateData);
 
     return {
       unitPrice: prices.productPrice,
@@ -601,14 +685,11 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
     totalProductWeight += (product.weightGrams || 0) * input.quantity;
   }
 
-  const scalingFactor = getWeightScalingFactor(totalProductWeight, activeBoxes);
-
   const prices = calculateOrderItemPrices(
     product,
     input.quantity,
     order.regionCode,
-    rateSnapshot,
-    scalingFactor
+    rateSnapshot
   );
 
   const [batch] = await db
@@ -670,9 +751,6 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
   }
 
   const activeBoxes = order.regionCode === 'UZB' ? await getActiveBoxes() : [];
-  const scalingFactor = getWeightScalingFactor(totalWeight, activeBoxes);
-  const { boxes, totalTareWeightGrams } = recommendBoxes(totalWeight, activeBoxes);
-  logger.info({ orderId, boxes, totalTareWeightGrams }, 'Recommended boxes during recalculation');
 
   const rateSnapshot = order.rateSnapshotId
     ? await tx
@@ -683,7 +761,29 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
         .then((res: any[]) => res[0])
     : await repository.getLatestRateSnapshot();
 
-  // If DRAFT, redistribute cargo fees based on new scaling factor
+  // Get existing box choice to maintain it if possible
+  const existingBoxes = await tx.select().from(orderBoxes).where(eq(orderBoxes.orderId, orderId));
+  const requestedBoxId = existingBoxes.length > 0 ? existingBoxes[0].boxId : undefined;
+
+  const { selectedBoxes, boxFeeUzs } = await resolveOrderBox(
+    totalWeight,
+    activeBoxes,
+    rateSnapshot,
+    requestedBoxId
+  );
+  logger.info({ orderId, selectedBoxes, boxFeeUzs }, 'Resolved boxes during recalculation');
+
+  // Update orderBoxes
+  await tx.delete(orderBoxes).where(eq(orderBoxes.orderId, orderId));
+  for (const box of selectedBoxes) {
+    await tx.insert(orderBoxes).values({
+      orderId,
+      boxId: box.boxId,
+      quantity: box.quantity,
+    });
+  }
+
+  // If DRAFT, recalculate based on raw weights (no scaling factor)
   if (order.status === 'DRAFT' && order.regionCode === 'UZB' && rateSnapshot) {
     for (const item of items) {
       const product = await productsRepository.findById(item.productId);
@@ -693,8 +793,7 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
         product,
         item.quantity,
         order.regionCode,
-        rateSnapshot,
-        scalingFactor
+        rateSnapshot
       );
 
       await tx
@@ -732,8 +831,7 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
   if (order.regionCode === 'KOR') {
     cargoCostKrw = totalCargo;
   } else if (order.regionCode === 'UZB' && rateSnapshot) {
-    const adjustedTotalWeight = Math.round(totalWeight * scalingFactor);
-    const weightKg = adjustedTotalWeight / 1000;
+    const weightKg = totalWeight / 1000;
     const cargoRateKrw = Number(rateSnapshot.cargoRateKrwPerKg);
     cargoCostKrw = BigInt(Math.round(weightKg * cargoRateKrw));
   }
@@ -748,7 +846,15 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
     }
   }
 
-  let totalAmount = subtotal + totalCargo - discount;
+  let totalAmount = 0n;
+  if (order.regionCode === 'UZB') {
+    // For UZB, subtotal already includes totalCargo (weight-based)
+    totalAmount = subtotal + boxFeeUzs - discount;
+  } else {
+    // For KOR, cargo is calculated separately and not included in subtotalSnapshot
+    totalAmount = subtotal + totalCargo + boxFeeUzs - discount;
+  }
+
   if (totalAmount < 0n) totalAmount = 0n;
 
   await tx
@@ -757,6 +863,7 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
       subtotal,
       cargoFee: totalCargo,
       cargoCostKrw,
+      boxFeeUzs,
       totalAmount,
       totalWeightGrams: totalWeight,
       updatedAt: new Date(),
@@ -1010,39 +1117,27 @@ export async function transitionOrderStatus(
       });
     }
 
-    // Auto packaging expense and box assignment
+    // Auto packaging expense based on pre-selected boxes
     if (to === 'PAYMENT_CONFIRMED' && order.regionCode === 'UZB') {
-      const activeBoxes = await getActiveBoxes(tx);
-      const itemsWithWeight = await tx
+      const boxes = await tx
         .select({
-          quantity: orderItems.quantity,
-          weightGrams: products.weightGrams,
+          quantity: orderBoxes.quantity,
+          boxId: orderBoxes.boxId,
+          name: shippingBoxes.name,
+          costPriceKrw: shippingBoxes.costPriceKrw,
         })
-        .from(orderItems)
-        .innerJoin(products, eq(orderItems.productId, products.id))
-        .where(eq(orderItems.orderId, orderId));
+        .from(orderBoxes)
+        .innerJoin(shippingBoxes, eq(orderBoxes.boxId, shippingBoxes.id))
+        .where(eq(orderBoxes.orderId, orderId));
 
-      const totalWeight = itemsWithWeight.reduce(
-        (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
-        0
-      );
-      const { boxes: recommendedBoxesList } = recommendBoxes(totalWeight, activeBoxes);
-
-      for (const box of recommendedBoxesList) {
-        await tx.insert(orderBoxes).values({
-          orderId,
-          boxId: box.boxId,
-          quantity: box.quantity,
-        });
-
-        const boxConfig = activeBoxes.find(b => b.id === box.boxId);
-        if (boxConfig && BigInt(boxConfig.costPriceKrw) > 0n) {
+      for (const box of boxes) {
+        if (BigInt(box.costPriceKrw) > 0n) {
           await tx.insert(orderExpenses).values({
             orderId,
             type: 'PACKAGING',
-            amountKrw: BigInt(boxConfig.costPriceKrw) * BigInt(box.quantity),
+            amountKrw: BigInt(box.costPriceKrw) * BigInt(box.quantity),
             note: `Auto quticha: ${box.quantity}x ${box.name}`,
-            createdBy: adminId,
+            createdBy: adminId || null,
             isAuto: true,
           });
         }

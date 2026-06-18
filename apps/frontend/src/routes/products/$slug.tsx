@@ -175,9 +175,8 @@ function ProductPage() {
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-[280px] text-[12px] leading-relaxed">
-                        Narxga yetkazib berish va qadoqlash xarajati kiritilgan. Bir nechta
-                        mahsulotni birga buyurtma qilsangiz, ular bitta qutida yuborilgani uchun narx
-                        biroz arzonlashishi mumkin.
+                        Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan. Qadoqlash
+                        (quticha) narxi buyurtma tasdiqlashda alohida ko'rsatiladi.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

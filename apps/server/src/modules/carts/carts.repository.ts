@@ -9,10 +9,6 @@ import {
 } from '@nuraskin/database';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
-import {
-  getActiveBoxes,
-  getWeightScalingFactor,
-} from '../../common/utils/box-recommendation';
 
 export async function findByCustomerId(customerId: string, tx: any = db) {
   const [cart] = await tx.select().from(carts).where(eq(carts.customerId, customerId)).limit(1);
@@ -62,8 +58,6 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
     (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
     0
   );
-  const activeBoxes = cart.regionCode === 'UZB' ? await getActiveBoxes() : [];
-  const scalingFactor = getWeightScalingFactor(totalProductWeight, activeBoxes);
 
   let total = 0n;
 
@@ -75,28 +69,26 @@ export async function findByCustomerId(customerId: string, tx: any = db) {
     let displayPrice = BigInt(item.priceSnapshot);
 
     if (cart.regionCode === 'UZB' && rateSnapshot) {
-      const adjustedWeight = Math.round(item.weightGrams * scalingFactor);
-
       const rPrices = calculateUzbPrice(
         BigInt(item.retailPrice || 0),
-        adjustedWeight,
+        item.weightGrams,
         rateSnapshot
       );
       calculatedRetail = (rPrices.productPrice + rPrices.cargoFee).toString();
 
       const wPrices = calculateUzbPrice(
         BigInt(item.wholesalePrice || 0),
-        adjustedWeight,
+        item.weightGrams,
         rateSnapshot
       );
       calculatedWholesale = (wPrices.productPrice + wPrices.cargoFee).toString();
 
-      // Recalculate display price based on current quantity tier and scaling
+      // Recalculate display price based on current quantity tier
       const isWholesale = item.quantity >= (item.minWholesaleQty || 5);
       const basePrice = isWholesale ? BigInt(item.wholesalePrice) : BigInt(item.retailPrice);
       const { productPrice, cargoFee } = calculateUzbPrice(
         basePrice,
-        adjustedWeight,
+        item.weightGrams,
         rateSnapshot
       );
       displayPrice = productPrice + cargoFee;

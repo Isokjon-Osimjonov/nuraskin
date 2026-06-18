@@ -62,6 +62,7 @@ export const createStorefrontOrderSchema = z.object({
   address: z.string().min(5),
   city: z.string().min(2),
   district: z.string().min(2),
+  boxId: z.string().uuid().optional(),
   couponCode: z.string().optional(),
   addressId: z.string().uuid().optional(),
   deliveryAddress: z

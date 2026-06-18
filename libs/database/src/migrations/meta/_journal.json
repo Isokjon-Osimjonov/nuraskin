@@ -288,6 +288,13 @@
       "when": 1781719227922,
       "tag": "0040_loving_proudstar",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1781736850295,
+      "tag": "0041_silent_electro",
+      "breakpoints": true
     }
   ]
 }

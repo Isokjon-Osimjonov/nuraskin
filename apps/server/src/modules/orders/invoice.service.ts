@@ -9,6 +9,7 @@ interface InvoiceData {
   subtotal: string | bigint | number;
   cargoFee: string | bigint | number;
   deliveryFeeCharged: string | bigint | number;
+  boxFeeUzs?: string | bigint | number;
   totalAmount: string | bigint | number;
   couponCode?: string | null;
   couponDiscount?: string | bigint | number;
@@ -242,10 +243,25 @@ export function generateInvoiceHtml(data: InvoiceData): string {
                 : ''
             }
 
+            ${
+              region === 'KOR'
+                ? `
             <div class="total-row">
-                <span>Kargo</span>
+                <span>Yetkazib berish</span>
                 <span>${formatPrice(data.cargoFee, region)}</span>
-            </div>
+            </div>`
+                : ''
+            }
+
+            ${
+              region === 'UZB' && data.boxFeeUzs && BigInt(data.boxFeeUzs) > 0n
+                ? `
+            <div class="total-row">
+                <span>Quticha narxi</span>
+                <span>${formatPrice(data.boxFeeUzs, region)}</span>
+            </div>`
+                : ''
+            }
 
             ${
               Number(data.deliveryFeeCharged) > 0

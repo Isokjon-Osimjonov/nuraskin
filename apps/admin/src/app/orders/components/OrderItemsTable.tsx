@@ -7,9 +7,10 @@ import { formatPrice } from '@/lib/utils';
 interface OrderItemsTableProps {
   items: OrderItemResponse[];
   currency: string;
+  krwToUzsRate?: string;
 }
 
-export function OrderItemsTable({ items, currency }: OrderItemsTableProps) {
+export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTableProps) {
   return (
     <div className="rounded-md border bg-card">
       <Table>
@@ -35,11 +36,30 @@ export function OrderItemsTable({ items, currency }: OrderItemsTableProps) {
           {items.map(item => {
             const region = currency === 'UZS' ? 'UZB' : 'KOR';
             const paid = BigInt(item.unitPriceSnapshot);
-            const cogs = item.costAtSaleKrw ? BigInt(item.costAtSaleKrw) : 0n;
+            
+            // Fix: Convert COGS to UZS if region is UZB
+            let cogs = 0n;
+            if (item.costAtSaleKrw) {
+              const cogsKrw = BigInt(item.costAtSaleKrw);
+              if (region === 'UZB' && krwToUzsRate) {
+                // Convert KRW to UZS using the stored rate
+                // krwToUzsRate is e.g. 14.5. Math.round(14.5 * 100) = 1450.
+                const rate = BigInt(Math.round(Number(krwToUzsRate) * 100));
+                // cogsKrw * rate = whole_krw * (uzs_per_krw * 100) = whole_uzs * 100 = minor units
+                const cogsMinor = cogsKrw * rate;
+                // Round to nearest 1,000 UZS (100,000 minor units) per backend convention
+                cogs = (cogsMinor / 100000n) * 100000n + (cogsMinor % 100000n >= 50000n ? 100000n : 0n);
+              } else {
+                cogs = cogsKrw;
+              }
+            }
+
             const profit = paid - cogs;
             const margin = paid > 0n ? Number((profit * 10000n) / paid) / 100 : 0;
+            
+            const fullPaidPrice = BigInt(item.subtotalSnapshot) / BigInt(item.quantity);
             const isWholesale =
-              item.wholesalePriceSnapshot && item.unitPriceSnapshot === item.wholesalePriceSnapshot;
+              item.wholesalePriceSnapshot && fullPaidPrice.toString() === item.wholesalePriceSnapshot;
 
             return (
               <TableRow key={item.id}>
@@ -65,7 +85,7 @@ export function OrderItemsTable({ items, currency }: OrderItemsTableProps) {
                 </TableCell>
                 <TableCell className="p-4 text-right whitespace-nowrap">
                   <div className="flex flex-col items-end">
-                    <span>{formatPrice(item.unitPriceSnapshot, region)}</span>
+                    <span>{formatPrice(fullPaidPrice.toString(), region)}</span>
                     {isWholesale && (
                       <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">
                         Ulgurji

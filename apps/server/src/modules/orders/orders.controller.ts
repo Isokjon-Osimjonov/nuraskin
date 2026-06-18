@@ -215,18 +215,19 @@ export async function downloadInvoice(req: Request, res: Response) {
   let totalSavings = 0;
   const items = order.items.map((i: any) => {
     let priceType: 'ulgurji' | 'birlik' | 'kelishilgan' | undefined;
+    const actual = BigInt(i.subtotalSnapshot) / BigInt(i.quantity);
 
     // For manual orders we use negotiatedPriceKrw
     if (order.orderSource === 'MANUAL') {
       priceType = 'kelishilgan';
-    } else if (i.wholesalePriceSnapshot && i.unitPriceSnapshot === i.wholesalePriceSnapshot) {
+    } else if (i.wholesalePriceSnapshot && actual.toString() === i.wholesalePriceSnapshot) {
       priceType = 'ulgurji';
     } else {
       priceType = 'birlik';
     }
 
     const retail = i.retailPriceSnapshot ? BigInt(i.retailPriceSnapshot) : 0n;
-    const actual = BigInt(i.unitPriceSnapshot);
+    
     if (retail > actual) {
       totalSavings += Number(retail - actual) * i.quantity;
     }
@@ -236,7 +237,7 @@ export async function downloadInvoice(req: Request, res: Response) {
       brandName: i.brandName,
       barcode: i.barcode,
       quantity: i.quantity,
-      unitPrice: i.unitPriceSnapshot,
+      unitPrice: actual.toString(),
       subtotal: i.subtotalSnapshot,
       retailPrice: i.retailPriceSnapshot,
       wholesalePrice: i.wholesalePriceSnapshot,
@@ -252,6 +253,7 @@ export async function downloadInvoice(req: Request, res: Response) {
     subtotal: order.subtotal,
     cargoFee: order.cargoFee,
     deliveryFeeCharged: order.deliveryFeeCharged || 0,
+    boxFeeUzs: order.boxFeeUzs,
     totalAmount: order.totalAmount,
     regionCode: (order.regionCode as 'UZB' | 'KOR') || 'UZB',
     customerName: order.customerName,

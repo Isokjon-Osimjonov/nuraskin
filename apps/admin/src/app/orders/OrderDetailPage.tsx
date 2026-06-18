@@ -209,7 +209,11 @@ export function OrderDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <OrderItemsTable items={order.items} currency={order.currency} />
+              <OrderItemsTable
+                items={order.items}
+                currency={order.currency}
+                krwToUzsRate={order.krwToUzsRate}
+              />
             </CardContent>
           </Card>
         </div>
@@ -256,10 +260,19 @@ export function OrderDetailPage() {
                   </div>
                 )}
 
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Kargo:</span>
-                  <span>{formatPrice(order.cargoFee, region)}</span>
-                </div>
+                {region === 'KOR' && BigInt(order.cargoFee || '0') > 0n && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Yetkazib berish:</span>
+                    <span>{formatPrice(order.cargoFee, region)}</span>
+                  </div>
+                )}
+
+                {region === 'UZB' && BigInt(order.boxFeeUzs || '0') > 0n && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Quticha narxi:</span>
+                    <span>{formatPrice(order.boxFeeUzs, region)}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between font-bold text-lg pt-2 border-t text-primary">
                   <span>JAMI:</span>

@@ -34,6 +34,7 @@ export const orders = pgTable(
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(bigintZero),
     cargoFee: bigint('cargo_fee', { mode: 'bigint' }).notNull().default(bigintZero),
     cargoCostKrw: bigint('cargo_cost_krw', { mode: 'bigint' }).notNull().default(bigintZero),
+    boxFeeUzs: bigint('box_fee_uzs', { mode: 'bigint' }).notNull().default(bigintZero),
     totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(bigintZero),
     currency: varchar('currency', { length: 3 }).notNull(),
     totalWeightGrams: integer('total_weight_grams').notNull().default(0),

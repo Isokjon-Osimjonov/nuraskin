@@ -28,6 +28,7 @@ export const createOrderSchema = z.object({
       })
     )
     .min(1),
+  boxId: z.string().uuid().optional(),
   isFreeShipping: z.boolean().optional(),
 });
 
@@ -122,6 +123,8 @@ export interface OrderResponse {
   deliveryFeeCharged: string;
   deliveryFeeActual: string | null;
   deliveryCoveredBy: string | null;
+  boxFeeUzs: string;
+  krwToUzsRate: string;
   createdAt: string;
   updatedAt: string;
   itemCount?: number;
@@ -167,6 +170,7 @@ export const createManualOrderSchema = z.object({
   deliveryFeeCoveredBy: z.enum(['CUSTOMER', 'BUSINESS']),
   deliveryFeeCharged: z.number().nonnegative(),
   deliveryFeeActual: z.number().nonnegative(),
+  boxId: z.string().uuid().optional(),
   adminNotes: z.string().optional(),
   region: z.enum(['KOR', 'UZB']),
   forceCreate: z.boolean().optional().default(false),

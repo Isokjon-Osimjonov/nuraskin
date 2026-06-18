@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { JusoSearchModal } from '@/components/addresses/JusoSearchModal';
 import { getPaymentInfo } from '@/api/settings';
+import { BoxPicker } from '@/components/checkout/BoxPicker';
 
 export const Route = createFileRoute('/_protected/checkout')({
   component: CheckoutPage,
@@ -94,6 +95,8 @@ function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | 'new'>('new');
   const [saveNewAddress, setSaveNewAddress] = useState(false);
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
+  const [currentBoxFee, setCurrentBoxFee] = useState<bigint>(0n);
 
   const subtotal = useMemo(() => {
     return cart.reduce((acc, item) => acc + BigInt(item.price) * BigInt(item.quantity), 0n);
@@ -135,7 +138,7 @@ function CheckoutPage() {
 
   const finalCargo = appliedCoupon?.isFreeShipping ? 0n : korCargo;
   const displayDiscount = appliedCoupon?.isFreeShipping ? korCargo : discountAmount;
-  const finalTotal = subtotal + finalCargo - displayDiscount;
+  const finalTotal = subtotal + finalCargo + currentBoxFee - displayDiscount;
 
   const totalSavings = useMemo(() => {
     return cart.reduce((acc, item) => {
@@ -290,6 +293,7 @@ function CheckoutPage() {
     createOrder.mutate(
       {
         ...data,
+        boxId: selectedBoxId ?? undefined,
         deliveryAddress,
         couponCode: appliedCoupon?.valid ? couponCode : undefined,
       },
@@ -693,6 +697,16 @@ function CheckoutPage() {
 
           {/* Right: Order Summary */}
           <div className="space-y-6">
+            {cartRegion === 'UZB' && (
+              <BoxPicker
+                regionCode={cartRegion}
+                onSelect={(id, fee) => {
+                  setSelectedBoxId(id);
+                  setCurrentBoxFee(fee);
+                }}
+              />
+            )}
+
             <section className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100">
               <h2 className="text-lg font-normal text-[#4A1525] mb-6">Buyurtma tafsiloti</h2>
 
@@ -781,6 +795,12 @@ function CheckoutPage() {
                     <span>{korCargo === 0n ? 'BEPUL' : displayPrice(korCargo)}</span>
                   )}
                 </div>
+                {cartRegion === 'UZB' && currentBoxFee > 0n && (
+                  <div className="flex justify-between text-[13px] font-light text-stone-500">
+                    <span>Quticha narxi</span>
+                    <span>{displayPrice(currentBoxFee)}</span>
+                  </div>
+                )}
                 {appliedCoupon?.valid && Number(discountAmount) > 0 && (
                   <div className="flex justify-between text-[13px] font-normal text-emerald-600">
                     <span>Chegirma</span>

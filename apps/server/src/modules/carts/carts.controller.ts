@@ -9,6 +9,12 @@ export async function getCart(req: Request, res: Response) {
   res.json(result);
 }
 
+export async function getBoxOptions(req: Request, res: Response) {
+  const customerId = (req as any).customer.id;
+  const result = await service.getBoxOptions(customerId);
+  res.json(result);
+}
+
 export async function addToCart(req: Request, res: Response) {
   const { productId, quantity } = addToCartSchema.parse(req.body);
   const regionCode = req.body.regionCode || req.query.region;

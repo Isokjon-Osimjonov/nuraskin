@@ -303,9 +303,9 @@ function CartPage() {
                           side="left"
                           className="max-w-[250px] text-[12px] leading-relaxed bg-stone-800 border-stone-700 text-white"
                         >
-                          Narxga yetkazib berish va qadoqlash xarajati kiritilgan. Bir nechta
-                          mahsulotni birga buyurtma qilsangiz, ular bitta qutida yuborilgani uchun
-                          narx biroz arzonlashishi mumkin.
+                          Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan.
+                          Qadoqlash (quticha) narxi buyurtma tasdiqlashda alohida
+                          ko'rsatiladi.
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

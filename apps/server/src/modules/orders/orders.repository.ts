@@ -100,9 +100,11 @@ export async function findById(id: string, txIn: any = db) {
     .select({
       order: orders,
       customerName: customers.fullName,
+      krwToUzsRate: exchangeRateSnapshots.krwToUzs,
     })
     .from(orders)
     .innerJoin(customers, eq(orders.customerId, customers.id))
+    .leftJoin(exchangeRateSnapshots, eq(orders.rateSnapshotId, exchangeRateSnapshots.id))
     .where(eq(orders.id, id))
     .limit(1);
 
@@ -132,6 +134,8 @@ export async function findById(id: string, txIn: any = db) {
     subtotal: row.order.subtotal.toString(),
     cargoFee: row.order.cargoFee.toString(),
     totalAmount: row.order.totalAmount.toString(),
+    boxFeeUzs: row.order.boxFeeUzs.toString(),
+    krwToUzsRate: row.krwToUzsRate?.toString() || '0',
     couponCode: row.order.couponCode,
     discountAmount: row.order.discountAmount.toString(),
     couponDiscount: row.order.discountAmount.toString(),

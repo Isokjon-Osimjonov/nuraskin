@@ -2,8 +2,12 @@ import * as repository from './carts.repository';
 import * as storefrontRepository from '../storefront/storefront.repository';
 import { db, inventoryBatches, productRegionalConfigs } from '@nuraskin/database';
 import { BadRequestError, NotFoundError, ConflictError } from '../../common/errors/AppError';
-import { calculateUzbPrice, calculateKorPrice } from '../../common/utils/pricing';
-import { getActiveBoxes, getWeightScalingFactor } from '../../common/utils/box-recommendation';
+import {
+  calculateUzbPrice,
+  calculateKorPrice,
+  calculateBoxFeeUzs,
+} from '../../common/utils/pricing';
+import { getActiveBoxes } from '../../common/utils/box-recommendation';
 import { eq, and, sql } from 'drizzle-orm';
 
 async function getAvailableStock(productId: string, tx: any = db) {
@@ -16,6 +20,70 @@ async function getAvailableStock(productId: string, tx: any = db) {
 
 export async function getCart(customerId: string) {
   return await repository.findByCustomerId(customerId);
+}
+
+export async function getBoxOptions(customerId: string) {
+  const cart = await repository.findByCustomerId(customerId);
+  if (!cart || cart.regionCode !== 'UZB') return null;
+
+  const totalProductWeight = cart.items.reduce(
+    (acc, item) => acc + (item.weightGrams || 0) * item.quantity,
+    0
+  );
+
+  const activeBoxes = await getActiveBoxes();
+  const latestRate = await repository.getLatestRateSnapshot();
+  if (!latestRate) return null;
+
+  const rateData = {
+    krwToUzs: parseFloat(latestRate.krwToUzs),
+    cargoRateKrwPerKg: latestRate.cargoRateKrwPerKg,
+  };
+
+  const largestBox = [...activeBoxes].sort((a, b) => b.maxWeightGrams - a.maxWeightGrams)[0];
+
+  if (totalProductWeight > largestBox.maxWeightGrams) {
+    const quantityNeeded = Math.ceil(totalProductWeight / largestBox.maxWeightGrams);
+    const singleBoxFee = calculateBoxFeeUzs(largestBox, rateData);
+
+    return {
+      multiBoxRequired: true,
+      boxId: largestBox.id,
+      boxName: largestBox.name,
+      boxLabel: largestBox.label,
+      quantityNeeded,
+      feeUzs: (singleBoxFee * BigInt(quantityNeeded)).toString(),
+    };
+  }
+
+  const options = activeBoxes.map(box => {
+    const isEligible = box.maxWeightGrams >= totalProductWeight;
+    const feeUzs = calculateBoxFeeUzs(box, rateData);
+
+    return {
+      boxId: box.id,
+      name: box.name,
+      label: box.label,
+      maxWeightGrams: box.maxWeightGrams,
+      eligible: isEligible,
+      feeUzs: feeUzs.toString(),
+      isRecommended: false,
+    };
+  });
+
+  // Smallest eligible box is recommended
+  const recommended = [...options]
+    .filter(o => o.eligible)
+    .sort((a, b) => a.maxWeightGrams - b.maxWeightGrams)[0];
+
+  if (recommended) {
+    recommended.isRecommended = true;
+  }
+
+  return {
+    multiBoxRequired: false,
+    options,
+  };
 }
 
 export async function addToCart(
@@ -84,13 +152,10 @@ export async function addToCart(
       if (!rateSnapshot) {
         throw new BadRequestError('Valyuta kursi topilmadi');
       }
-      const activeBoxes = await getActiveBoxes();
-      const scalingFactor = getWeightScalingFactor(product?.weightGrams || 0, activeBoxes);
-      const adjustedWeight = Math.round((product?.weightGrams || 0) * scalingFactor);
 
       const { productPrice, cargoFee } = calculateUzbPrice(
         basePrice,
-        adjustedWeight,
+        product?.weightGrams || 0,
         rateSnapshot
       );
       priceSnapshot = productPrice + cargoFee;
@@ -150,13 +215,10 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
           throw new BadRequestError('Valyuta kursi topilmadi');
         }
         const product = await storefrontRepository.findProductById(productId);
-        const activeBoxes = await getActiveBoxes();
-        const scalingFactor = getWeightScalingFactor(product?.weightGrams || 0, activeBoxes);
-        const adjustedWeight = Math.round((product?.weightGrams || 0) * scalingFactor);
 
         const { productPrice, cargoFee } = calculateUzbPrice(
           basePrice,
-          adjustedWeight,
+          product?.weightGrams || 0,
           rateSnapshot
         );
         priceSnapshot = productPrice + cargoFee;

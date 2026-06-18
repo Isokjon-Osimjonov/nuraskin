@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "box_fee_uzs" bigint DEFAULT 0 NOT NULL;
