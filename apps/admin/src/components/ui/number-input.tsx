@@ -85,7 +85,7 @@ export function NumberInput({
       {...props}
       type="text"
       inputMode={allowDecimals ? 'decimal' : 'numeric'}
-      pattern={allowDecimals ? '[0-9]*[.,]?[0-9]*' : '[0-9]*'}
+      pattern={allowDecimals ? '-?[0-9]*[.,]?[0-9]*' : '-?[0-9]*'}
       value={internal}
       onChange={handleChange}
       onBlur={handleBlur}
