@@ -6,16 +6,11 @@ import { useCategories } from '@/hooks/useCategories';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
 import { cn } from '@/lib/utils';
-import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
+import {  formatPrice } from '@nuraskin/shared-utils';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { typography } from '@/lib/typography';
 import { EmptySection } from '@/components/shared/EmptySection';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const Route = createFileRoute('/products/')({
   component: CategoryPage,
@@ -168,21 +163,6 @@ function CategoryPage() {
                 onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-[12px] font-light text-stone-400 whitespace-nowrap hidden sm:inline-block">
-                Saralash:
-              </span>
-              <select
-                className="w-full sm:w-auto h-10 rounded-full border border-stone-200 bg-stone-50 px-4 py-1 text-[13px] font-light focus:outline-none focus:border-[#4A1525]"
-                value={sortOrder}
-                onChange={e => setSortOrder(e.target.value as 'arzon' | 'qimmat' | 'yangi')}
-              >
-                <option value="yangi">Eng yangilari</option>
-                <option value="arzon">Arzon → Qimmat</option>
-                <option value="qimmat">Qimmat → Arzon</option>
-              </select>
-            </div>
           </div>
 
           {/* Loading */}
@@ -292,9 +272,8 @@ function CategoryPage() {
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-[200px] text-[11px] leading-tight">
-                                  Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan.
-                                  Qadoqlash (quticha) narxi buyurtma tasdiqlashda alohida
-                                  ko'rsatiladi.
+                                  Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan. Qadoqlash
+                                  (quticha) narxi buyurtma tasdiqlashda alohida ko'rsatiladi.
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

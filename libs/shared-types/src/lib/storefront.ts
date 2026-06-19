@@ -83,8 +83,8 @@ export type CreateStorefrontOrderInput = z.infer<typeof createStorefrontOrderSch
 export const contactFormSchema = z.object({
   name: z.string().min(2),
   phone: z.string().min(7),
-  subject: z.string().min(3),
-  message: z.string().min(10),
+  subject: z.string().min(1),
+  message: z.string().min(1),
   region: z.string(),
 });
 

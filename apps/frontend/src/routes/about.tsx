@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShieldCheck, Package, Truck, Layers, Building2 } from 'lucide-react';
+import { ShieldCheck, Package, Truck, Layers } from 'lucide-react';
 import { STORE_INFO } from '@nuraskin/shared-utils';
 
 export const Route = createFileRoute('/about')({
@@ -12,16 +12,12 @@ function AboutPage() {
       <div className="max-w-[1280px] mx-auto space-y-4">
         <section className="bg-[#3A0311] rounded-3xl py-16 px-8 text-center relative overflow-hidden">
           <div className="relative z-10">
-            <p className="text-[11px] tracking-[0.2em] text-[#4A1525] font-normal mb-3 uppercase">
+            <p className="text-[11px] tracking-[0.2em] text-[#ffffff] font-normal mb-3 uppercase">
               Biz haqimizda
             </p>
             <h1 className="text-3xl md:text-5xl font-normal text-white mb-6 leading-tight max-w-[600px] mx-auto">
               Koreya go'zallik sirlarini to'g'ridan-to'g'ri sizga yetkazamiz
             </h1>
-            <p className="text-[#c49aaa] text-sm md:text-base max-w-[480px] mx-auto leading-relaxed">
-              Seoul markazidan Toshkentgacha — original mahsulotlar, adolatli narxlar, ishonchli
-              xizmat.
-            </p>
           </div>
           {/* Subtle background decoration */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#4A1525]/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
@@ -29,15 +25,7 @@ function AboutPage() {
         </section>
 
         {/* SECTION 2 — Who we are */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div
-            className="about-store-image bg-[#f5e6ea] rounded-3xl h-64 md:h-full flex flex-col items-center justify-center text-[#4A1525]/40 about-image-placeholder"
-            data-placeholder="true"
-          >
-            <Building2 size={48} strokeWidth={1} />
-            <span className="text-xs mt-2 font-normal tracking-wide">Seoul do'koni rasmi</span>
-          </div>
-
+        <div className="grid  gap-3">
           <div className="bg-white border border-[#f0d0d8] rounded-3xl p-8 md:p-10 flex flex-col justify-center">
             <p className="text-[11px] tracking-[0.15em] text-[#4A1525] font-normal mb-4 uppercase">
               Kimligimiz
