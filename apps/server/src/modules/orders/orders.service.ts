@@ -900,7 +900,7 @@ async function notifyStatusChange(orderId: string, to: string) {
           );
         } else if (to === 'PAYMENT_SUBMITTED') {
           await NotificationService.sendPaymentSubmitted(orderId, orderNumber, customerTelegramId);
-        } else if (to === 'PAYMENT_CONFIRMED' || to === 'PAYMENT_CONFIRMED') {
+        } else if (to === 'PAYMENT_CONFIRMED') {
           await NotificationService.sendPaymentVerified(
             orderId,
             orderNumber,
@@ -908,12 +908,30 @@ async function notifyStatusChange(orderId: string, to: string) {
             region,
             customerTelegramId
           );
-        } else if (to === 'PACKING' || to === 'SHIPPED') {
+        } else if (to === 'PAYMENT_REJECTED') {
+          await NotificationService.sendPaymentRejected(
+            orderId,
+            orderNumber,
+            totalAmount,
+            region,
+            customerTelegramId
+          );
+        } else if (to === 'PACKING') {
+          await NotificationService.sendOrderPacking(orderId, orderNumber, customerTelegramId);
+        } else if (to === 'SHIPPED') {
           await NotificationService.sendOrderShipped(orderId, orderNumber, customerTelegramId);
         } else if (to === 'DELIVERED') {
           await NotificationService.sendOrderDelivered(orderId, orderNumber, customerTelegramId);
         } else if (to === 'CANCELED') {
           await NotificationService.sendOrderCancelled(
+            orderId,
+            orderNumber,
+            totalAmount,
+            region,
+            customerTelegramId
+          );
+        } else if (to === 'REFUNDED') {
+          await NotificationService.sendOrderRefunded(
             orderId,
             orderNumber,
             totalAmount,

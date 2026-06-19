@@ -116,6 +116,38 @@ export const NotificationService = {
     await this.sendToCustomer(customerTelegramId, text);
   },
 
+  async sendPaymentRejected(
+    orderId: string,
+    orderNumber: string,
+    total: string | bigint | number,
+    regionCode: string,
+    customerTelegramId: string | bigint
+  ) {
+    if (!customerTelegramId) return;
+    const region = regionCode as 'UZB' | 'KOR';
+    const text =
+      `❌ <b>To'lov rad etildi!</b>\n\n` +
+      `📦 #${orderNumber}\n` +
+      `💰 ${formatPrice(total, region)}\n\n` +
+      `Afsuski, to'lov kvitansiyangiz tasdiqlanmadi. Iltimos, qaytadan yuklang yoki admin bilan bog'laning.\n` +
+      `🔗 https://nuraskin.uz/orders/${orderId}`;
+    await this.sendToCustomer(customerTelegramId, text);
+  },
+
+  async sendOrderPacking(
+    orderId: string,
+    orderNumber: string,
+    customerTelegramId: string | bigint
+  ) {
+    if (!customerTelegramId) return;
+    const text =
+      `🎁 <b>Buyurtmangiz tayyorlanmoqda!</b>\n\n` +
+      `#${orderNumber}\n\n` +
+      `Tez orada yetkazib beramiz.\n` +
+      `🔗 https://nuraskin.uz/orders/${orderId}`;
+    await this.sendToCustomer(customerTelegramId, text);
+  },
+
   async sendOrderShipped(
     orderId: string,
     orderNumber: string,
@@ -160,6 +192,24 @@ export const NotificationService = {
       `📦 #${orderNumber}\n` +
       `💰 ${formatPrice(total, region)}\n\n` +
       `Savollar bo'lsa murojaat qiling.\n` +
+      `🔗 https://nuraskin.uz/orders/${orderId}`;
+    await this.sendToCustomer(customerTelegramId, text);
+  },
+
+  async sendOrderRefunded(
+    orderId: string,
+    orderNumber: string,
+    total: string | bigint | number,
+    regionCode: string,
+    customerTelegramId: string | bigint
+  ) {
+    if (!customerTelegramId) return;
+    const region = regionCode as 'UZB' | 'KOR';
+    const text =
+      `💸 <b>Pul qaytarildi!</b>\n\n` +
+      `📦 #${orderNumber}\n` +
+      `💰 ${formatPrice(total, region)}\n\n` +
+      `Buyurtmangiz uchun pul qaytarildi. Tafsilotlar uchun adminga murojaat qiling.\n` +
       `🔗 https://nuraskin.uz/orders/${orderId}`;
     await this.sendToCustomer(customerTelegramId, text);
   },

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
 import { getMyOrders, uploadReceipt, getUploadUrl, cancelOrder } from '@/api/orders';
 import { getPaymentInfo } from '@/api/settings';
-import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
+import { formatUzs, formatKrw, formatPrice, ORDER_STATUS_LABELS_UZ } from '@nuraskin/shared-utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
   ArrowLeft,
@@ -29,20 +29,24 @@ export const Route = createFileRoute('/_protected/orders')({
 });
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Package }> = {
+  DRAFT: { label: ORDER_STATUS_LABELS_UZ.DRAFT, color: 'text-stone-500 bg-stone-100', icon: Package },
   PENDING_PAYMENT: {
-    label: "To'lov kutilmoqda",
+    label: ORDER_STATUS_LABELS_UZ.PENDING_PAYMENT,
     color: 'text-amber-600 bg-amber-50',
     icon: CreditCard,
   },
-  PAID: {
-    label: "To'lov tasdiqlandi",
+  PAYMENT_SUBMITTED: { label: ORDER_STATUS_LABELS_UZ.PAYMENT_SUBMITTED, color: 'text-blue-600 bg-blue-50', icon: Clock },
+  PAYMENT_CONFIRMED: {
+    label: ORDER_STATUS_LABELS_UZ.PAYMENT_CONFIRMED,
     color: 'text-emerald-600 bg-emerald-50',
     icon: CheckCircle2,
   },
-  PACKING: { label: 'Tayyorlanmoqda', color: 'text-blue-600 bg-blue-50', icon: Package },
-  SHIPPED: { label: "Yo'lda", color: 'text-purple-600 bg-purple-50', icon: Truck },
-  DELIVERED: { label: 'Yetkazilgan', color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
-  CANCELED: { label: 'Bekor qilindi', color: 'text-stone-500 bg-stone-100', icon: XCircle },
+  PAYMENT_REJECTED: { label: ORDER_STATUS_LABELS_UZ.PAYMENT_REJECTED, color: 'text-red-600 bg-red-50', icon: XCircle },
+  PACKING: { label: ORDER_STATUS_LABELS_UZ.PACKING, color: 'text-blue-600 bg-blue-50', icon: Package },
+  SHIPPED: { label: ORDER_STATUS_LABELS_UZ.SHIPPED, color: 'text-purple-600 bg-purple-50', icon: Truck },
+  DELIVERED: { label: ORDER_STATUS_LABELS_UZ.DELIVERED, color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
+  CANCELED: { label: ORDER_STATUS_LABELS_UZ.CANCELED, color: 'text-stone-500 bg-stone-100', icon: XCircle },
+  REFUNDED: { label: ORDER_STATUS_LABELS_UZ.REFUNDED, color: 'text-stone-500 bg-stone-100', icon: CheckCircle2 },
 };
 
 const displayPrice = (price: number | string, currency: string) =>
@@ -86,7 +90,11 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
 }
 
 function OrderCard({ order }: { order: StorefrontOrderResponse }) {
-  const cfg = statusConfig[order.status] || statusConfig.PENDING_PAYMENT;
+  const cfg = statusConfig[order.status] || {
+    label: order.status,
+    color: 'text-stone-500 bg-stone-100',
+    icon: AlertCircle,
+  };
   const StatusIcon = cfg.icon;
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);

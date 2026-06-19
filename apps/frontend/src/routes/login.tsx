@@ -4,6 +4,8 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { createFileRoute, useNavigate, Link, redirect } from '@tanstack/react-router';
 import { useAppStore } from '@/stores/app.store';
 import { z } from 'zod';
+import { toast } from 'sonner';
+import { mapAuthErrorToMessage } from '@nuraskin/shared-utils';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { updateRegion } from '@/api/profile';
 import {
@@ -41,7 +43,6 @@ function LoginPage() {
   const { redirect: redirectUrl } = Route.useSearch();
   const setAuth = useAppStore(s => s.setAuth);
   const setRegion = useAppStore(s => s.setRegion);
-  const [error, setError] = useState<string | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -58,7 +59,6 @@ function LoginPage() {
 
   const handleAuth = useCallback(
     async (user: any) => {
-      setError(null);
       try {
         const data = await api.post<any>('/auth/telegram', user);
 
@@ -87,7 +87,7 @@ function LoginPage() {
         setShowRegionConflict(true);
       } catch (err: any) {
         console.error('Auth error:', err);
-        setError(err.message || 'Login failed. Please try again.');
+        toast.error(mapAuthErrorToMessage(err));
       }
     },
     [setAuth, navigate, redirectUrl, queryClient, setRegion]
@@ -151,12 +151,6 @@ function LoginPage() {
           </div>
 
           <div className="border-t border-white/10 my-8" />
-
-          {error && (
-            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
-              {error}
-            </div>
-          )}
 
           <div className="flex justify-center min-h-[44px]" ref={widgetRef} />
 

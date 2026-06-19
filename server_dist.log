@@ -1,0 +1,8 @@
+◇ injected env (0) from dist/.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+[env] Invalid environment variables:
+  DATABASE_URL: Invalid input: expected string, received undefined
+  JWT_SECRET: Invalid input: expected string, received undefined
+  TELEGRAM_BOT_TOKEN: Invalid input: expected string, received undefined
+  TELEGRAM_BOT_ID: Invalid input: expected string, received undefined
+  TELEGRAM_BOT_USERNAME: Invalid input: expected string, received undefined
+  OPENAI_API_KEY: Invalid input: expected string, received undefined

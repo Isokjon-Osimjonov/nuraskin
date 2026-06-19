@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { mapAuthErrorToMessage } from '@nuraskin/shared-utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,7 +24,6 @@ type LoginInput = z.infer<typeof LoginSchema>;
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const setAuth = useAuthStore(s => s.setAuth);
   const navigate = useNavigate();
   const search = useSearch({ from: '/login' });
@@ -34,17 +35,12 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 
   async function onSubmit(data: LoginInput) {
     setIsPending(true);
-    setError(null);
     try {
       const json = await api.post<any>('/auth/login', data);
       setAuth(json.token, json.user);
       navigate({ to: search.redirect || '/' });
     } catch (err: any) {
-      if (err?.status === 401) {
-        setError("Email yoki parol noto'g'ri");
-      } else {
-        setError(err.message || 'Server xatosi yuz berdi');
-      }
+      toast.error(mapAuthErrorToMessage(err));
     } finally {
       setIsPending(false);
     }
@@ -60,11 +56,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
-              {error && (
-                <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md border border-destructive/20">
-                  {error}
-                </div>
-              )}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

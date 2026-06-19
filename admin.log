@@ -1,0 +1,26 @@
+npm warn Unknown project config "shamefully-hoist". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> nx run admin:serve
+
+> vite
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1828[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttps://localhost:[1m4200[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttps://172.30.1.68:[1m4200[22m/[39m
+[2m4:29:33 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GlobalSearch.tsx, /src/index.css?direct, /src/index.css[22m
+[2m4:34:14 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GlobalSearch.tsx, /src/index.css?direct, /src/index.css[22m
+[2m4:37:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GlobalSearch.tsx, /src/index.css?direct, /src/index.css[22m
+Warning: command "vite" exited with non-zero status codeTask "admin:serve" is continuous but exited with code 128
+
+
+
+ NX   Running target serve for project admin failed
+
+Failed tasks:
+
+- admin:serve
+
+Hint: run the command with --verbose for more details.
+

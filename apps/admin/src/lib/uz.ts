@@ -1,3 +1,5 @@
+import { ORDER_STATUS_LABELS_UZ } from '@nuraskin/shared-utils';
+
 export const UZ = {
   // --- COMMON ---
   common: {
@@ -92,16 +94,7 @@ export const UZ = {
     confirmCancel: 'Buyurtmani bekor qilasizmi?',
     cancelReason: 'Bekor qilish sababi',
 
-    status: {
-      PENDING_PAYMENT: "To'lov kutilmoqda",
-      PAID: "To'landi",
-      PROCESSING: 'Jarayonda',
-      PACKED: 'Qadoqlandi',
-      SHIPPED: 'Yuborildi',
-      DELIVERED: 'Yetkazildi',
-      CANCELLED: 'Bekor qilindi',
-      REFUNDED: 'Qaytarildi',
-    },
+    status: ORDER_STATUS_LABELS_UZ,
 
     errors: {
       notFound: 'Buyurtma topilmadi',
