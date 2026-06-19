@@ -35,7 +35,7 @@ export function GlobalSearch() {
     queryKey: ['globalSearch', debouncedQuery],
     queryFn: async () => {
       const res = await api.get<any>(`/admin/search?q=${debouncedQuery}`);
-      return res.data?.data as GlobalSearchResponse;
+      return res.data as GlobalSearchResponse;
     },
     enabled: debouncedQuery.length >= 2,
   });
