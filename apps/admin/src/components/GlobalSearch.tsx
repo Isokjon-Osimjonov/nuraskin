@@ -5,6 +5,7 @@ import { Search, Loader2, Package, Users, ShoppingCart } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { GlobalSearchResponse, GlobalSearchProduct, GlobalSearchCustomer, GlobalSearchOrder } from '@nuraskin/shared-types';
 
 export function GlobalSearch() {
@@ -12,7 +13,6 @@ export function GlobalSearch() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,21 +30,6 @@ export function GlobalSearch() {
     const timer = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(timer);
   }, [query]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['globalSearch', debouncedQuery],
@@ -65,31 +50,35 @@ export function GlobalSearch() {
 
   return (
     <div className="relative flex-1 max-w-sm ml-auto">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          ref={inputRef}
-          type="search"
-          placeholder="Qidirish..."
-          className="w-full bg-muted/50 pl-9 pr-12 focus-visible:ring-1 h-9"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => {
-            if (query.length >= 2) setOpen(true);
-          }}
-        />
-        <Badge variant="secondary" className="absolute right-1.5 top-1.5 px-1.5 text-[10px] font-mono pointer-events-none text-muted-foreground h-6 flex items-center justify-center">
-          ⌘K
-        </Badge>
-      </div>
+      <Popover open={open && query.length >= 2} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              ref={inputRef}
+              type="search"
+              placeholder="Qidirish..."
+              className="w-full bg-muted/50 pl-9 pr-12 focus-visible:ring-1 h-9"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setOpen(true);
+              }}
+              onFocus={() => {
+                if (query.length >= 2) setOpen(true);
+              }}
+            />
+            <Badge variant="secondary" className="absolute right-1.5 top-1.5 px-1.5 text-[10px] font-mono pointer-events-none text-muted-foreground h-6 flex items-center justify-center">
+              ⌘K
+            </Badge>
+          </div>
+        </PopoverTrigger>
 
-      {open && query.length >= 2 && (
-        <div 
-          ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-2 rounded-md border bg-popover shadow-md z-50 max-h-[80vh] overflow-y-auto"
+        <PopoverContent 
+          className="w-[var(--radix-popover-trigger-width)] p-0 max-h-[80vh] overflow-y-auto"
+          align="start"
+          sideOffset={8}
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {isLoading ? (
             <div className="p-4 flex items-center justify-center text-muted-foreground">
@@ -188,8 +177,8 @@ export function GlobalSearch() {
               )}
             </div>
           ) : null}
-        </div>
-      )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
