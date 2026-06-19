@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20.20.2-alpine AS builder
 RUN npm install -g pnpm
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY . .
 # Build the server
 RUN NX_DAEMON=false pnpm exec nx run server:build:production
 
-FROM node:20-alpine AS production
+FROM node:20.20.2-alpine AS production
 WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 

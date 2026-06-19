@@ -40,10 +40,10 @@ jobs:
         run: pnpm nx run-many -t build
 
       - name: Test Docker build (server)
-        run: docker build -f Dockerfile.server -t nuraskin-server:test .
+        run: docker build -f apps/server/Dockerfile -t nuraskin-server:test .
 
       - name: Test Docker build (frontend)
-        run: docker build -f Dockerfile.frontend -t nuraskin-frontend:test .
+        run: docker build -f apps/frontend/Dockerfile --build-arg VITE_API_BASE_URL=https://api.nuraskin.uz -t nuraskin-frontend:test .
 
       - name: Test Docker build (admin)
-        run: docker build -f Dockerfile.admin -t nuraskin-admin:test .
+        run: docker build -f apps/admin/Dockerfile --build-arg VITE_API_BASE_URL=https://api.nuraskin.uz -t nuraskin-admin:test .

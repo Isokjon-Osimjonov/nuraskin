@@ -30,7 +30,7 @@ services:
   server:
     build:
       context: .
-      dockerfile: Dockerfile.server
+      dockerfile: apps/server/Dockerfile
     restart: always
     depends_on:
       postgres:
@@ -51,7 +51,7 @@ services:
   admin:
     build:
       context: .
-      dockerfile: Dockerfile.admin
+      dockerfile: apps/admin/Dockerfile
     restart: always
     depends_on:
       - server
@@ -61,7 +61,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: apps/frontend/Dockerfile
     restart: always
     depends_on:
       - server
