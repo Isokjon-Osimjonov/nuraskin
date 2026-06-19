@@ -46,6 +46,13 @@ export const adjustQuantitySchema = z.object({
 
 export type AdjustQuantityInput = z.infer<typeof adjustQuantitySchema>;
 
+export const correctInitialQtySchema = z.object({
+  newInitialQty: z.number().int().positive(),
+  reason: z.string().min(1),
+});
+
+export type CorrectInitialQtyInput = z.infer<typeof correctInitialQtySchema>;
+
 export interface InventoryBatchResponse {
   id: string;
   productId: string;

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import * as inventoryService from './inventory.service';
-import { addBatchSchema, updateBatchSchema, adjustQuantitySchema } from '@nuraskin/shared-types';
+import { addBatchSchema, updateBatchSchema, adjustQuantitySchema, correctInitialQtySchema } from '@nuraskin/shared-types';
 
 export async function scanProduct(req: Request, res: Response) {
   const { barcode } = req.params;
@@ -25,6 +25,13 @@ export async function adjustQuantity(req: Request, res: Response) {
   const { batchId } = req.params;
   const input = adjustQuantitySchema.parse(req.body);
   const result = await inventoryService.adjustQuantity(batchId, input, req.user!.sub);
+  res.json(result);
+}
+
+export async function correctInitialQty(req: Request, res: Response) {
+  const { batchId } = req.params;
+  const input = correctInitialQtySchema.parse(req.body);
+  const result = await inventoryService.correctInitialQty(batchId, input, req.user!.sub);
   res.json(result);
 }
 

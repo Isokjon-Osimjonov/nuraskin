@@ -4,6 +4,7 @@ import type {
   InventoryBatchResponse,
   UpdateBatchInput,
   AdjustQuantityInput,
+  CorrectInitialQtyInput,
 } from '@nuraskin/shared-types';
 
 export interface InventoryOverviewItem {
@@ -44,6 +45,8 @@ export const inventoryApi = {
     api.patch<any>(`/inventory/batches/${batchId}`, data),
   adjustQuantity: (batchId: string, data: AdjustQuantityInput): Promise<InventoryBatchResponse> =>
     api.post<any>(`/inventory/batches/${batchId}/adjust-quantity`, data),
+  correctInitialQty: (batchId: string, data: CorrectInitialQtyInput): Promise<InventoryBatchResponse> =>
+    api.post<any>(`/inventory/batches/${batchId}/correct-initial-qty`, data),
   deleteBatch: (batchId: string): Promise<{ success: true }> =>
     api.delete<any>(`/inventory/batches/${batchId}`),
 };

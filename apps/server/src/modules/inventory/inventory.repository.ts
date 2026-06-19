@@ -103,6 +103,46 @@ export async function adjustBatchQuantity(
   });
 }
 
+export async function correctBatchInitialQty(
+  batchId: string,
+  newInitialQty: number,
+  newCurrentQty: number,
+  adminId: string,
+  reason: string
+) {
+  return await db.transaction(async tx => {
+    const [batch] = await tx
+      .select()
+      .from(inventoryBatches)
+      .where(eq(inventoryBatches.id, batchId))
+      .for('update')
+      .limit(1);
+
+    if (!batch) throw new NotFoundError('Batch not found');
+
+    const [updated] = await tx
+      .update(inventoryBatches)
+      .set({ initialQty: newInitialQty, currentQty: newCurrentQty, updatedAt: new Date() })
+      .where(eq(inventoryBatches.id, batchId))
+      .returning();
+
+    // Insert adjustment for INITIAL_QTY_CORRECTION
+    await tx.insert(batchAdjustments).values({
+      batchId,
+      adminId,
+      fieldChanged: 'INITIAL_QTY_CORRECTION',
+      oldValue: batch.initialQty.toString(),
+      newValue: newInitialQty.toString(),
+      reason,
+    });
+
+    return {
+      ...updated,
+      costPrice: updated.costPrice.toString(),
+    };
+  });
+}
+
 export async function deleteBatch(batchId: string) {
   return await db.delete(inventoryBatches).where(eq(inventoryBatches.id, batchId)).returning();
 }
