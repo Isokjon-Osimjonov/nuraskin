@@ -113,5 +113,9 @@ export function buildCaptionPreview(
     caption += links.join('  |  ');
   }
 
+  if (form.hashtags && form.hashtags.length > 0) {
+    caption += '\n\n' + form.hashtags.join(' ');
+  }
+
   return caption.trim();
 }

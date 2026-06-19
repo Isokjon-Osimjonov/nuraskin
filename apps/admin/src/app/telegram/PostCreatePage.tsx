@@ -105,7 +105,7 @@ export function PostCreatePage() {
   const aiMutation = useMutation({
     mutationFn: () => telegramApi.generateCaption(form.productId, form.postType, form.language),
     onSuccess: res => {
-      setForm({ ...form, captionText: res.caption });
+      setForm({ ...form, captionText: res.caption, hashtags: res.hashtags || [] });
       toast.success('AI matn tayyor!');
     },
     onError: () => toast.error("AI ishlamadi, iltimos qo'lda to'ldiring"),
@@ -815,15 +815,11 @@ export function PostCreatePage() {
                 <div dangerouslySetInnerHTML={{ __html: captionPreview.replace(/\n/g, '<br/>') }} />
               </div>
               <div className="px-3 pb-3">
-                <div className="h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm font-medium">
-                  {form.ctaType === 'BUY_NOW'
-                    ? 'Hozir sotib olish'
-                    : form.ctaType === 'DM_US'
-                      ? 'Lichkaga yozish'
-                      : form.ctaType === 'VISIT_WEB'
-                        ? "Saytga o'tish"
-                        : form.ctaCustomText || 'Tugma'}
-                </div>
+                {form.showCta && (
+                  <div className="h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm font-medium">
+                    {form.ctaText || 'Tugma'}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -52,16 +52,35 @@ export async function generateCaption(productId: string, postType: string, langu
   const product = await storefrontRepository.findProductById(productId);
   if (!product) throw new NotFoundError('Product not found');
 
-  const systemPrompt = `You are a copywriter for NuraSkin, a Korean cosmetics brand selling to Uzbekistan. Write Telegram post captions.
+  const postTypeInstructions: Record<string, string> = {
+    PRODUCT_SHOWCASE: `This is a regular product showcase. Aspirational, confident hook. Example hook style: "Teringiz [natija] his qilsin" — focused on everyday quality.`,
+    FLASH_SALE: `This is a TIME-LIMITED SALE post. The hook MUST explicitly convey urgency and a limited window — use real urgency words like "faqat bugun", "tezkor", "vaqt cheklangan", "shoshiling". Example hook style: "Faqat bugun — [mahsulot] maxsus narxda!" The body and bullets should also feel more energetic/exclamatory than a normal showcase. This MUST read distinctly more urgent than a regular post.`,
+    NEW_ARRIVAL: `This is a NEW PRODUCT announcement. The hook MUST explicitly announce novelty — use words like "yangilik", "birinchi marta", "endi mavjud". Example hook style: "Yangilik! [mahsulot] endi mavjud."`,
+    RESTOCK: `This is a RESTOCK announcement — product was sold out, now back. The hook MUST explicitly reference its return — use words like "yana mavjud", "qaytib keldi", "sog'inib qoldingizmi". Example hook style: "Sog'inib qoldingizmi? [mahsulot] yana mavjud!"`,
+  };
+
+  const postTypeHashtags: Record<string, string[]> = {
+    PRODUCT_SHOWCASE: ['#goodskin', '#parvarish'],
+    FLASH_SALE: ['#chegirma', '#aksiya', '#tezkortaklif'],
+    NEW_ARRIVAL: ['#yangimahsulot', '#yangilik'],
+    RESTOCK: ['#yanasotuvda', '#qaytdi'],
+  };
+
+  const systemPrompt = `${postTypeInstructions[postType] || ''}
+
+You are a professional cosmetology copywriter for NuraSkin, a Korean cosmetics brand selling to Uzbekistan. Write persuasive, eye-catching Telegram post captions that make customers FEEL the transformation, not just read a product spec sheet.
+
 Rules:
 - Language: ${language === 'UZB' ? 'Uzbek (Latin script)' : 'Russian'}
-- Tone: warm, trustworthy, not pushy
-- First line: one hook (benefit-focused, NOT product name)
+- Tone: warm, trustworthy, sensory, benefit-focused.
+- First line: one emotional hook (benefit-focused, NOT product name)
 - Then: product name in CAPS on its own line
-- Then: 2-3 sentence benefit description
+- Then: 2 short sentences describing how the product FEELS on skin and the RESULT it gives — focus on transformation and sensation, never a list of ingredients or specs
 - Then: exactly 3 bullet specs using ✦ symbol
+- CRITICAL RULE: each bullet must be 6 WORDS OR FEWER. Count the words. If a bullet exceeds 6 words, shorten it. Punchy, benefit-driven, zero filler words.
+- NEVER mention weight, volume, ml, grams, "g", or any size/measurement of any kind — even if it appears in the product data below, IGNORE it completely. Customers care about results, not package size.
 - Do NOT include pricing (added separately)
-- Do NOT include links (added separately)  
+- Do NOT include links (added separately)
 - Do NOT include stock count
 - Max 8 lines total
 - Return ONLY the caption body text, no markdown, no explanation`;
@@ -70,7 +89,6 @@ Rules:
 Product: ${product.name}
 Brand: ${product.brandName}
 Description: ${product.descriptionUz}
-Weight: ${product.weightGrams}g
 Category: ${product.categoryName}`;
 
   try {
@@ -84,7 +102,10 @@ Category: ${product.categoryName}`;
       max_tokens: 500,
     });
 
-    return { caption: response.choices[0].message.content?.trim() || '' };
+    return { 
+      caption: response.choices[0].message.content?.trim() || '',
+      hashtags: postTypeHashtags[postType] || []
+    };
   } catch (error) {
     logger.error(error, 'OpenAI generation failed');
     throw new BadRequestError('AI caption generation failed');

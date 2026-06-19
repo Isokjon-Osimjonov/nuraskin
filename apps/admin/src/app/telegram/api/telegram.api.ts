@@ -46,6 +46,6 @@ export const telegramApi = {
     productId: string,
     postType: string,
     language: string
-  ): Promise<{ caption: string }> =>
+  ): Promise<{ caption: string; hashtags?: string[] }> =>
     api.post<any>('/admin/telegram/posts/generate-caption', { productId, postType, language }),
 };
