@@ -76,7 +76,7 @@ export function AdjustQuantityDialog({
 
   const adjustment = form.watch('adjustment') || 0;
   const newQty = batch ? batch.currentQty + (adjustment || 0) : 0;
-  const isInvalid = batch ? newQty < 0 || newQty > batch.initialQty : false;
+  const isInvalid = batch ? newQty < 0 : false;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
