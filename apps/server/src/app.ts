@@ -23,6 +23,7 @@ import { router as adminExpensesRouter } from './modules/expenses/expenses.route
 import { router as adminAccountingRouter } from './modules/expenses/accounting.routes';
 import { router as adminSalesRouter } from './modules/sales/sales.routes';
 import { router as dashboardRouter } from './modules/dashboard/dashboard.routes';
+import { router as searchRouter } from './modules/search/search.routes';
 import { triggerManualRollup } from './modules/sales/sales.controller';
 import { requireAuth } from './common/middleware/auth.middleware';
 
@@ -60,5 +61,6 @@ app.use('/api/admin/accounting', adminAccountingRouter);
 app.use('/api/admin/sales', adminSalesRouter);
 app.use('/api/admin/dashboard', dashboardRouter);
 app.post('/api/admin/jobs/sales-rollup', requireAuth, triggerManualRollup);
+app.use('/api/admin/search', searchRouter);
 
 app.use(errorMiddleware);

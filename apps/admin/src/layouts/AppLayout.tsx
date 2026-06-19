@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { api } from '../lib/api';
 import { useAuthStore } from '../stores/auth.store';
+import { GlobalSearch } from '../components/GlobalSearch';
 
 const PAGE_TITLES: Record<string, { parent?: string; title: string }> = {
   '/': { title: 'Dashboard' },
@@ -77,6 +78,7 @@ export function AppLayout() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <GlobalSearch />
         </header>
           <Outlet />
       </SidebarInset>

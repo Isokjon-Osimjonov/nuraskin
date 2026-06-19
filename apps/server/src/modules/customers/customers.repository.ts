@@ -1,5 +1,5 @@
 import { db, customers, orders, settings } from '@nuraskin/database';
-import { eq, and, like, or, sql, isNull, desc, inArray } from 'drizzle-orm';
+import { eq, and, ilike, or, sql, isNull, desc, inArray } from 'drizzle-orm';
 import type { CustomerListItem, CustomerFilters } from '@nuraskin/shared-types';
 
 import { PAID_STATUSES } from '@nuraskin/shared-utils';
@@ -53,9 +53,9 @@ export async function findAdminList(filters: CustomerFilters) {
   if (search) {
     conditions.push(
       or(
-        like(customers.fullName, `%${search}%`),
-        like(customers.phone, `%${search}%`),
-        sql`customers.telegram_id::text LIKE ${'%' + search + '%'}`
+        ilike(customers.fullName, `%${search}%`),
+        ilike(customers.phone, `%${search}%`),
+        sql`customers.telegram_id::text ILIKE ${'%' + search + '%'}`
       ) as any
     );
   }

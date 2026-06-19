@@ -1,5 +1,5 @@
 import { db, coupons, couponRedemptions, orders, customers } from '@nuraskin/database';
-import { eq, and, sql, isNull, like, or, desc } from 'drizzle-orm';
+import { eq, and, sql, isNull, ilike, or, desc } from 'drizzle-orm';
 import type { NewCoupon, Coupon } from '@nuraskin/database';
 
 export async function findByCode(code: string, tx: any = db) {
@@ -35,8 +35,8 @@ export async function list(filters: {
   if (filters.search) {
     conditions.push(
       or(
-        like(coupons.code, `%${filters.search.toUpperCase()}%`),
-        like(coupons.name, `%${filters.search}%`)
+        ilike(coupons.code, `%${filters.search.toUpperCase()}%`),
+        ilike(coupons.name, `%${filters.search}%`)
       ) as any
     );
   }

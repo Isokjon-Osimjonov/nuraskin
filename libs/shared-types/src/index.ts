@@ -15,3 +15,4 @@ export * from './lib/telegram';
 export * from './lib/expenses';
 export * from './lib/dashboard';
 export * from './lib/currency';
+export * from './lib/search';

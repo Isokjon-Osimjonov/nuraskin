@@ -1,5 +1,5 @@
 import { db, products, productRegionalConfigs, inventoryBatches } from '@nuraskin/database';
-import { eq, isNull, and, like, or, sql, inArray, isNotNull } from 'drizzle-orm';
+import { eq, isNull, and, ilike, or, sql, inArray, isNotNull } from 'drizzle-orm';
 import type {
   Product,
   NewProduct,
@@ -57,10 +57,10 @@ export async function findAll(filters?: {
     const search = `%${filters.search}%`;
     conditions.push(
       or(
-        like(products.name, search),
-        like(products.barcode, search),
-        like(products.sku, search),
-        like(products.brandName, search)
+        ilike(products.name, search),
+        ilike(products.barcode, search),
+        ilike(products.sku, search),
+        ilike(products.brandName, search)
       )!
     );
   }

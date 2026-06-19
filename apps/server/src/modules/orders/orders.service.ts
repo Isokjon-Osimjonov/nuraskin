@@ -18,7 +18,7 @@ import {
   shippingBoxes,
   exchangeRateSnapshots,
 } from '@nuraskin/database';
-import { eq, sql, and, asc, gt, or, like } from 'drizzle-orm';
+import { eq, sql, and, asc, gt, or, ilike } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
 import { formatPrice } from '@nuraskin/shared-types';
 import { NotificationService } from '../notifications/notification.service';
@@ -349,9 +349,9 @@ export async function searchCustomersForManualOrder(q: string) {
     .from(customers)
     .where(
       or(
-        like(customers.fullName, term),
-        like(sql`${customers.telegramId}::text`, term),
-        like(customers.phone, term)
+        ilike(customers.fullName, term),
+        ilike(sql`${customers.telegramId}::text`, term),
+        ilike(customers.phone, term)
       )
     )
     .limit(10);
