@@ -1,5 +1,6 @@
 import { queryKeys, formatDate } from '@nuraskin/shared-utils';
 import * as React from 'react';
+import DOMPurify from 'dompurify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { telegramApi } from './api/telegram.api';
 import { productsApi } from '../products/api/products.api';
@@ -171,7 +172,7 @@ export function PostDetailPage() {
                   )}
                   <div className="p-3 text-[14px] leading-normal whitespace-pre-wrap font-sans">
                     <div
-                      dangerouslySetInnerHTML={{ __html: captionPreview.replace(/\n/g, '<br/>') }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(captionPreview.replace(/\n/g, '<br/>')) }}
                     />
                   </div>
                 </div>

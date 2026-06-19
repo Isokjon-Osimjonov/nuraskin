@@ -3,6 +3,7 @@ import * as service from './storefront.service';
 import { createStorefrontOrderSchema, validateCouponInputSchema } from '@nuraskin/shared-types';
 import jwt from 'jsonwebtoken';
 import { env } from '../../common/config/env';
+import { BadRequestError } from '../../common/errors/AppError';
 
 function getRegion(req: Request): 'UZB' | 'KOR' {
   return (req.query.region as 'UZB' | 'KOR') || 'UZB';
@@ -98,6 +99,27 @@ export async function uploadReceipt(req: Request, res: Response) {
   const customerId = (req as any).customer.id;
   const orderId = req.params.id;
   const { payment_proof_url } = req.body;
+
+  if (!payment_proof_url || typeof payment_proof_url !== 'string') {
+    throw new BadRequestError('Chek URL xato');
+  }
+  try {
+    const url = new URL(payment_proof_url);
+    if (url.hostname !== 'res.cloudinary.com') {
+      throw new BadRequestError('Faqat cloudinary manzili ruxsat etilgan');
+    }
+    if (!url.pathname.includes(`/${env.CLOUDINARY_CLOUD_NAME}/`)) {
+      throw new BadRequestError('Xato cloudinary account');
+    }
+    const ext = url.pathname.split('.').pop()?.toLowerCase();
+    if (!['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext || '')) {
+      throw new BadRequestError('Faqat rasm yoki PDF format mumkin');
+    }
+  } catch (err: any) {
+    if (err instanceof BadRequestError) throw err;
+    throw new BadRequestError('Chek URL yaroqsiz');
+  }
+
   const result = await service.uploadOrderReceipt(orderId, customerId, payment_proof_url);
   res.json(result);
 }

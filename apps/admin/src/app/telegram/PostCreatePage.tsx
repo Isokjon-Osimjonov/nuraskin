@@ -1,5 +1,6 @@
 import { queryKeys } from '@nuraskin/shared-utils';
 import * as React from 'react';
+import DOMPurify from 'dompurify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatUzs } from '@/lib/utils';
 import { telegramApi } from './api/telegram.api';
@@ -812,7 +813,7 @@ export function PostCreatePage() {
                 </div>
               )}
               <div className="p-3 text-[14px] leading-normal whitespace-pre-wrap font-sans">
-                <div dangerouslySetInnerHTML={{ __html: captionPreview.replace(/\n/g, '<br/>') }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(captionPreview.replace(/\n/g, '<br/>')) }} />
               </div>
               <div className="px-3 pb-3">
                 {form.showCta && (
