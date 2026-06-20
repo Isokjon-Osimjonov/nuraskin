@@ -43,7 +43,7 @@ async function main(): Promise<void> {
       .insert(korShippingTiers)
       .values([
         { maxOrderKrw: 100000n, cargoFeeKrw: 4000n, sortOrder: 1 },
-        { maxOrderKrw: 200000n, cargoFeeKrw: 8000n, sortOrder: 2 },
+        { maxOrderKrw: 200000n, cargoFeeKrw: 6000n, sortOrder: 2 },
         { maxOrderKrw: 300000n, cargoFeeKrw: 12000n, sortOrder: 3 },
         { maxOrderKrw: null, cargoFeeKrw: 0n, sortOrder: 4 },
       ])
