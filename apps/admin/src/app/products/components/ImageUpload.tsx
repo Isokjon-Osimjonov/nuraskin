@@ -148,7 +148,7 @@ export function ImageUpload({ urls, onChange }: ImageUploadProps) {
                 onClick={handleAddUrl}
                 className="px-4 h-10 rounded-lg bg-stone-900 text-white text-sm font-medium shrink-0 active:scale-95 transition-all"
               >
-                + Qo'shish
+                +
               </button>
             </div>
           </TabsContent>
