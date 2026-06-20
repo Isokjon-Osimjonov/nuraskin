@@ -24,6 +24,7 @@ if (env.SENTRY_DSN) {
     environment: env.NODE_ENV,
     tracesSampleRate: 0.1,
   });
+  logger.info('Sentry initialized');
 } else {
   logger.warn('SENTRY_DSN not set — error tracking disabled');
 }
@@ -37,9 +38,9 @@ process.on('uncaughtException', err => {
   console.error(err.stack);
 });
 
-process.on('unhandledRejection', reason => {
+process.on('unhandledRejection', (reason) => {
   Sentry.captureException(reason);
-  console.error('CRITICAL - Unhandled Rejection:', reason);
+  logger.error({ reason }, 'Unhandled rejection');
 });
 
 async function bootstrap() {
