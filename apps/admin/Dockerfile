@@ -12,7 +12,7 @@ COPY apps/frontend/package.json ./apps/frontend/
 COPY libs/ui/package.json ./libs/ui/
 COPY libs/database/package.json ./libs/database/
 COPY libs/shared-types/package.json ./libs/shared-types/
-COPY libs/validation/package.json ./libs/validation/
+
 
 RUN pnpm install --frozen-lockfile
 
