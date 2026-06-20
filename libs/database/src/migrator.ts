@@ -3,11 +3,14 @@ import { resolve } from 'path';
 import { db } from './client';
 
 export async function runMigrations() {
-  // Use MIGRATIONS_PATH env var if provided, otherwise default to a path
-  // relative to the current file. In development, this works because
-  // migrations are in the same folder. In production, we must ensure
-  // the migrations folder is copied to the correct location.
-  const migrationsFolder = process.env['MIGRATIONS_PATH'] || resolve(__dirname, 'migrations');
+  // In local development (Nx serve), we use the workspace root.
+  // In production (Docker), __dirname resolves to the dist output folder.
+  const isLocalDev = !!process.env['NX_WORKSPACE_ROOT'];
+  const defaultMigrationsPath = isLocalDev
+    ? resolve(process.cwd(), 'libs/database/src/migrations')
+    : resolve(__dirname, 'migrations');
+
+  const migrationsFolder = process.env['MIGRATIONS_PATH'] || defaultMigrationsPath;
 
   await migrate(db, { migrationsFolder });
 }
