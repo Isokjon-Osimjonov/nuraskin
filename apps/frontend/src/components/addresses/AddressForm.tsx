@@ -103,7 +103,7 @@ export function AddressForm({
   };
 
   return (
-    <div className="space-y-6 py-2">
+    <div className="space-y-6 py-2 max-h-[75vh] overflow-y-auto px-1 md:max-h-[80vh] scrollbar-thin">
       <form
         onSubmit={form.handleSubmit(
           data => {

@@ -17,7 +17,7 @@ export function HeroRightCol() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center md:items-end w-full md:w-auto">
+      <div className="hidden md:flex flex-col items-end w-auto">
         <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] md:w-[300px] flex items-center gap-4 animate-pulse">
           <div className="flex-1 space-y-2">
             <div className="h-4 bg-stone-100 rounded w-3/4" />
@@ -35,7 +35,7 @@ export function HeroRightCol() {
   const currentProduct = heroProducts[index];
 
   return (
-    <div className="flex flex-col items-center justify-center md:items-end md:justify-end w-full md:w-auto">
+    <div className="hidden md:flex flex-col items-end justify-end w-auto">
       {/* Card */}
       <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] md:w-[300px] flex items-center gap-4 transition-all mx-auto md:mx-0">
         {/* Left: text */}
