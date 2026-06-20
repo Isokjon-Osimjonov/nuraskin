@@ -131,7 +131,9 @@ function CategoriesPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Kategoriyalar</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Mahsulot kategoriyalarini boshqaring</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Mahsulot kategoriyalarini boshqaring
+          </p>
         </div>
         <Dialog open={open} onOpenChange={v => !v && handleClose()}>
           <DialogTrigger asChild>

@@ -128,7 +128,9 @@ export function ChannelsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Telegram Kanallar</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Post yuboriladigan kanallar va guruhlar</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Post yuboriladigan kanallar va guruhlar
+          </p>
         </div>
         <Button className="w-full sm:w-auto" onClick={() => setIsAddOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -214,7 +216,7 @@ export function ChannelsPage() {
                 </DataTableRow>
               ))
             )}
-            </DataTableBody>
+          </DataTableBody>
         </DataTable>
 
         {!isLoading && (

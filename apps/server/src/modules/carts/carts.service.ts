@@ -128,7 +128,10 @@ export async function addToCart(
 
     const availableStock = await getAvailableStock(productId, tx);
     if (newQty > availableStock) {
-      const [product] = await tx.select({ showStockCount: products.showStockCount }).from(products).where(eq(products.id, productId));
+      const [product] = await tx
+        .select({ showStockCount: products.showStockCount })
+        .from(products)
+        .where(eq(products.id, productId));
       const message = product?.showStockCount
         ? `Faqat ${availableStock} ta mavjud`
         : `Kechirasiz, so'ralgan miqdorda mavjud emas`;
@@ -194,7 +197,10 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
     } else {
       const availableStock = await getAvailableStock(productId, tx);
       if (quantity > availableStock) {
-        const [product] = await tx.select({ showStockCount: products.showStockCount }).from(products).where(eq(products.id, productId));
+        const [product] = await tx
+          .select({ showStockCount: products.showStockCount })
+          .from(products)
+          .where(eq(products.id, productId));
         const message = product?.showStockCount
           ? `Faqat ${availableStock} ta mavjud`
           : `Kechirasiz, so'ralgan miqdorda mavjud emas`;

@@ -203,20 +203,18 @@ function ProductPage() {
                     Tugadi
                   </span>
                 )
+              ) : product.availableStock > 10 ? (
+                <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                  MAVJUD
+                </span>
+              ) : product.availableStock > 0 ? (
+                <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
+                  Kam qoldi
+                </span>
               ) : (
-                product.availableStock > 10 ? (
-                  <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
-                    MAVJUD
-                  </span>
-                ) : product.availableStock > 0 ? (
-                  <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
-                    Kam qoldi
-                  </span>
-                ) : (
-                  <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">
-                    Tugadi
-                  </span>
-                )
+                <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">
+                  Tugadi
+                </span>
               )}
             </div>
 
