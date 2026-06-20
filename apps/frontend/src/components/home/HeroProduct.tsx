@@ -4,7 +4,7 @@ interface HeroProductProps {
 
 export function HeroProduct({ productImage }: HeroProductProps) {
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[55%] z-10 flex items-center justify-center">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] z-10 flex items-center justify-center">
       {/* Brand glow layer behind the jar */}
       <div
         className="absolute inset-0 -z-10 blur-3xl"
@@ -22,7 +22,7 @@ export function HeroProduct({ productImage }: HeroProductProps) {
         alt="NuraSkin Face Cream jar"
         className="object-contain drop-shadow-2xl transition-all"
         style={{
-          width: 'clamp(160px, 45vw, 460px)',
+          width: 'clamp(220px, 60vw, 380px)',
           filter: 'drop-shadow(0 30px 60px rgba(74,21,37,0.25))',
         }}
       />

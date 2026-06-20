@@ -17,14 +17,14 @@ export function HeroRightCol() {
 
   if (isLoading) {
     return (
-      <div className="hidden sm:flex flex-col items-end w-full sm:w-auto">
-        <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] sm:w-[300px] flex items-center gap-4 animate-pulse">
+      <div className="flex flex-col items-center md:items-end w-full md:w-auto">
+        <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] md:w-[300px] flex items-center gap-4 animate-pulse">
           <div className="flex-1 space-y-2">
             <div className="h-4 bg-stone-100 rounded w-3/4" />
             <div className="h-4 bg-stone-100 rounded w-1/2" />
             <div className="h-3 bg-stone-100 rounded w-1/3 mt-3" />
           </div>
-          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-stone-100" />
+          <div className="shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-xl bg-stone-100" />
         </div>
       </div>
     );
@@ -35,26 +35,26 @@ export function HeroRightCol() {
   const currentProduct = heroProducts[index];
 
   return (
-    <div className="hidden sm:flex flex-col items-center justify-center sm:items-end sm:justify-end w-full sm:w-auto">
+    <div className="flex flex-col items-center justify-center md:items-end md:justify-end w-full md:w-auto">
       {/* Card */}
-      <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] sm:w-[300px] flex items-center gap-4 transition-all mx-auto sm:mx-0">
+      <div className="bg-white rounded-2xl shadow-md p-4 w-[280px] md:w-[300px] flex items-center gap-4 transition-all mx-auto md:mx-0">
         {/* Left: text */}
         <div className="flex-1 min-w-0">
-          <p className="text-stone-900 font-normal text-sm sm:text-base leading-snug line-clamp-3 mb-3">
+          <p className="text-stone-900 font-normal text-sm md:text-base leading-snug line-clamp-3 mb-3">
             {currentProduct?.name}
           </p>
           <button
             onClick={() =>
               navigate({ to: `/products/${currentProduct?.slug ?? currentProduct?.id}` })
             }
-            className="text-xs sm:text-sm text-[#4A1525] underline underline-offset-2 hover:opacity-80 transition-opacity"
+            className="text-xs md:text-sm text-[#4A1525] underline underline-offset-2 hover:opacity-80 transition-opacity"
           >
             Mahsulotni kashf qilish
           </button>
         </div>
 
         {/* Right: image */}
-        <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-stone-50">
+        <div className="shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden bg-stone-50">
           {currentProduct?.imageUrls?.[0] ? (
             <img
               src={currentProduct.imageUrls[0]}
@@ -71,7 +71,7 @@ export function HeroRightCol() {
 
       {/* Navigation */}
       {total > 1 && (
-        <div className="flex items-center justify-end gap-3 mt-3 w-full">
+        <div className="flex items-center justify-center md:justify-end gap-3 mt-3 w-full">
           {/* Prev — outline circle */}
           <button
             onClick={handlePrev}

@@ -45,7 +45,7 @@ function HeroPage() {
         {/* SKIN ESSENCE — large editorial text behind jar */}
         <div
           className="absolute inset-x-0 flex justify-center pointer-events-none z-0 px-4"
-          style={{ top: 'clamp(15%, 25%, 35%)' }}
+          style={{ top: 'clamp(10%, 15%, 20%)' }}
         >
           <span className="font-normal text-white select-none leading-none whitespace-nowrap opacity-90 md:opacity-100 text-[clamp(40px,12vw,180px)] tracking-tight">
             SKIN ESSENCE
@@ -56,7 +56,7 @@ function HeroPage() {
         <HeroProduct productImage={HERO_PRODUCT_IMAGE} />
 
         {/* Hero content wrapper — sitting ~30% up */}
-        <div className="absolute bottom-24 sm:bottom-28 lg:bottom-32 left-0 right-0 px-6 sm:px-12 lg:px-16 z-20 flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="absolute bottom-16 sm:bottom-24 lg:bottom-28 left-0 right-0 px-6 sm:px-12 lg:px-16 z-20 flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between w-full">
           <HeroLeftCol />
           <HeroRightCol />
         </div>
