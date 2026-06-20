@@ -1,4 +1,4 @@
-import { OrderStatus } from '@nuraskin/shared-types';
+import type { OrderStatus } from '@nuraskin/shared-types';
 
 export const ORDER_STATUS_LABELS_UZ: Record<OrderStatus, string> = {
   DRAFT: 'Qoralama',

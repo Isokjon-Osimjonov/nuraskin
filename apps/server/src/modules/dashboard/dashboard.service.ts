@@ -7,7 +7,6 @@ import {
   inventoryBatches,
   settings,
   exchangeRateSnapshots,
-  orderExpenses,
 } from '@nuraskin/database';
 import { eq, sql, and, desc, sum, count, inArray, countDistinct } from 'drizzle-orm';
 

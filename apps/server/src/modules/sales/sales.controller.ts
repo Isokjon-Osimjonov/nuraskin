@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as service from './sales.service';
 import { salesRollupQueue } from '../queues';
-import { BadRequestError, ForbiddenError } from '../../common/errors/AppError';
+import { ForbiddenError } from '../../common/errors/AppError';
 
 export async function getLiveSales(req: Request, res: Response) {
   const { from, to, region } = req.query;

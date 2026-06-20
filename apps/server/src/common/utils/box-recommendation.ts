@@ -1,4 +1,5 @@
-import { db, shippingBoxes, ShippingBox } from '@nuraskin/database';
+import type { ShippingBox } from '@nuraskin/database';
+import { db, shippingBoxes } from '@nuraskin/database';
 import { eq } from 'drizzle-orm';
 
 interface BoxSelection {

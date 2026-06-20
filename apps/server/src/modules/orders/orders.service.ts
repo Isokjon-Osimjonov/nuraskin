@@ -1,5 +1,4 @@
 import * as repository from './orders.repository';
-import * as orderExpensesRepository from './order-expenses.repository';
 import * as productsRepository from '../products/products.repository';
 import * as usersRepository from '../users/users.repository';
 import {

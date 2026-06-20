@@ -10,7 +10,7 @@ import { useAppStore } from '@/stores/app.store';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
 import { cn } from '@/lib/utils';
-import { formatUzs, formatKrw, formatPrice } from '@nuraskin/shared-utils';
+import { formatPrice } from '@nuraskin/shared-utils';
 import { typography } from '@/lib/typography';
 import { EmptySection } from '@/components/shared/EmptySection';
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { globalSearch } from './search.service';
 import { globalSearchQuerySchema } from '@nuraskin/shared-types';
 

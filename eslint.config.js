@@ -99,6 +99,7 @@ export default tseslint.config(
       'libs/database/src/migrations/**',
       'coverage/**',
       '.nx/**',
+      '**/vite.config.*.timestamp-*.mjs',
     ],
   }
 );

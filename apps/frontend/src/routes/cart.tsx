@@ -1,4 +1,4 @@
-import { queryKeys, formatPrice, tiyinToSom } from '@nuraskin/shared-utils';
+import { queryKeys, formatPrice } from '@nuraskin/shared-utils';
 import { api } from '@/lib/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
