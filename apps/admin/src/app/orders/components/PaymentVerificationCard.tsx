@@ -133,8 +133,6 @@ export function PaymentVerificationCard({ order }: PaymentVerificationCardProps)
                 </p>
               </div>
             </div>
-
-            
           </div>
         </div>
       </CardContent>

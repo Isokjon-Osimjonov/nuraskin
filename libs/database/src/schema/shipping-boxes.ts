@@ -17,7 +17,9 @@ export const shippingBoxes = pgTable('shipping_boxes', {
   label: varchar('label', { length: 100 }).notNull(),
   maxWeightGrams: integer('max_weight_grams').notNull(),
   tareWeightGrams: integer('tare_weight_grams').notNull(),
-  costPriceKrw: bigint('cost_price_krw', { mode: 'bigint' }).notNull().default(sql`0`),
+  costPriceKrw: bigint('cost_price_krw', { mode: 'bigint' })
+    .notNull()
+    .default(sql`0`),
   isActive: boolean('is_active').notNull().default(true),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

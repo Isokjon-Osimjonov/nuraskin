@@ -10,7 +10,12 @@ import {
 import { eq, sql, and, isNull } from 'drizzle-orm';
 import { NotFoundError, BadRequestError } from '../../common/errors/AppError';
 import { sendToAdmin, sendToCustomer } from '../../common/services/telegram.service';
-import type { AddBatchInput, UpdateBatchInput, AdjustQuantityInput, CorrectInitialQtyInput } from '@nuraskin/shared-types';
+import type {
+  AddBatchInput,
+  UpdateBatchInput,
+  AdjustQuantityInput,
+  CorrectInitialQtyInput,
+} from '@nuraskin/shared-types';
 import type { NewInventoryBatch, NewBatchAdjustment } from '@nuraskin/database';
 
 export async function updateBatch(batchId: string, input: UpdateBatchInput, adminId: string) {
@@ -117,7 +122,11 @@ export async function adjustQuantity(batchId: string, input: AdjustQuantityInput
   );
 }
 
-export async function correctInitialQty(batchId: string, input: CorrectInitialQtyInput, adminId: string) {
+export async function correctInitialQty(
+  batchId: string,
+  input: CorrectInitialQtyInput,
+  adminId: string
+) {
   const batch = await repository.getBatchById(batchId);
   if (!batch) throw new NotFoundError('Batch not found');
 

@@ -1,11 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ShoppingBag, Bell, Info } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAppStore } from '@/stores/app.store';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
@@ -135,9 +130,8 @@ export function RecentProductsSection() {
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-[200px] text-[11px] leading-tight">
-                                  Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan.
-                                  Qadoqlash (quticha) narxi buyurtma tasdiqlashda alohida
-                                  ko'rsatiladi.
+                                  Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan. Qadoqlash
+                                  (quticha) narxi buyurtma tasdiqlashda alohida ko'rsatiladi.
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

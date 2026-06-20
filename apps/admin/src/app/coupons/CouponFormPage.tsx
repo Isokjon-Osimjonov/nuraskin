@@ -104,12 +104,10 @@ export function CouponFormPage() {
   // Fetch Data on Scope Change
   React.useEffect(() => {
     if (form.scope === 'BRANDS') {
-      api.get<string[]>(`/products/brands`)
-        .then(data => setAllBrands(data || []));
+      api.get<string[]>(`/products/brands`).then(data => setAllBrands(data || []));
     }
     if (form.scope === 'CATEGORIES' && allCategories.length === 0) {
-      api.get<any>(`/categories`)
-        .then(data => setAllCategories(data.data || data || []));
+      api.get<any>(`/categories`).then(data => setAllCategories(data.data || data || []));
     }
   }, [form.scope, allCategories.length]);
 
@@ -118,7 +116,8 @@ export function CouponFormPage() {
     const timer = setTimeout(() => {
       if (form.scope === 'PRODUCTS' && productSearch.trim().length >= 2) {
         setLoadingProducts(true);
-        api.get<any>(`/products?search=${productSearch}`)
+        api
+          .get<any>(`/products?search=${productSearch}`)
           .then(data => {
             const items = Array.isArray(data) ? data : data.items || data.products || [];
             setProductResults(items.filter((p: any) => !selectedProducts.find(s => s.id === p.id)));
@@ -138,7 +137,8 @@ export function CouponFormPage() {
     const timer = setTimeout(() => {
       if (customerScope === 'SPECIFIC' && customerSearch.trim().length >= 2) {
         setLoadingCustomers(true);
-        api.get<any>(`/orders/customers/search?q=${customerSearch}`)
+        api
+          .get<any>(`/orders/customers/search?q=${customerSearch}`)
           .then(data => {
             setCustomerResults(Array.isArray(data) ? data : data.items || []);
             setLoadingCustomers(false);
@@ -532,29 +532,32 @@ export function CouponFormPage() {
 
                         {!loadingProducts && productResults.length === 0 && (
                           <div className="px-4 py-3 text-sm text-stone-400 italic">
-                            {productSearch ? 'Mahsulot topilmadi' : 'Qidirish uchun kamida 2 ta belgi yozing...'}
+                            {productSearch
+                              ? 'Mahsulot topilmadi'
+                              : 'Qidirish uchun kamida 2 ta belgi yozing...'}
                           </div>
                         )}
 
-                        {!loadingProducts && productResults.map(p => (
-                          <div
-                            key={p.id}
-                            className="px-4 py-3 border-b border-stone-50 last:border-0 hover:bg-stone-50 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setSelectedProducts([
-                                ...selectedProducts,
-                                { id: p.id, name: p.name, barcode: p.barcode },
-                              ]);
-                              setProductSearch('');
-                            }}
-                          >
-                            <div className="text-sm font-medium text-[#3A0311]">{p.name}</div>
-                            <div className="text-[10px] text-stone-400 mt-0.5 uppercase flex gap-3">
-                              <span>BARKOD: {p.barcode}</span>
-                              <span>OMBORDA: {p.totalStock} ta</span>
+                        {!loadingProducts &&
+                          productResults.map(p => (
+                            <div
+                              key={p.id}
+                              className="px-4 py-3 border-b border-stone-50 last:border-0 hover:bg-stone-50 cursor-pointer transition-colors"
+                              onClick={() => {
+                                setSelectedProducts([
+                                  ...selectedProducts,
+                                  { id: p.id, name: p.name, barcode: p.barcode },
+                                ]);
+                                setProductSearch('');
+                              }}
+                            >
+                              <div className="text-sm font-medium text-[#3A0311]">{p.name}</div>
+                              <div className="text-[10px] text-stone-400 mt-0.5 uppercase flex gap-3">
+                                <span>BARKOD: {p.barcode}</span>
+                                <span>OMBORDA: {p.totalStock} ta</span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </div>

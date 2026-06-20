@@ -11,12 +11,7 @@ import {
   BellOff,
   Info,
 } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProductBySlug } from '@/hooks/useProducts';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
@@ -175,8 +170,8 @@ function ProductPage() {
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-[280px] text-[12px] leading-relaxed">
-                        Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan. Qadoqlash
-                        (quticha) narxi buyurtma tasdiqlashda alohida ko'rsatiladi.
+                        Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan. Qadoqlash (quticha)
+                        narxi buyurtma tasdiqlashda alohida ko'rsatiladi.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

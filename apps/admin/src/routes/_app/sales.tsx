@@ -68,11 +68,11 @@ function SalesPage() {
       // For "this year", we compare against the same period last year
       const prevToDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
       const prevFromDate = new Date(today.getFullYear() - 1, 0, 1);
-      return { 
-        from, 
-        to, 
-        prevFrom: formatDate(prevFromDate), 
-        prevTo: formatDate(prevToDate) 
+      return {
+        from,
+        to,
+        prevFrom: formatDate(prevFromDate),
+        prevTo: formatDate(prevToDate),
       };
     }
 

@@ -38,7 +38,7 @@ process.on('uncaughtException', err => {
   console.error(err.stack);
 });
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
   Sentry.captureException(reason);
   logger.error({ reason }, 'Unhandled rejection');
 });
@@ -69,7 +69,7 @@ async function bootstrap() {
         await Promise.all([
           reservationWorker.close(),
           telegramWorker.close(),
-          salesRollupWorker.close()
+          salesRollupWorker.close(),
         ]);
         logger.info('BullMQ workers closed');
       } catch (err) {

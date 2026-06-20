@@ -139,100 +139,108 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                     </Alert>
                   )}
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="batch_ref"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Partiya raqami (Zavod)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Zavod partiya raqami..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      name="initial_qty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Initial Qty</FormLabel>
-                          <FormControl>
-                            <NumberInput
-                              min={1}
-                              value={field.value as number}
-                              disabled={isInitialQtyDisabled}
-                              onChange={field.onChange}
-                              allowDecimals={false}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      name="cost_price_krw"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cost (Unit KRW)</FormLabel>
-                          <FormControl>
-                            <NumberInput
-                              value={field.value as number}
-                              onChange={field.onChange}
-                              allowDecimals={false}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="batch_ref"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Partiya raqami (Zavod)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Zavod partiya raqami..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          name="initial_qty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Initial Qty</FormLabel>
+                              <FormControl>
+                                <NumberInput
+                                  min={1}
+                                  value={field.value as number}
+                                  disabled={isInitialQtyDisabled}
+                                  onChange={field.onChange}
+                                  allowDecimals={false}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          name="cost_price_krw"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cost (Unit KRW)</FormLabel>
+                              <FormControl>
+                                <NumberInput
+                                  value={field.value as number}
+                                  onChange={field.onChange}
+                                  allowDecimals={false}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      name="expiry_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expiry Date</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} value={(field.value as string) || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      name="received_at"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Received At</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} value={(field.value as string) ?? ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          name="expiry_date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Expiry Date</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  value={(field.value as string) || ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          name="received_at"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Received At</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  value={(field.value as string) ?? ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                  <div className="pt-4 flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => onOpenChange(false)}
-                    >
-                      Bekor qilish
-                    </Button>
-                    <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                      {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+                      <div className="pt-4 flex gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => onOpenChange(false)}
+                        >
+                          Bekor qilish
+                        </Button>
+                        <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                          {isSubmitting ? 'Saqlanmoqda...' : 'Saqlash'}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
                 </TabsContent>
                 <TabsContent value="correct">
                   <div className="mb-6 space-y-2 text-sm">
@@ -246,15 +254,23 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                     </div>
                   </div>
 
-                  <Alert variant="default" className="mb-6 bg-yellow-50 text-yellow-900 border-yellow-200">
+                  <Alert
+                    variant="default"
+                    className="mb-6 bg-yellow-50 text-yellow-900 border-yellow-200"
+                  >
                     <AlertCircle className="h-4 w-4 text-yellow-600" />
                     <AlertDescription className="text-xs">
-                      Bu funksiya FAQAT yozib olishdagi xatoni tuzatish uchun. Haqiqiy sotuv/yo'qotish tarixi o'zgarmaydi — faqat partiyaning haqiqiy boshlang'ich miqdori to'g'irlanadi.
+                      Bu funksiya FAQAT yozib olishdagi xatoni tuzatish uchun. Haqiqiy
+                      sotuv/yo'qotish tarixi o'zgarmaydi — faqat partiyaning haqiqiy boshlang'ich
+                      miqdori to'g'irlanadi.
                     </AlertDescription>
                   </Alert>
 
                   <Form {...correctForm}>
-                    <form onSubmit={correctForm.handleSubmit(onCorrectSubmit)} className="space-y-4">
+                    <form
+                      onSubmit={correctForm.handleSubmit(onCorrectSubmit)}
+                      className="space-y-4"
+                    >
                       <FormField
                         control={correctForm.control}
                         name="newInitialQty"
@@ -293,7 +309,7 @@ export function EditBatchSheet({ batch, open, onOpenChange, onSuccess }: EditBat
                           Yangi qoldiq: {newInitialQty - alreadyConsumed} bo'ladi
                         </div>
                       )}
-                      
+
                       {newInitialQty !== undefined && newInitialQty < alreadyConsumed && (
                         <div className="text-sm text-destructive font-medium">
                           Boshlang'ich miqdorni {alreadyConsumed} tadan kam qilib bo'lmaydi

@@ -139,7 +139,10 @@ export function TelegramDashboard() {
             <div className="text-2xl font-bold">{stats.failed}</div>
           </CardContent>
         </Card>
-        <Link to="/telegram/channels" className="block transition-transform hover:scale-[1.01] active:scale-[0.99]">
+        <Link
+          to="/telegram/channels"
+          className="block transition-transform hover:scale-[1.01] active:scale-[0.99]"
+        >
           <Card className="shadow-sm h-full border-primary/20 bg-primary/[0.02] hover:bg-primary/[0.04]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ulangan kanallar</CardTitle>

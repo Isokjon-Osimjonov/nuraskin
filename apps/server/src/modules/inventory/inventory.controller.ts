@@ -1,6 +1,11 @@
 import type { Request, Response } from 'express';
 import * as inventoryService from './inventory.service';
-import { addBatchSchema, updateBatchSchema, adjustQuantitySchema, correctInitialQtySchema } from '@nuraskin/shared-types';
+import {
+  addBatchSchema,
+  updateBatchSchema,
+  adjustQuantitySchema,
+  correctInitialQtySchema,
+} from '@nuraskin/shared-types';
 
 export async function scanProduct(req: Request, res: Response) {
   const { barcode } = req.params;

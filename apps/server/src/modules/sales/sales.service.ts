@@ -12,7 +12,11 @@ export async function listSalesOrders(
   const seoulTodayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
   const endDate = to || seoulTodayStr;
   const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-  const startDate = from || new Date(seoulNow.setDate(seoulNow.getDate() - 30)).toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  const startDate =
+    from ||
+    new Date(seoulNow.setDate(seoulNow.getDate() - 30)).toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Seoul',
+    });
 
   const offset = (page - 1) * limit;
   let regionFilter = sql`1=1`;
@@ -80,7 +84,11 @@ export async function getLiveSales(from?: string, to?: string, regionCode?: stri
   const seoulTodayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
   const endDate = to || seoulTodayStr;
   const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-  const startDate = from || new Date(seoulNow.setDate(seoulNow.getDate() - 30)).toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+  const startDate =
+    from ||
+    new Date(seoulNow.setDate(seoulNow.getDate() - 30)).toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Seoul',
+    });
 
   let regionFilter = sql`1=1`;
   if (regionCode && regionCode.toLowerCase() !== 'all') {
@@ -243,10 +251,7 @@ function formatResponse(
         cargoKrw: p.cargoKrw.toString(),
         grossMargin:
           p.revenueKrw > 0n
-            ? (
-                (Number(p.revenueKrw - p.cogsKrw) / Number(p.revenueKrw)) *
-                100
-              ).toFixed(1) + '%'
+            ? ((Number(p.revenueKrw - p.cogsKrw) / Number(p.revenueKrw)) * 100).toFixed(1) + '%'
             : '0.0%',
       }))
       .sort((a: any, b: any) => parseFloat(b.grossMargin) - parseFloat(a.grossMargin)),

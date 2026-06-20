@@ -29,24 +29,56 @@ export const Route = createFileRoute('/_protected/orders')({
 });
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Package }> = {
-  DRAFT: { label: ORDER_STATUS_LABELS_UZ.DRAFT, color: 'text-stone-500 bg-stone-100', icon: Package },
+  DRAFT: {
+    label: ORDER_STATUS_LABELS_UZ.DRAFT,
+    color: 'text-stone-500 bg-stone-100',
+    icon: Package,
+  },
   PENDING_PAYMENT: {
     label: ORDER_STATUS_LABELS_UZ.PENDING_PAYMENT,
     color: 'text-amber-600 bg-amber-50',
     icon: CreditCard,
   },
-  PAYMENT_SUBMITTED: { label: ORDER_STATUS_LABELS_UZ.PAYMENT_SUBMITTED, color: 'text-blue-600 bg-blue-50', icon: Clock },
+  PAYMENT_SUBMITTED: {
+    label: ORDER_STATUS_LABELS_UZ.PAYMENT_SUBMITTED,
+    color: 'text-blue-600 bg-blue-50',
+    icon: Clock,
+  },
   PAYMENT_CONFIRMED: {
     label: ORDER_STATUS_LABELS_UZ.PAYMENT_CONFIRMED,
     color: 'text-emerald-600 bg-emerald-50',
     icon: CheckCircle2,
   },
-  PAYMENT_REJECTED: { label: ORDER_STATUS_LABELS_UZ.PAYMENT_REJECTED, color: 'text-red-600 bg-red-50', icon: XCircle },
-  PACKING: { label: ORDER_STATUS_LABELS_UZ.PACKING, color: 'text-blue-600 bg-blue-50', icon: Package },
-  SHIPPED: { label: ORDER_STATUS_LABELS_UZ.SHIPPED, color: 'text-purple-600 bg-purple-50', icon: Truck },
-  DELIVERED: { label: ORDER_STATUS_LABELS_UZ.DELIVERED, color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2 },
-  CANCELED: { label: ORDER_STATUS_LABELS_UZ.CANCELED, color: 'text-stone-500 bg-stone-100', icon: XCircle },
-  REFUNDED: { label: ORDER_STATUS_LABELS_UZ.REFUNDED, color: 'text-stone-500 bg-stone-100', icon: CheckCircle2 },
+  PAYMENT_REJECTED: {
+    label: ORDER_STATUS_LABELS_UZ.PAYMENT_REJECTED,
+    color: 'text-red-600 bg-red-50',
+    icon: XCircle,
+  },
+  PACKING: {
+    label: ORDER_STATUS_LABELS_UZ.PACKING,
+    color: 'text-blue-600 bg-blue-50',
+    icon: Package,
+  },
+  SHIPPED: {
+    label: ORDER_STATUS_LABELS_UZ.SHIPPED,
+    color: 'text-purple-600 bg-purple-50',
+    icon: Truck,
+  },
+  DELIVERED: {
+    label: ORDER_STATUS_LABELS_UZ.DELIVERED,
+    color: 'text-emerald-600 bg-emerald-50',
+    icon: CheckCircle2,
+  },
+  CANCELED: {
+    label: ORDER_STATUS_LABELS_UZ.CANCELED,
+    color: 'text-stone-500 bg-stone-100',
+    icon: XCircle,
+  },
+  REFUNDED: {
+    label: ORDER_STATUS_LABELS_UZ.REFUNDED,
+    color: 'text-stone-500 bg-stone-100',
+    icon: CheckCircle2,
+  },
 };
 
 const displayPrice = (price: number | string, currency: string) =>

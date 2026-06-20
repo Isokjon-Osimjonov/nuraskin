@@ -44,7 +44,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
       setLoading(true);
       try {
         const data = await api.get<any>(`/storefront/juso-search?q=${encodeURIComponent(query)}`);
-        
+
         if (data && data.results && data.results.length > 0) {
           const mappedResults = data.results.map((r: any) => ({
             postal_code: r.zipNo,
@@ -53,7 +53,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
             jibun_address: r.jibunAddr,
             roadAddr: r.roadAddr,
             zipNo: r.zipNo,
-            sggNm: r.sggNm
+            sggNm: r.sggNm,
           }));
           setResults(mappedResults);
         } else {
@@ -108,9 +108,7 @@ export function JusoSearchModal({ open, onOpenChange, onSelect }: JusoSearchModa
                     onClick={() => onSelect(addr)}
                     className="w-full text-left px-4 py-3 hover:bg-stone-50 border-b border-stone-100 last:border-0"
                   >
-                    <p className="text-sm font-medium">
-                      {addr.roadAddr}
-                    </p>
+                    <p className="text-sm font-medium">{addr.roadAddr}</p>
                     <p className="text-xs text-stone-400">
                       {addr.zipNo} · {addr.sggNm}
                     </p>

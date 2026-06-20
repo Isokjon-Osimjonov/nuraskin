@@ -102,9 +102,9 @@ Category: ${product.categoryName}`;
       max_tokens: 500,
     });
 
-    return { 
+    return {
       caption: response.choices[0].message.content?.trim() || '',
-      hashtags: postTypeHashtags[postType] || []
+      hashtags: postTypeHashtags[postType] || [],
     };
   } catch (error) {
     logger.error(error, 'OpenAI generation failed');

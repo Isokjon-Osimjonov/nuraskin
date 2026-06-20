@@ -27,10 +27,7 @@ import {
   calculateKorCargo,
   calculateBoxFeeUzs,
 } from '../../common/utils/pricing';
-import {
-  getActiveBoxes,
-  recommendBoxes,
-} from '../../common/utils/box-recommendation';
+import { getActiveBoxes, recommendBoxes } from '../../common/utils/box-recommendation';
 import {
   NotFoundError,
   BadRequestError,
@@ -684,12 +681,7 @@ export async function addOrderItem(orderId: string, input: AddOrderItemInput) {
     totalProductWeight += (product.weightGrams || 0) * input.quantity;
   }
 
-  const prices = calculateOrderItemPrices(
-    product,
-    input.quantity,
-    order.regionCode,
-    rateSnapshot
-  );
+  const prices = calculateOrderItemPrices(product, input.quantity, order.regionCode, rateSnapshot);
 
   const [batch] = await db
     .select({ costPrice: inventoryBatches.costPrice })

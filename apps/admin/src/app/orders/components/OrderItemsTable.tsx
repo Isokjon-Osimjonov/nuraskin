@@ -16,9 +16,7 @@ export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTab
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <th className="w-[80px] px-4 py-3 text-left font-medium text-muted-foreground">
-              Rasm
-            </th>
+            <th className="w-[80px] px-4 py-3 text-left font-medium text-muted-foreground">Rasm</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Mahsulot</th>
             <th className="px-4 py-3 text-center font-medium text-muted-foreground">Miqdor</th>
             <th className="px-4 py-3 text-right font-medium text-muted-foreground">Chakana</th>
@@ -36,7 +34,7 @@ export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTab
           {items.map(item => {
             const region = currency === 'UZS' ? 'UZB' : 'KOR';
             const paid = BigInt(item.unitPriceSnapshot);
-            
+
             // Fix: Convert COGS to UZS if region is UZB
             let cogs = 0n;
             if (item.costAtSaleKrw) {
@@ -48,7 +46,8 @@ export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTab
                 // cogsKrw * rate = whole_krw * (uzs_per_krw * 100) = whole_uzs * 100 = minor units
                 const cogsMinor = cogsKrw * rate;
                 // Round to nearest 1,000 UZS (100,000 minor units) per backend convention
-                cogs = (cogsMinor / 100000n) * 100000n + (cogsMinor % 100000n >= 50000n ? 100000n : 0n);
+                cogs =
+                  (cogsMinor / 100000n) * 100000n + (cogsMinor % 100000n >= 50000n ? 100000n : 0n);
               } else {
                 cogs = cogsKrw;
               }
@@ -56,10 +55,11 @@ export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTab
 
             const profit = paid - cogs;
             const margin = paid > 0n ? Number((profit * 10000n) / paid) / 100 : 0;
-            
+
             const fullPaidPrice = BigInt(item.subtotalSnapshot) / BigInt(item.quantity);
             const isWholesale =
-              item.wholesalePriceSnapshot && fullPaidPrice.toString() === item.wholesalePriceSnapshot;
+              item.wholesalePriceSnapshot &&
+              fullPaidPrice.toString() === item.wholesalePriceSnapshot;
 
             return (
               <TableRow key={item.id}>
@@ -81,7 +81,9 @@ export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTab
                   {item.retailPriceSnapshot ? formatPrice(item.retailPriceSnapshot, region) : '—'}
                 </TableCell>
                 <TableCell className="p-4 text-right text-xs text-muted-foreground">
-                  {item.wholesalePriceSnapshot ? formatPrice(item.wholesalePriceSnapshot, region) : '—'}
+                  {item.wholesalePriceSnapshot
+                    ? formatPrice(item.wholesalePriceSnapshot, region)
+                    : '—'}
                 </TableCell>
                 <TableCell className="p-4 text-right whitespace-nowrap">
                   <div className="flex flex-col items-end">
@@ -97,7 +99,9 @@ export function OrderItemsTable({ items, currency, krwToUzsRate }: OrderItemsTab
                   {item.costAtSaleKrw ? formatPrice(item.costAtSaleKrw, 'KOR') : '—'}
                 </TableCell>
                 <TableCell className="p-4 text-right">
-                  <div className={`text-xs font-medium ${margin >= 25 ? 'text-emerald-600' : margin >= 10 ? 'text-amber-600' : 'text-red-600'}`}>
+                  <div
+                    className={`text-xs font-medium ${margin >= 25 ? 'text-emerald-600' : margin >= 10 ? 'text-amber-600' : 'text-red-600'}`}
+                  >
                     {margin.toFixed(1)}%
                   </div>
                 </TableCell>

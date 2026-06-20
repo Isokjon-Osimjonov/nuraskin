@@ -13,12 +13,7 @@ import {
   AlertTriangle,
   Info,
 } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAppStore } from '@/stores/app.store';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
@@ -303,9 +298,8 @@ function CartPage() {
                           side="left"
                           className="max-w-[250px] text-[12px] leading-relaxed bg-stone-800 border-stone-700 text-white"
                         >
-                          Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan.
-                          Qadoqlash (quticha) narxi buyurtma tasdiqlashda alohida
-                          ko'rsatiladi.
+                          Narxga mahsulot va kargo (og'irlik bo'yicha) kiritilgan. Qadoqlash
+                          (quticha) narxi buyurtma tasdiqlashda alohida ko'rsatiladi.
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

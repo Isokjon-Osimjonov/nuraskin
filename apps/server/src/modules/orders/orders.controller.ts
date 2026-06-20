@@ -227,7 +227,7 @@ export async function downloadInvoice(req: Request, res: Response) {
     }
 
     const retail = i.retailPriceSnapshot ? BigInt(i.retailPriceSnapshot) : 0n;
-    
+
     if (retail > actual) {
       totalSavings += Number(retail - actual) * i.quantity;
     }

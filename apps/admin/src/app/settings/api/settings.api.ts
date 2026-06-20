@@ -29,8 +29,7 @@ export const settingsApi = {
     api.delete<any>(`/settings/shipping-tiers/${id}`),
 
   // Shipping Boxes
-  listShippingBoxes: (): Promise<ShippingBoxResponse[]> =>
-    api.get<any>('/settings/shipping-boxes'),
+  listShippingBoxes: (): Promise<ShippingBoxResponse[]> => api.get<any>('/settings/shipping-boxes'),
 
   createShippingBox: (data: ShippingBoxInput): Promise<ShippingBoxResponse> =>
     api.post<any>('/settings/shipping-boxes', data),

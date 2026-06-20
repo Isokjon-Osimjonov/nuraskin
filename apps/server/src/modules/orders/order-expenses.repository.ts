@@ -34,6 +34,10 @@ export async function deleteById(id: string) {
 }
 
 export async function update(id: string, data: Partial<typeof orderExpenses.$inferInsert>) {
-  const [row] = await db.update(orderExpenses).set(data).where(eq(orderExpenses.id, id)).returning();
+  const [row] = await db
+    .update(orderExpenses)
+    .set(data)
+    .where(eq(orderExpenses.id, id))
+    .returning();
   return row;
 }

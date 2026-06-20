@@ -165,8 +165,7 @@ export async function getAccountingSummary(month: string) {
     netRevenue > 0n ? Number((grossProfit * 10000n) / netRevenue) / 100 : 0;
 
   // Standalone expenses + other order-linked expenses (excluding SHIPPING which is already in grossProfit)
-  const otherExpenses =
-    BigInt(expensesSummary.grandTotalKrw) - shippingExpense;
+  const otherExpenses = BigInt(expensesSummary.grandTotalKrw) - shippingExpense;
   const netProfit = grossProfit - otherExpenses;
   const netMarginPercent = netRevenue > 0n ? Number((netProfit * 10000n) / netRevenue) / 100 : 0;
 

@@ -813,7 +813,11 @@ export function PostCreatePage() {
                 </div>
               )}
               <div className="p-3 text-[14px] leading-normal whitespace-pre-wrap font-sans">
-                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(captionPreview.replace(/\n/g, '<br/>')) }} />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(captionPreview.replace(/\n/g, '<br/>')),
+                  }}
+                />
               </div>
               <div className="px-3 pb-3">
                 {form.showCta && (

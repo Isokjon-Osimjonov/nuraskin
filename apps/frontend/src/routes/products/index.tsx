@@ -6,7 +6,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useAppStore } from '@/stores/app.store';
 import { useMyWaitlistIds, useToggleWaitlist } from '@/hooks/useWaitlist';
 import { cn } from '@/lib/utils';
-import {  formatPrice } from '@nuraskin/shared-utils';
+import { formatPrice } from '@nuraskin/shared-utils';
 import { useCart, useAddToCart } from '@/hooks/useCart';
 import { typography } from '@/lib/typography';
 import { EmptySection } from '@/components/shared/EmptySection';

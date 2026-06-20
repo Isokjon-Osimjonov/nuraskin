@@ -172,7 +172,9 @@ export function PostDetailPage() {
                   )}
                   <div className="p-3 text-[14px] leading-normal whitespace-pre-wrap font-sans">
                     <div
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(captionPreview.replace(/\n/g, '<br/>')) }}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(captionPreview.replace(/\n/g, '<br/>')),
+                      }}
                     />
                   </div>
                 </div>

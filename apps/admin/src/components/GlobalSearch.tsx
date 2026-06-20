@@ -6,7 +6,12 @@ import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { GlobalSearchResponse, GlobalSearchProduct, GlobalSearchCustomer, GlobalSearchOrder } from '@nuraskin/shared-types';
+import type {
+  GlobalSearchResponse,
+  GlobalSearchProduct,
+  GlobalSearchCustomer,
+  GlobalSearchOrder,
+} from '@nuraskin/shared-types';
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -60,7 +65,7 @@ export function GlobalSearch() {
               placeholder="Qidirish..."
               className="w-full bg-muted/50 pl-9 pr-12 focus-visible:ring-1 h-9"
               value={query}
-              onChange={(e) => {
+              onChange={e => {
                 setQuery(e.target.value);
                 setOpen(true);
               }}
@@ -68,17 +73,20 @@ export function GlobalSearch() {
                 if (query.length >= 2) setOpen(true);
               }}
             />
-            <Badge variant="secondary" className="absolute right-1.5 top-1.5 px-1.5 text-[10px] font-mono pointer-events-none text-muted-foreground h-6 flex items-center justify-center">
+            <Badge
+              variant="secondary"
+              className="absolute right-1.5 top-1.5 px-1.5 text-[10px] font-mono pointer-events-none text-muted-foreground h-6 flex items-center justify-center"
+            >
               ⌘K
             </Badge>
           </div>
         </PopoverTrigger>
 
-        <PopoverContent 
+        <PopoverContent
           className="w-[var(--radix-popover-trigger-width)] p-0 max-h-[80vh] overflow-y-auto"
           align="start"
           sideOffset={8}
-          onOpenAutoFocus={(e) => e.preventDefault()}
+          onOpenAutoFocus={e => e.preventDefault()}
         >
           {isLoading ? (
             <div className="p-4 flex items-center justify-center text-muted-foreground">
@@ -86,11 +94,13 @@ export function GlobalSearch() {
             </div>
           ) : data ? (
             <div className="p-2 space-y-4">
-              {data.products.length === 0 && data.customers.length === 0 && data.orders.length === 0 && (
-                <div className="p-4 text-sm text-center text-muted-foreground">
-                  Natija topilmadi
-                </div>
-              )}
+              {data.products.length === 0 &&
+                data.customers.length === 0 &&
+                data.orders.length === 0 && (
+                  <div className="p-4 text-sm text-center text-muted-foreground">
+                    Natija topilmadi
+                  </div>
+                )}
 
               {data.products.length > 0 && (
                 <div>
@@ -105,13 +115,19 @@ export function GlobalSearch() {
                         className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-accent focus:bg-accent outline-none flex items-center gap-2"
                       >
                         {p.imageUrl ? (
-                          <img src={p.imageUrl} alt={p.name} className="h-6 w-6 object-cover rounded" />
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="h-6 w-6 object-cover rounded"
+                          />
                         ) : (
                           <div className="h-6 w-6 bg-muted rounded shrink-0" />
                         )}
                         <div className="flex flex-col overflow-hidden min-w-0">
                           <span className="truncate">{p.name}</span>
-                          <span className="text-xs text-muted-foreground truncate">{p.barcode} • {p.sku}</span>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {p.barcode} • {p.sku}
+                          </span>
                         </div>
                       </button>
                     ))}
@@ -138,7 +154,7 @@ export function GlobalSearch() {
                       >
                         <span className="truncate font-medium">{c.fullName}</span>
                         <span className="text-xs text-muted-foreground truncate">
-                          {c.phone || 'Tel yo\'q'} • {c.telegramId || 'TG yo\'q'}
+                          {c.phone || "Tel yo'q"} • {c.telegramId || "TG yo'q"}
                         </span>
                       </button>
                     ))}
@@ -164,7 +180,9 @@ export function GlobalSearch() {
                         className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-accent focus:bg-accent outline-none flex justify-between items-center"
                       >
                         <span className="truncate font-medium">{o.orderNumber}</span>
-                        <Badge variant="outline" className="text-[10px] ml-2 shrink-0">{o.status}</Badge>
+                        <Badge variant="outline" className="text-[10px] ml-2 shrink-0">
+                          {o.status}
+                        </Badge>
                       </button>
                     ))}
                     {data.totalCounts.orders > 5 && (

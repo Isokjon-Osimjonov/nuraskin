@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const globalSearchQuerySchema = z.object({
-  q: z.string().min(2, "Kamida 2 ta harf kiriting"),
+  q: z.string().min(2, 'Kamida 2 ta harf kiriting'),
 });
 
 export type GlobalSearchQuery = z.infer<typeof globalSearchQuerySchema>;

@@ -23,13 +23,18 @@ export async function findAdminList(filters: CustomerFilters) {
       createdAt: sql<string>`customers.created_at::text`.as('createdAt'),
       lastOrderAt: sql<string | null>`MAX(orders.created_at)::text`.as('lastOrderAt'),
       orderCount: sql<number>`COUNT(orders.id)::int`.as('orderCount'),
-      totalSpent: sql<string>`COALESCE(SUM(CASE WHEN ${inArray(orders.status, PAID_STATUSES)} THEN orders.total_amount ELSE 0 END), 0)::text`.as('totalSpent'),
-      totalSpentKrw: sql<string>`COALESCE(SUM(CASE WHEN ${inArray(orders.status, PAID_STATUSES)} AND orders.region_code = 'KOR' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
-        'totalSpentKrw'
-      ),
-      totalSpentUzs: sql<string>`COALESCE(SUM(CASE WHEN ${inArray(orders.status, PAID_STATUSES)} AND orders.region_code = 'UZB' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
-        'totalSpentUzs'
-      ),
+      totalSpent:
+        sql<string>`COALESCE(SUM(CASE WHEN ${inArray(orders.status, PAID_STATUSES)} THEN orders.total_amount ELSE 0 END), 0)::text`.as(
+          'totalSpent'
+        ),
+      totalSpentKrw:
+        sql<string>`COALESCE(SUM(CASE WHEN ${inArray(orders.status, PAID_STATUSES)} AND orders.region_code = 'KOR' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
+          'totalSpentKrw'
+        ),
+      totalSpentUzs:
+        sql<string>`COALESCE(SUM(CASE WHEN ${inArray(orders.status, PAID_STATUSES)} AND orders.region_code = 'UZB' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
+          'totalSpentUzs'
+        ),
       outstandingDebt:
         sql<string>`COALESCE(SUM(CASE WHEN orders.status = 'PENDING_PAYMENT' THEN orders.total_amount ELSE 0 END), 0)::text`.as(
           'outstandingDebt'

@@ -80,7 +80,7 @@ export function AppLayout() {
           </Breadcrumb>
           <GlobalSearch />
         </header>
-          <Outlet />
+        <Outlet />
       </SidebarInset>
     </SidebarProvider>
   );

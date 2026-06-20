@@ -30,9 +30,7 @@ export function NavMain({
       <SidebarMenu className="gap-1">
         {items.map(item => {
           const isActive =
-            item.url === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(item.url);
+            item.url === '/' ? location.pathname === '/' : location.pathname.startsWith(item.url);
 
           return (
             <SidebarMenuItem key={item.title}>
@@ -55,7 +53,9 @@ export function NavMain({
                     <item.icon
                       className={cn(
                         'size-4 shrink-0 transition-colors',
-                        isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                        isActive
+                          ? 'text-primary'
+                          : 'text-muted-foreground group-hover:text-foreground'
                       )}
                     />
                   )}
