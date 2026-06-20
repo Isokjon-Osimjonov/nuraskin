@@ -95,13 +95,13 @@ export function PostDetailPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate({ to: '/telegram' } as any)}>
             <ArrowLeft />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-3">
               Post #{post.id.slice(0, 8)}
               {getStatusBadge(post.status)}
             </h1>
@@ -110,7 +110,7 @@ export function PostDetailPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full sm:w-auto gap-2">
           {post.status === 'DRAFT' && (
             <Button onClick={() => sendMutation.mutate()} disabled={sendMutation.isPending}>
               {sendMutation.isPending ? (

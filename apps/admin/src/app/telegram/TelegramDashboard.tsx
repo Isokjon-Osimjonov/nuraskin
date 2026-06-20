@@ -94,17 +94,18 @@ export function TelegramDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Telegram Boshqaruvi</h1>
-          <p className="text-muted-foreground">Kanal va postlarni boshqarish</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Telegram Boshqaruvi</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Kanal va postlarni boshqarish</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate({ to: '/telegram/channels' } as any)}>
+        <div className="flex w-full sm:w-auto gap-2">
+          <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => navigate({ to: '/telegram/channels' } as any)}>
             <Radio className="mr-2 h-4 w-4" />
-            Kanallar
+            <span className="hidden sm:inline">Kanallar</span>
+            <span className="sm:hidden">Kanallar</span>
           </Button>
-          <Button onClick={() => navigate({ to: '/telegram/posts/new' } as any)}>
+          <Button className="flex-1 sm:flex-none" onClick={() => navigate({ to: '/telegram/posts/new' } as any)}>
             <Plus className="mr-2 h-4 w-4" />
             Yangi post
           </Button>
