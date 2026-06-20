@@ -8,7 +8,7 @@ export const Route = createRootRoute({
   component: () => (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster position="top-right" richColors closeButton duration={2000} />
+      <Toaster position="bottom-right" richColors closeButton duration={2000} />
     </QueryClientProvider>
   ),
 });

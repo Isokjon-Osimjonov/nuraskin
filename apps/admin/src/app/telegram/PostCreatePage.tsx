@@ -140,7 +140,7 @@ export function PostCreatePage() {
   const updateSettingsMutation = useMutation({
     mutationFn: (data: any) => settingsApi.update(data),
     onSuccess: () => {
-      toast.success('Saqlandi', { duration: 2000, position: 'bottom-right' });
+      toast.success('Saqlandi', { duration: 2000 });
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
     },
   });

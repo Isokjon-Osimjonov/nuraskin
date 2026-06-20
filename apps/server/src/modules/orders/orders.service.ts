@@ -68,8 +68,8 @@ export async function createManualOrder(input: CreateManualOrderInput, adminId: 
         const available = await repository.getAvailableStock(item.productId, tx);
         if (item.quantity > available && !input.forceCreate) {
           const message = product?.showStockCount
-            ? `INSUFFICIENT_STOCK: ${product?.name} mahsulotidan faqat ${available} ta mavjud`
-            : `INSUFFICIENT_STOCK: Kechirasiz, ${product?.name} mahsulotidan so'ralgan miqdorda mavjud emas`;
+            ? `${product?.name} mahsulotidan faqat ${available} ta mavjud`
+            : `Kechirasiz, ${product?.name} mahsulotidan so'ralgan miqdorda mavjud emas`;
           throw new BadRequestError(message, 'INSUFFICIENT_STOCK', {
             productId: item.productId,
             productName: product?.name,
@@ -540,9 +540,9 @@ export async function createOrder(
 
       if (itemInput.quantity > product.totalStock) {
         const message = product.showStockCount
-          ? `INSUFFICIENT_STOCK: ${product.name} mahsulotidan faqat ${product.totalStock} ta mavjud`
-          : `INSUFFICIENT_STOCK: Kechirasiz, ${product.name} mahsulotidan so'ralgan miqdorda mavjud emas`;
-        throw new BadRequestError(message);
+          ? `${product.name} mahsulotidan faqat ${product.totalStock} ta mavjud`
+          : `Kechirasiz, ${product.name} mahsulotidan so'ralgan miqdorda mavjud emas`;
+        throw new BadRequestError(message, 'INSUFFICIENT_STOCK');
       }
 
       const regionalConfig = product.regionalConfigs.find(c => c.regionCode === input.regionCode);

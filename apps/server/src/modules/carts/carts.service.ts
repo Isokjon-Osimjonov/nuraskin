@@ -130,9 +130,9 @@ export async function addToCart(
     if (newQty > availableStock) {
       const [product] = await tx.select({ showStockCount: products.showStockCount }).from(products).where(eq(products.id, productId));
       const message = product?.showStockCount
-        ? `INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`
-        : `INSUFFICIENT_STOCK: Kechirasiz, so'ralgan miqdorda mavjud emas`;
-      throw new BadRequestError(message);
+        ? `Faqat ${availableStock} ta mavjud`
+        : `Kechirasiz, so'ralgan miqdorda mavjud emas`;
+      throw new BadRequestError(message, 'INSUFFICIENT_STOCK');
     }
 
     const config = await db.query.productRegionalConfigs.findFirst({
@@ -196,9 +196,9 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
       if (quantity > availableStock) {
         const [product] = await tx.select({ showStockCount: products.showStockCount }).from(products).where(eq(products.id, productId));
         const message = product?.showStockCount
-          ? `INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`
-          : `INSUFFICIENT_STOCK: Kechirasiz, so'ralgan miqdorda mavjud emas`;
-        throw new BadRequestError(message);
+          ? `Faqat ${availableStock} ta mavjud`
+          : `Kechirasiz, so'ralgan miqdorda mavjud emas`;
+        throw new BadRequestError(message, 'INSUFFICIENT_STOCK');
       }
 
       const config = await db.query.productRegionalConfigs.findFirst({

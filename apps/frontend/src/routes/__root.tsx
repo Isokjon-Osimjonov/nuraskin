@@ -28,7 +28,7 @@ function RootLayout() {
         {!isLogin && <Footer />}
       </div>
       <RegionSelectionModal />
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster position="bottom-right" richColors closeButton />
     </QueryClientProvider>
   );
 }
