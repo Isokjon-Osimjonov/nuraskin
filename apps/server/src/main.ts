@@ -18,7 +18,7 @@ import { logger } from './common/utils/logger';
 import { env } from './common/config/env';
 
 // Start BullMQ workers
-import './modules/queues';
+import { worker as reservationWorker, telegramWorker, salesRollupWorker } from './modules/queues';
 
 process.on('uncaughtException', err => {
   console.error('CRITICAL - Uncaught Exception:', err.message);
@@ -31,6 +31,10 @@ process.on('unhandledRejection', reason => {
 
 async function bootstrap() {
   // Run DB migrations on every startup
+  // NOTE: For a single-instance deploy, this is fine.
+  // IF this ever scales to multiple server instances running simultaneously,
+  // this exact pattern would need to change to a separate one-time migration step
+  // BEFORE starting any instances, to avoid race conditions.
   try {
     await runMigrations();
     logger.info('Migrations complete');
@@ -39,8 +43,31 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  app.listen(env.PORT, '0.0.0.0', () => {
+  const server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info(`Server running on port ${env.PORT}`);
+  });
+
+  process.on('SIGTERM', () => {
+    logger.info('SIGTERM received, shutting down gracefully');
+    server.close(async () => {
+      logger.info('Server closed');
+      try {
+        await Promise.all([
+          reservationWorker.close(),
+          telegramWorker.close(),
+          salesRollupWorker.close()
+        ]);
+        logger.info('BullMQ workers closed');
+      } catch (err) {
+        logger.error({ err }, 'Error closing BullMQ workers');
+      }
+      process.exit(0);
+    });
+    // force exit if graceful shutdown takes too long
+    setTimeout(() => {
+      logger.error('Graceful shutdown timed out, forcing exit');
+      process.exit(1);
+    }, 10000);
   });
 }
 

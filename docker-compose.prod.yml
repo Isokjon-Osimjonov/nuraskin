@@ -26,6 +26,7 @@ services:
     deploy:
       resources:
         limits:
+          # STARTING POINT: tune for DB usage
           memory: 512M
 
   redis:
@@ -50,6 +51,7 @@ services:
     deploy:
       resources:
         limits:
+          # STARTING POINT: tune for DB usage
           memory: 512M
 
   server:
@@ -86,8 +88,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          # STARTING POINT: adjust based on actual VPS RAM
+          cpus: '1.5'
+          memory: 768M
 
   frontend:
     image: ghcr.io/${GHCR_USERNAME}/nuraskin-frontend:${IMAGE_TAG:-latest}
@@ -118,6 +121,7 @@ services:
     deploy:
       resources:
         limits:
+          # STARTING POINT: adjust based on actual usage
           cpus: '0.5'
           memory: 128M
 
@@ -150,6 +154,7 @@ services:
     deploy:
       resources:
         limits:
+          # STARTING POINT: adjust based on actual usage
           cpus: '0.5'
           memory: 128M
 
