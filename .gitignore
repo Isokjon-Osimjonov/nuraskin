@@ -56,3 +56,10 @@ apps/**/.env.*
 !apps/**/.env.*.example
 
 # vite.config.*.timestamp*
+*.local.*
+/tmp/
+*.log
+verify_*.ts
+verify_*.mjs
+*_debug.json
+vite.config.*.timestamp*
