@@ -221,7 +221,7 @@ export function ManualOrderPage() {
   const stockWarnings = items.filter(i => i.quantity > i.availableStock);
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto w-full min-w-0">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate({ to: '/orders' })}>
           <ArrowLeft />
@@ -311,7 +311,7 @@ export function ManualOrderPage() {
               <CardTitle className="text-lg flex items-center gap-2">
                 <Package className="w-5 h-5" /> Mahsulotlar
               </CardTitle>
-              <div className="relative w-72">
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <Input
                   placeholder="Qidirish va qo'shish..."
@@ -393,83 +393,85 @@ export function ManualOrderPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Mahsulot</TableHead>
-                        <TableHead className="w-24 text-center">Soni</TableHead>
-                        <TableHead className="w-40 text-right">Kelishilgan narx</TableHead>
-                        <TableHead className="w-40 text-right">Jami</TableHead>
-                        <TableHead className="w-10"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {items.map(item => (
-                        <TableRow key={item.productId} className="group">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={item.image}
-                                className="w-10 h-10 rounded object-cover border"
-                              />
-                              <div className="min-w-0">
-                                <p className="font-medium text-sm truncate max-w-[200px]">
-                                  {item.name}
-                                </p>
-                                {item.quantity > item.availableStock ? (
-                                  <p className="text-[10px] text-orange-600 font-bold flex items-center gap-1 mt-0.5">
-                                    <AlertTriangle className="w-3 h-3" /> Faqat{' '}
-                                    {item.availableStock} ta bor
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-[600px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Mahsulot</TableHead>
+                          <TableHead className="w-24 text-center">Soni</TableHead>
+                          <TableHead className="w-40 text-right">Kelishilgan narx</TableHead>
+                          <TableHead className="w-40 text-right">Jami</TableHead>
+                          <TableHead className="w-10"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {items.map(item => (
+                          <TableRow key={item.productId} className="group">
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={item.image}
+                                  className="w-10 h-10 rounded object-cover border"
+                                />
+                                <div className="min-w-0">
+                                  <p className="font-medium text-sm truncate max-w-[200px]">
+                                    {item.name}
                                   </p>
-                                ) : (
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                                    Zaxirada: {item.availableStock} ta
-                                  </p>
-                                )}
+                                  {item.quantity > item.availableStock ? (
+                                    <p className="text-[10px] text-orange-600 font-bold flex items-center gap-1 mt-0.5">
+                                      <AlertTriangle className="w-3 h-3" /> Faqat{' '}
+                                      {item.availableStock} ta bor
+                                    </p>
+                                  ) : (
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                                      Zaxirada: {item.availableStock} ta
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <NumberInput
-                              className="h-9 text-center bg-white"
-                              value={item.quantity}
-                              onChange={v => updateItemQty(item.productId, v ?? 0)}
-                              allowDecimals={false}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="relative">
+                            </TableCell>
+                            <TableCell>
                               <NumberInput
-                                className="h-9 text-right pr-7 bg-white font-mono"
-                                value={item.negotiatedPriceKrw}
-                                onChange={v => updateItemPrice(item.productId, v ?? 0)}
+                                className="h-9 text-center bg-white"
+                                value={item.quantity}
+                                onChange={v => updateItemQty(item.productId, v ?? 0)}
                                 allowDecimals={false}
                               />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                                ₩
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-stone-900 font-mono">
-                            {(
-                              (item.negotiatedPriceKrw || 0) * (item.quantity || 0)
-                            ).toLocaleString()}{' '}
-                            ₩
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-stone-300 hover:text-destructive transition-colors"
-                              onClick={() => removeItem(item.productId)}
-                            >
-                              <Trash className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                            </TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <NumberInput
+                                  className="h-9 text-right pr-7 bg-white font-mono"
+                                  value={item.negotiatedPriceKrw}
+                                  onChange={v => updateItemPrice(item.productId, v ?? 0)}
+                                  allowDecimals={false}
+                                />
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                  ₩
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-stone-900 font-mono">
+                              {(
+                                (item.negotiatedPriceKrw || 0) * (item.quantity || 0)
+                              ).toLocaleString()}{' '}
+                              ₩
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-stone-300 hover:text-destructive transition-colors"
+                                onClick={() => removeItem(item.productId)}
+                              >
+                                <Trash className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
 
                   <div className="flex justify-between items-center p-5 bg-stone-900 rounded-xl text-white">
                     <span className="text-sm font-medium uppercase tracking-widest opacity-60">
