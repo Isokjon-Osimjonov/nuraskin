@@ -105,10 +105,21 @@ services:
     security_opt:
       - no-new-privileges:true
     read_only: true
-    tmpfs:
-      - /tmp
-      - /var/cache/nginx
-      - /var/run
+    volumes:
+      - type: tmpfs
+        target: /tmp
+      - type: tmpfs
+        target: /var/cache/nginx
+        tmpfs:
+          mode: 0755
+          uid: 101
+          gid: 101
+      - type: tmpfs
+        target: /var/run
+        tmpfs:
+          mode: 0755
+          uid: 101
+          gid: 101
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/ > /dev/null || exit 1']
       interval: 30s
@@ -138,10 +149,21 @@ services:
     security_opt:
       - no-new-privileges:true
     read_only: true
-    tmpfs:
-      - /tmp
-      - /var/cache/nginx
-      - /var/run
+    volumes:
+      - type: tmpfs
+        target: /tmp
+      - type: tmpfs
+        target: /var/cache/nginx
+        tmpfs:
+          mode: 0755
+          uid: 101
+          gid: 101
+      - type: tmpfs
+        target: /var/run
+        tmpfs:
+          mode: 0755
+          uid: 101
+          gid: 101
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/ > /dev/null || exit 1']
       interval: 30s

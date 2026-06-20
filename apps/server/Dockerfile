@@ -30,7 +30,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=builder --chown=appuser:appgroup /app/dist/apps/server ./dist
 
 # Copy package.json to install production dependencies (required for external modules)
-COPY --chown=appuser:appgroup apps/server/package.json ./
+COPY --from=builder --chown=appuser:appgroup /app/dist/apps/server/package.json ./
 
 # Install only production dependencies
 RUN npm install --omit=dev --ignore-scripts --legacy-peer-deps && npm cache clean --force
