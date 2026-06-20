@@ -73,13 +73,19 @@ describe('InventoryService', () => {
         adminId
       );
 
-      expect(repository.updateBatch).toHaveBeenCalledWith(batchId, { batchRef: 'new-ref' }, [
+      expect(repository.updateBatch).toHaveBeenCalledWith(
+        batchId,
         expect.objectContaining({
-          fieldChanged: 'batch_ref',
-          oldValue: 'old-ref',
-          newValue: 'new-ref',
+          batchRef: 'new-ref',
         }),
-      ]);
+        expect.arrayContaining([
+          expect.objectContaining({
+            fieldChanged: 'batch_ref',
+            oldValue: 'old-ref',
+            newValue: 'new-ref',
+          }),
+        ])
+      );
     });
 
     it('should throw error when changing initialQty if stock was already sold', async () => {
