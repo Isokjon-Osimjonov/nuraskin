@@ -1,6 +1,6 @@
 import * as repository from './carts.repository';
 import * as storefrontRepository from '../storefront/storefront.repository';
-import { db, inventoryBatches, productRegionalConfigs } from '@nuraskin/database';
+import { db, inventoryBatches, productRegionalConfigs, products } from '@nuraskin/database';
 import { BadRequestError, NotFoundError, ConflictError } from '../../common/errors/AppError';
 import {
   calculateUzbPrice,
@@ -128,7 +128,11 @@ export async function addToCart(
 
     const availableStock = await getAvailableStock(productId, tx);
     if (newQty > availableStock) {
-      throw new BadRequestError(`INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`);
+      const [product] = await tx.select({ showStockCount: products.showStockCount }).from(products).where(eq(products.id, productId));
+      const message = product?.showStockCount
+        ? `INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`
+        : `INSUFFICIENT_STOCK: Kechirasiz, so'ralgan miqdorda mavjud emas`;
+      throw new BadRequestError(message);
     }
 
     const config = await db.query.productRegionalConfigs.findFirst({
@@ -190,7 +194,11 @@ export async function updateItemQuantity(customerId: string, itemId: string, qua
     } else {
       const availableStock = await getAvailableStock(productId, tx);
       if (quantity > availableStock) {
-        throw new BadRequestError(`INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`);
+        const [product] = await tx.select({ showStockCount: products.showStockCount }).from(products).where(eq(products.id, productId));
+        const message = product?.showStockCount
+          ? `INSUFFICIENT_STOCK: Faqat ${availableStock} ta mavjud`
+          : `INSUFFICIENT_STOCK: Kechirasiz, so'ralgan miqdorda mavjud emas`;
+        throw new BadRequestError(message);
       }
 
       const config = await db.query.productRegionalConfigs.findFirst({

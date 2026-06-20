@@ -102,10 +102,10 @@ function ProductPage() {
           <span className="text-[#4A1525] truncate">{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 mt-6">
           {/* LEFT: Image */}
           <div className="w-full">
-            <div className="w-full aspect-[4/5] sm:aspect-[3/4] rounded-2xl overflow-hidden bg-stone-100 flex items-center justify-center">
+            <div className="w-full  sm:h-[86%] aspect-4/5 rounded-2xl overflow-hidden bg-stone-100 flex items-center justify-center">
               <img
                 src={product.imageUrls[activeImage] || ''}
                 alt={product.name}
@@ -189,18 +189,34 @@ function ProductPage() {
 
             {/* Stock Badge */}
             <div className="mb-4">
-              {product.availableStock > 10 ? (
-                <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
-                  MAVJUD
-                </span>
-              ) : product.availableStock > 0 ? (
-                <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
-                  Kam qoldi: {product.availableStock} ta
-                </span>
+              {product.showStockCount ? (
+                product.availableStock > 10 ? (
+                  <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                    MAVJUD ({product.availableStock} ta)
+                  </span>
+                ) : product.availableStock > 0 ? (
+                  <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
+                    Kam qoldi: {product.availableStock} ta
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">
+                    Tugadi
+                  </span>
+                )
               ) : (
-                <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">
-                  Tugadi
-                </span>
+                product.availableStock > 10 ? (
+                  <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                    MAVJUD
+                  </span>
+                ) : product.availableStock > 0 ? (
+                  <span className="text-[11px] font-normal text-amber-600 bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
+                    Kam qoldi
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-normal text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-100">
+                    Tugadi
+                  </span>
+                )
               )}
             </div>
 
@@ -222,7 +238,11 @@ function ProductPage() {
                         const cartItem = cartData?.items?.find(i => i.productId === product.id);
                         const currentCartQty = cartItem ? cartItem.quantity : 0;
                         if (currentCartQty + quantity >= product.availableStock) {
-                          toast.warning(`Maksimal: ${product.availableStock} ta`);
+                          if (product.showStockCount) {
+                            toast.warning(`Maksimal: ${product.availableStock} ta`);
+                          } else {
+                            toast.warning(`Kechirasiz, so'ralgan miqdorda mavjud emas`);
+                          }
                           return;
                         }
                         setQuantity(quantity + 1);
@@ -243,9 +263,13 @@ function ProductPage() {
                       const cartItem = cartData?.items?.find(i => i.productId === product.id);
                       const currentCartQty = cartItem ? cartItem.quantity : 0;
                       if (currentCartQty + quantity > product.availableStock) {
-                        toast.warning(
-                          `Savatchada allaqachon ${currentCartQty} ta bor. Maksimal: ${product.availableStock} ta`
-                        );
+                        if (product.showStockCount) {
+                          toast.warning(
+                            `Savatchada allaqachon ${currentCartQty} ta bor. Maksimal: ${product.availableStock} ta`
+                          );
+                        } else {
+                          toast.warning(`Kechirasiz, so'ralgan miqdorda mavjud emas`);
+                        }
                         return;
                       }
 

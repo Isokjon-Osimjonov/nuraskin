@@ -38,6 +38,7 @@ export async function createProduct(input: CreateProductInput) {
     benefits: input.benefits ?? [],
     weightGrams: input.weightGrams,
     imageUrls: input.imageUrls,
+    showStockCount: input.showStockCount,
     isActive: true,
   };
 
@@ -73,6 +74,7 @@ export async function updateProduct(id: string, input: UpdateProductInput) {
   if (input.weightGrams !== undefined) data.weightGrams = input.weightGrams;
   if (input.imageUrls !== undefined) data.imageUrls = input.imageUrls;
   if (input.isActive !== undefined) data.isActive = input.isActive;
+  if (input.showStockCount !== undefined) data.showStockCount = input.showStockCount;
 
   if (input.regionalConfigs) {
     for (const rc of input.regionalConfigs) {

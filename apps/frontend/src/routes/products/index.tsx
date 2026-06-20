@@ -212,12 +212,12 @@ function CategoryPage() {
                     <Link
                       to="/products/$slug"
                       params={{ slug: product.slug }}
-                      className="block relative h-[200px] w-full overflow-hidden bg-stone-100 p-2"
+                      className="block relative h-[200px] w-full overflow-hidden bg-stone-100 "
                     >
                       <img
                         src={product.imageUrls[0] || ''}
                         alt={product.name}
-                        className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                       />
 
                       {product.availableStock === 0 && (

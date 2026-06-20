@@ -81,6 +81,7 @@ export async function findAll(filters?: {
       weightGrams: products.weightGrams,
       imageUrls: products.imageUrls,
       isActive: products.isActive,
+      showStockCount: products.showStockCount,
       deletedAt: products.deletedAt,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
