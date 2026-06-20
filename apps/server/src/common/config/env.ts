@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 const EnvSchema = z.object({
+  NODE_ENV: z.string().default('development'),
+  SENTRY_DSN: z.string().url().optional(),
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('30d'),

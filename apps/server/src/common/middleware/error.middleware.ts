@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import * as Sentry from '@sentry/node';
 import { AppError, PriceChangedError, UnauthorizedError } from '../errors/AppError';
 import { logger } from '../utils/logger';
 import { ZodError } from 'zod';
@@ -41,6 +42,7 @@ export function errorMiddleware(
     return;
   }
 
+  Sentry.captureException(err);
   logger.error({ err, path: req.path }, 'Unhandled error');
   res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
 }

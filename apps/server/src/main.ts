@@ -16,16 +16,29 @@ import { runMigrations } from '@nuraskin/database';
 import { app } from './app';
 import { logger } from './common/utils/logger';
 import { env } from './common/config/env';
+import * as Sentry from '@sentry/node';
+
+if (env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: env.SENTRY_DSN,
+    environment: env.NODE_ENV,
+    tracesSampleRate: 0.1,
+  });
+} else {
+  logger.warn('SENTRY_DSN not set — error tracking disabled');
+}
 
 // Start BullMQ workers
 import { worker as reservationWorker, telegramWorker, salesRollupWorker } from './modules/queues';
 
 process.on('uncaughtException', err => {
+  Sentry.captureException(err);
   console.error('CRITICAL - Uncaught Exception:', err.message);
   console.error(err.stack);
 });
 
 process.on('unhandledRejection', reason => {
+  Sentry.captureException(reason);
   console.error('CRITICAL - Unhandled Rejection:', reason);
 });
 
