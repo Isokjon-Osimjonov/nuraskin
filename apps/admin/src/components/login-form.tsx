@@ -51,7 +51,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardDescription>Email va parolni kiriting.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -70,13 +70,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+                  <Label htmlFor="password">Parol</Label>
                 </div>
                 <Input id="password" type="password" {...form.register('password')} />
                 {form.formState.errors.password && (
@@ -89,15 +83,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Login
               </Button>
-              <Button variant="outline" type="button" className="w-full">
-                Login with Google
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <a href="#" className="underline underline-offset-4 hover:text-primary">
-                Sign up
-              </a>
             </div>
           </form>
         </CardContent>

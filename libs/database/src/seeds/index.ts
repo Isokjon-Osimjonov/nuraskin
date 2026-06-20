@@ -32,9 +32,9 @@ async function main(): Promise<void> {
     db
       .insert(exchangeRateSnapshots)
       .values({
-        krwToUzs: '14',
-        cargoRateKrwPerKg: 10000,
-        note: 'Initial rate — update before launch',
+        krwToUzs: '7.6',
+        cargoRateKrwPerKg: 15000,
+        note: 'Ohirgi kurs yangilanishi kiriitng!',
       })
       .onConflictDoNothing(),
 
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
       .values([
         { maxOrderKrw: 100000n, cargoFeeKrw: 4000n, sortOrder: 1 },
         { maxOrderKrw: 200000n, cargoFeeKrw: 8000n, sortOrder: 2 },
-        { maxOrderKrw: 300000n, cargoFeeKrw: 6000n, sortOrder: 3 },
+        { maxOrderKrw: 300000n, cargoFeeKrw: 12000n, sortOrder: 3 },
         { maxOrderKrw: null, cargoFeeKrw: 0n, sortOrder: 4 },
       ])
       .onConflictDoNothing(),

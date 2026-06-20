@@ -163,7 +163,7 @@ export function TelegramDashboard() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">Postlar tarixi</h2>
         </div>
-        <DataTable>
+        <DataTable className="min-w-[800px]">
           <DataTableHeader>
             <DataTableRow>
               <DataTableHead>Mahsulot</DataTableHead>

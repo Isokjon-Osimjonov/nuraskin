@@ -137,7 +137,7 @@ export function ChannelsPage() {
       </div>
 
       <div className="space-y-4">
-        <DataTable>
+        <DataTable className="min-w-[800px]">
           <DataTableHeader>
             <DataTableRow>
               <DataTableHead>Nomi</DataTableHead>
@@ -214,7 +214,7 @@ export function ChannelsPage() {
                 </DataTableRow>
               ))
             )}
-          </DataTableBody>
+            </DataTableBody>
         </DataTable>
 
         {!isLoading && (
@@ -275,7 +275,7 @@ export function ChannelsPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Til</label>
                 <Select
