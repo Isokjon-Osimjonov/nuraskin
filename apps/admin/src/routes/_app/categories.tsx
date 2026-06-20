@@ -127,15 +127,15 @@ function CategoriesPage() {
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 w-full min-w-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kategoriyalar</h1>
-          <p className="text-muted-foreground">Mahsulot kategoriyalarini boshqaring</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Kategoriyalar</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Mahsulot kategoriyalarini boshqaring</p>
         </div>
         <Dialog open={open} onOpenChange={v => !v && handleClose()}>
           <DialogTrigger asChild>
-            <Button onClick={() => setOpen(true)}>
+            <Button onClick={() => setOpen(true)} className="w-full sm:w-auto">
               <PlusIcon className="mr-2 h-4 w-4" />
               Kategoriya qo'shish
             </Button>
