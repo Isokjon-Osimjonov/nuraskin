@@ -13,7 +13,7 @@ services:
     ports:
       # Localhost-only: reachable via SSH tunnel from the VPS, NEVER from the public internet.
       # `127.0.0.1:` prefix ensures Docker does NOT bind to 0.0.0.0.
-      - "127.0.0.1:5432:5432"
+      - '127.0.0.1:5432:5432'
     networks:
       - nuraskin-backend
     healthcheck:
