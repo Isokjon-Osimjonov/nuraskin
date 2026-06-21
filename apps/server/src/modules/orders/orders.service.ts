@@ -836,7 +836,9 @@ async function recalculateOrderTotals(orderId: string, tx: any) {
   if (order.couponId) {
     const [coupon] = await tx.select().from(coupons).where(eq(coupons.id, order.couponId)).limit(1);
     if (coupon && coupon.type === 'FREE_SHIPPING') {
-      discount = totalCargo; // The discount IS the cargo fee
+      // For UZB, subtotal includes cargo, so we must subtract it via discount.
+      // For KOR, cargo is separate, so we just zero out cargo and keep discount 0 to avoid double subtraction.
+      discount = order.regionCode === 'UZB' ? totalCargo : 0n;
       totalCargo = 0n; // Zero out the cargo fee for the customer
     }
   }

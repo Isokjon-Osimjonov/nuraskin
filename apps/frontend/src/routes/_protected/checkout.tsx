@@ -137,7 +137,8 @@ function CheckoutPage() {
     appliedCoupon?.discountType === 'FREE_SHIPPING'; // Assuming backend sends type
 
   const finalCargo = appliedCoupon?.isFreeShipping ? 0n : korCargo;
-  const displayDiscount = appliedCoupon?.isFreeShipping ? korCargo : discountAmount;
+  // If free shipping, we zero out cargo. We should NOT subtract it again via discount.
+  const displayDiscount = appliedCoupon?.isFreeShipping ? 0n : discountAmount;
   const finalTotal = subtotal + finalCargo + currentBoxFee - displayDiscount;
 
   const totalSavings = useMemo(() => {
