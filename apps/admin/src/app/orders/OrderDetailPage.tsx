@@ -382,10 +382,18 @@ export function OrderDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {order.status === 'DRAFT' && (
-                <Button className="w-full" onClick={() => statusMutation.mutate('PENDING_PAYMENT')}>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Buyurtmani tasdiqlash
-                </Button>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-3 mb-2 shadow-sm">
+                  <p className="text-xs text-blue-800 font-medium text-center">
+                    Bu qoralama (draft) buyurtma. Davom etish uchun tasdiqlang:
+                  </p>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+                    onClick={() => statusMutation.mutate('PENDING_PAYMENT')}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Buyurtmani tasdiqlash
+                  </Button>
+                </div>
               )}
 
               {order.status === 'PAYMENT_CONFIRMED' && (

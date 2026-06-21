@@ -214,7 +214,7 @@ export function OrderCreatePage() {
     mutationFn: ordersApi.create,
     onSuccess: order => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
-      toast.success('Buyurtma yaratildi');
+      toast.success("Qoralama yaratildi — tasdiqlash uchun buyurtma sahifasiga o'ting");
       navigate({ to: '/orders/$orderId', params: { orderId: order.id } });
     },
     onError: (err: unknown) => {
