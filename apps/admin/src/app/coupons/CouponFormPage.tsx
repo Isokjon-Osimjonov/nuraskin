@@ -234,7 +234,7 @@ export function CouponFormPage() {
           if (!data.value || Number(data.value) <= 0) {
             throw new Error('Chegirma foizi kiritilishi shart');
           }
-        } else {
+        } else if (data.type !== 'FREE_SHIPPING') {
           if (
             (!data.value_uzs || Number(data.value_uzs) <= 0) &&
             (!data.value_krw || Number(data.value_krw) <= 0)
@@ -243,7 +243,7 @@ export function CouponFormPage() {
           }
         }
       } else {
-        if (!data.value || Number(data.value) <= 0) {
+        if (data.type !== 'FREE_SHIPPING' && (!data.value || Number(data.value) <= 0)) {
           throw new Error('Chegirma qiymati kiritilishi shart');
         }
       }
