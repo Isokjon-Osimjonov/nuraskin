@@ -66,9 +66,14 @@ export function OrderDetailPage() {
           return;
         }
 
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const totalMins = Math.floor(diff / (1000 * 60));
+        const hours = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft(`${mins}:${secs.toString().padStart(2, '0')}`);
+        const formatted = hours > 0
+          ? `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+          : `${mins}:${secs.toString().padStart(2, '0')}`;
+        setTimeLeft(formatted);
       }, 1000);
       return () => clearInterval(interval);
     } else {

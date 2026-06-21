@@ -1,6 +1,7 @@
 import * as repository from './orders.repository';
 import * as productsRepository from '../products/products.repository';
 import * as usersRepository from '../users/users.repository';
+import { checkAndNotifyStock } from '../inventory/inventory.service';
 import {
   db,
   settings,
@@ -1295,6 +1296,9 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
     if (reservations.length > 0) {
       await tx.insert(stockReservations).values(reservations);
     }
+    
+    // Call the checkAndNotifyStock function right after stock decreases
+    await checkAndNotifyStock(item.productId, tx);
   }
 }
 

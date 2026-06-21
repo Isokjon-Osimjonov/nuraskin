@@ -6,6 +6,7 @@ import {
   customers,
   productWaitlist,
   productRegionalConfigs,
+  settings,
 } from '@nuraskin/database';
 import { eq, sql, and, isNull } from 'drizzle-orm';
 import { NotFoundError, BadRequestError } from '../../common/errors/AppError';
@@ -179,7 +180,8 @@ export async function checkAndNotifyStock(productId: string, txIn?: any) {
     .where(eq(inventoryBatches.productId, productId));
 
   const totalStock = stockRow ? stockRow.total : 0;
-  const LOW_STOCK_THRESHOLD = 5;
+  const [settingsRow] = await runner.select().from(settings).limit(1);
+  const LOW_STOCK_THRESHOLD = settingsRow?.lowStockThreshold ?? 10;
 
   if (totalStock === 0) {
     await sendToAdmin(`🚨 TUGADI: ${product.name}\nZaxirada mahsulot qolmadi!`);

@@ -101,9 +101,14 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
         return;
       }
 
-      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const totalMins = Math.floor(diff / (1000 * 60));
+      const hours = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
       const secs = Math.floor((diff % (1000 * 60)) / 1000);
-      setTimeLeft(`${mins} daqiqa ${secs.toString().padStart(2, '0')} soniya`);
+      const formatted = hours > 0
+        ? `${hours} soat ${mins} daqiqa ${secs.toString().padStart(2, '0')} soniya`
+        : `${mins} daqiqa ${secs.toString().padStart(2, '0')} soniya`;
+      setTimeLeft(formatted);
     }, 1000);
 
     return () => clearInterval(interval);
