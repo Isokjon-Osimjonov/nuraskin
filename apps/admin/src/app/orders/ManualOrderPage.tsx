@@ -124,7 +124,7 @@ export function ManualOrderPage() {
 
     const price = Number(p.korRetail || 0);
 
-    setItems([
+    const newItems = [
       ...items,
       {
         productId: p.id,
@@ -134,23 +134,29 @@ export function ManualOrderPage() {
         negotiatedPriceKrw: price,
         availableStock: p.totalStock,
       },
-    ]);
+    ];
+    setItems(newItems);
+    form.setValue('items', newItems as any, { shouldValidate: true });
     setProductSearch('');
     setIsProductListVisible(false);
   };
 
   const updateItemQty = (id: string, qty: number) => {
-    setItems(items.map(i => (i.productId === id ? { ...i, quantity: Math.max(1, qty) } : i)));
+    const newItems = items.map(i => (i.productId === id ? { ...i, quantity: Math.max(1, qty) } : i));
+    setItems(newItems);
+    form.setValue('items', newItems as any, { shouldValidate: true });
   };
 
   const updateItemPrice = (id: string, price: number) => {
-    setItems(
-      items.map(i => (i.productId === id ? { ...i, negotiatedPriceKrw: Math.max(0, price) } : i))
-    );
+    const newItems = items.map(i => (i.productId === id ? { ...i, negotiatedPriceKrw: Math.max(0, price) } : i));
+    setItems(newItems);
+    form.setValue('items', newItems as any, { shouldValidate: true });
   };
 
   const removeItem = (id: string) => {
-    setItems(items.filter(i => i.productId !== id));
+    const newItems = items.filter(i => i.productId !== id);
+    setItems(newItems);
+    form.setValue('items', newItems as any, { shouldValidate: true });
   };
 
   const createMutation = useMutation({
@@ -384,6 +390,11 @@ export function ManualOrderPage() {
               </div>
             </CardHeader>
             <CardContent>
+              {form.formState.errors.items && (
+                <p className="text-sm text-red-600 mb-4 font-medium">
+                  Kamida bitta mahsulot qo'shilishi shart
+                </p>
+              )}
               {items.length === 0 ? (
                 <div className="py-12 text-center border-2 border-dashed rounded-2xl text-muted-foreground bg-stone-50/50">
                   <div className="flex flex-col items-center gap-2">
