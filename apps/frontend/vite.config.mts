@@ -11,7 +11,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/frontend',
-  envDir: '../../',
+
   server: {
     port: 4300,
     host: true,
