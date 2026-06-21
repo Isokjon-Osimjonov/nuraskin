@@ -5,7 +5,7 @@ import { useAppStore } from '@/stores/app.store';
 import type { PromotionBannerItem } from '@nuraskin/shared-types';
 
 async function fetchPromotions(): Promise<PromotionBannerItem[]> {
-  return api.get('/storefront/promotions/active');
+  return api.auth.get('/storefront/promotions/active');
 }
 
 export function usePromotions() {

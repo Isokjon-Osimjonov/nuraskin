@@ -11,6 +11,7 @@ export function useCreateOrder() {
     mutationFn: ordersApi.createOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.promotions.active() });
       refetchCart();
     },
   });
