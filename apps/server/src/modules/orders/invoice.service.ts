@@ -1,5 +1,6 @@
 import { formatPrice } from '@nuraskin/shared-types';
 import { format } from 'date-fns';
+import { STORE_INFO } from '@nuraskin/shared-utils';
 
 interface InvoiceData {
   orderId: string;
@@ -291,15 +292,13 @@ export function generateInvoiceHtml(data: InvoiceData): string {
 
         <div class="footer">
             <div class="footer-col">
-                <div>NuraSkin</div>
-                <div class="footer-detail">Seoul, Gangnam-gu, Teheran-ro 123</div>
-                <div class="footer-detail">Koreya</div>
-                <div class="footer-detail">Tel: +82 10-9999-8888</div>
+                <div class="footer-detail">${STORE_INFO.NAME}</div>
+                <div class="footer-detail">${STORE_INFO.ADDRESS.UZ}</div>
+                <div class="footer-detail">${STORE_INFO.PHONES.map(p => p.label).join(' / ')}</div>
             </div>
             <div class="footer-col" style="text-align: right;">
-                <div class="footer-detail">instagram.com/nuraskin.official</div>
-                <div class="footer-detail">t.me/nuraskin_channel</div>
-                <div class="footer-detail">@nuraskin_manager_bot</div>
+                <div class="footer-detail">${STORE_INFO.SOCIAL.TELEGRAM.label}</div>
+                <div class="footer-detail">${STORE_INFO.SOCIAL.INSTAGRAM.label}</div>
             </div>
         </div>
         <div class="footer-thanks">Xaridingiz uchun rahmat!</div>
