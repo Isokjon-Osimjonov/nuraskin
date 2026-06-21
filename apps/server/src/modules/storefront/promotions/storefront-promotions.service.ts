@@ -25,7 +25,7 @@ export async function getActivePromotions(customerId?: string): Promise<Promotio
     filteredResults = [];
 
     for (const c of results) {
-      if (c.isFirstPurchaseOnly && orderCount > 0) continue;
+      if (c.firstOrderOnly && orderCount > 0) continue;
 
       const usageCount = await couponsRepo.getCustomerUsageCount(c.id, customerId);
       if (usageCount >= c.maxUsesPerCustomer) continue;
@@ -40,7 +40,7 @@ export async function getActivePromotions(customerId?: string): Promise<Promotio
     valueKrw: c.valueKrw ? Number(c.valueKrw) : null,
     valueUzs: c.valueUzs ? Number(c.valueUzs) : null,
     displayText: c.promoDisplayText ?? c.name,
-    isFirstPurchaseOnly: c.isFirstPurchaseOnly,
+    firstOrderOnly: c.firstOrderOnly,
     expiresAt: c.expiresAt ? c.expiresAt.toISOString() : null,
     regionCode: c.regionCode ?? null,
   }));

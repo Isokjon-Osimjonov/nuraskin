@@ -41,7 +41,6 @@ export const couponSchema = z.object({
   autoApply: z.boolean(),
   isStackable: z.boolean(),
   isPromotional: z.boolean(),
-  isFirstPurchaseOnly: z.boolean(),
   promoDisplayText: z.string().nullable().optional(),
   status: couponStatusSchema,
   createdAt: z.string(),
@@ -102,7 +101,7 @@ export type PromotionBannerItem = {
   valueKrw: number | null;
   valueUzs: number | null;
   displayText: string;
-  isFirstPurchaseOnly: boolean;
+  firstOrderOnly: boolean;
   expiresAt: string | null;
   regionCode: string | null;
 };

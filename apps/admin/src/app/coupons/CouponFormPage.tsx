@@ -67,7 +67,6 @@ export function CouponFormPage() {
     autoApply: false,
     isStackable: false,
     isPromotional: false,
-    isFirstPurchaseOnly: false,
     promoDisplayText: '',
     status: 'DRAFT',
   });
@@ -185,7 +184,6 @@ export function CouponFormPage() {
           : '',
         maxUsesTotal: existingCoupon.maxUsesTotal || '',
         isPromotional: existingCoupon.isPromotional ?? false,
-        isFirstPurchaseOnly: existingCoupon.isFirstPurchaseOnly ?? false,
         promoDisplayText: existingCoupon.promoDisplayText || '',
       });
 
@@ -289,7 +287,6 @@ export function CouponFormPage() {
         maxUsesTotal: data.maxUsesTotal ? parseInt(data.maxUsesTotal) : null,
         excludeWholesale: data.excludeWholesale || false,
         isPromotional: data.isPromotional ?? false,
-        isFirstPurchaseOnly: data.isFirstPurchaseOnly ?? false,
         promoDisplayText: data.isPromotional ? data.promoDisplayText || null : null,
         applicableResourceIds:
           data.scope === 'PRODUCTS'
@@ -931,19 +928,6 @@ export function CouponFormPage() {
               {form.isPromotional && (
                 <>
                   <Separator className="my-2" />
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Faqat birinchi buyurtma uchun</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Faqat hech qachon buyurtma bermagan mijozlarga amal qiladi
-                      </p>
-                    </div>
-                    <Switch
-                      checked={form.isFirstPurchaseOnly}
-                      onCheckedChange={v => setForm({ ...form, isFirstPurchaseOnly: v })}
-                    />
-                  </div>
 
                   <div className="space-y-2">
                     <Label>Banner matni</Label>

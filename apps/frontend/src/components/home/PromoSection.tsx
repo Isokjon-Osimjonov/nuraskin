@@ -62,7 +62,7 @@ export function PromoSection() {
                   {promo.displayText}
                 </div>
 
-                {promo.isFirstPurchaseOnly && (
+                {promo.firstOrderOnly && (
                   <p className="text-white/40 text-xs mt-2 text-center">
                     Faqat birinchi buyurtma uchun
                   </p>
