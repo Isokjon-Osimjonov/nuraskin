@@ -55,6 +55,8 @@ function LoginPage() {
   });
   const clearCart = () => clearCartMutation.mutateAsync();
 
+  // The bot username is injected via Vite for dev/prod separation.
+  // In local dev, use VITE_TELEGRAM_BOT_USERNAME=nuraskin_dev_bot in .env.
   const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nuraskin_manager_bot';
 
   const handleAuth = useCallback(
