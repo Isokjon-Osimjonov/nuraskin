@@ -52,7 +52,8 @@ export const accountingApi = {
       const tokenStr = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH);
       const parsed = tokenStr ? JSON.parse(tokenStr)?.state?.token : '';
 
-      const res = await fetch(`/api/admin/accounting/export?month=${month}`, {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${baseUrl}/api/admin/accounting/export?month=${month}`, {
         method: 'GET',
         headers: {
           ...(parsed ? { Authorization: `Bearer ${parsed}` } : {}),
