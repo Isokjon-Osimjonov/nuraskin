@@ -1,8 +1,9 @@
 import { db, coupons } from '@nuraskin/database';
 import { eq, and, or, isNull, gt, lte } from 'drizzle-orm';
 import type { PromotionBannerItem } from '@nuraskin/shared-types';
+import * as couponsRepo from '../../coupons/coupons.repository';
 
-export async function getActivePromotions(): Promise<PromotionBannerItem[]> {
+export async function getActivePromotions(customerId?: string): Promise<PromotionBannerItem[]> {
   const now = new Date();
 
   const results = await db
@@ -17,7 +18,23 @@ export async function getActivePromotions(): Promise<PromotionBannerItem[]> {
       )
     );
 
-  return results.map(c => ({
+  let filteredResults = results;
+
+  if (customerId) {
+    const orderCount = await couponsRepo.getCustomerOrderCount(customerId);
+    filteredResults = [];
+
+    for (const c of results) {
+      if (c.isFirstPurchaseOnly && orderCount > 0) continue;
+
+      const usageCount = await couponsRepo.getCustomerUsageCount(c.id, customerId);
+      if (usageCount >= c.maxUsesPerCustomer) continue;
+
+      filteredResults.push(c);
+    }
+  }
+
+  return filteredResults.map(c => ({
     code: c.code,
     type: c.type as 'PERCENTAGE' | 'FIXED' | 'FREE_SHIPPING',
     valueKrw: c.valueKrw ? Number(c.valueKrw) : null,

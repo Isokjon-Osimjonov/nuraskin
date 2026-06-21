@@ -792,8 +792,13 @@ function CheckoutPage() {
                   <span>Yetkazib berish</span>
                   {cartRegion === 'UZB' ? (
                     <span className="text-emerald-600">BEPUL</span>
+                  ) : appliedCoupon?.isFreeShipping ? (
+                    <span className="flex items-center gap-2">
+                      <span className="text-[11px] text-stone-400 line-through">{displayPrice(korCargo)}</span>
+                      <span className="text-emerald-600">BEPUL</span>
+                    </span>
                   ) : (
-                    <span>{korCargo === 0n ? 'BEPUL' : displayPrice(korCargo)}</span>
+                    <span>{korCargo === 0n ? <span className="text-emerald-600">BEPUL</span> : displayPrice(korCargo)}</span>
                   )}
                 </div>
                 {cartRegion === 'UZB' && currentBoxFee > 0n && (

@@ -9,7 +9,7 @@ function getRegion(req: Request): 'UZB' | 'KOR' {
   return (req.query.region as 'UZB' | 'KOR') || 'UZB';
 }
 
-async function tryGetCustomerId(req: Request): Promise<string | undefined> {
+export async function tryGetCustomerId(req: Request): Promise<string | undefined> {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) return undefined;
 
