@@ -19,8 +19,9 @@ import {
   coupons,
   couponRedemptions,
   categories,
+  orderBoxes,
 } from '@nuraskin/database';
-import { eq, desc, sql, and, or, asc, gt, isNull, inArray } from 'drizzle-orm';
+import { eq, desc, sql, and, or, asc, gt, isNull, inArray, count } from 'drizzle-orm';
 import { NotFoundError, BadRequestError, PriceChangedError } from '../../common/errors/AppError';
 import { logger } from '../../common/utils/logger';
 import { NotificationService } from '../notifications/notification.service';
@@ -741,6 +742,17 @@ export async function updateShippingBox(id: string, input: Partial<ShippingBoxIn
 }
 
 export async function deleteShippingBox(id: string) {
+  const usageCount = await db
+    .select({ count: count() })
+    .from(orderBoxes)
+    .where(eq(orderBoxes.boxId, id));
+
+  if (usageCount[0].count > 0) {
+    throw new BadRequestError(
+      "Bu quticha buyurtmalarda ishlatilgan, shuning uchun o'chirib bo'lmaydi. Buning o'rniga uni nofaol (Faol emas) holatga o'tkazing."
+    );
+  }
+
   return await storefrontRepository.deleteShippingBox(id);
 }
 
