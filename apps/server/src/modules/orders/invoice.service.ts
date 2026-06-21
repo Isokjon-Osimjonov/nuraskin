@@ -293,12 +293,12 @@ export function generateInvoiceHtml(data: InvoiceData): string {
         <div class="footer">
             <div class="footer-col">
                 <div class="footer-detail">${STORE_INFO.NAME}</div>
-                <div class="footer-detail">${STORE_INFO.ADDRESS.UZ}</div>
-                <div class="footer-detail">${STORE_INFO.PHONES.map(p => p.label).join(' / ')}</div>
+                <div class="footer-detail">${STORE_INFO.ADDRESS.KO}</div>
+                <div class="footer-detail">Tel: ${STORE_INFO.PHONES.map(p => p.label).join(' / ')}</div>
             </div>
             <div class="footer-col" style="text-align: right;">
-                <div class="footer-detail">${STORE_INFO.SOCIAL.TELEGRAM.label}</div>
-                <div class="footer-detail">${STORE_INFO.SOCIAL.INSTAGRAM.label}</div>
+                <div class="footer-detail">Telegram: ${STORE_INFO.SOCIAL.TELEGRAM.label}</div>
+                <div class="footer-detail">Instagram: ${STORE_INFO.SOCIAL.INSTAGRAM.label}</div>
             </div>
         </div>
         <div class="footer-thanks">Xaridingiz uchun rahmat!</div>
