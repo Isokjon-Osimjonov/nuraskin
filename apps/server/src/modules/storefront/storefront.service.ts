@@ -369,13 +369,13 @@ export async function createOrder(
 
     // Min order validation
     const minOrderAmount =
-      customer.regionCode === 'KOR'
+      input.regionCode === 'KOR'
         ? BigInt((settingsRow as any)?.minOrderKorKrw || 0n)
         : BigInt((settingsRow as any)?.minOrderUzbUzs || 0n);
 
     if (minOrderAmount > 0n && subtotal < minOrderAmount) {
       const formatted =
-        customer.regionCode === 'KOR'
+        input.regionCode === 'KOR'
           ? `${Number(minOrderAmount).toLocaleString()} ₩`
           : `${Number(minOrderAmount / 100n).toLocaleString()} so'm`;
 
@@ -450,7 +450,7 @@ export async function createOrder(
           const config = await tx.query.productRegionalConfigs.findFirst({
             where: and(
               eq(productRegionalConfigs.productId, i.productId),
-              eq(productRegionalConfigs.regionCode, customer.regionCode)
+              eq(productRegionalConfigs.regionCode, input.regionCode)
             ),
           });
 
@@ -460,7 +460,7 @@ export async function createOrder(
               : BigInt(config.retailPrice);
 
           let subtotal = 0n;
-          if (customer.regionCode === 'UZB' && latestRate && config) {
+          if (input.regionCode === 'UZB' && latestRate && config) {
             const { productPrice, cargoFee } = calculateUzbPrice(
               baseKrw,
               p?.weightGrams || 0,
@@ -486,7 +486,7 @@ export async function createOrder(
         couponCode,
         customerId,
         fullItems,
-        customer.regionCode,
+        input.regionCode,
         tx
       );
     }
@@ -497,8 +497,8 @@ export async function createOrder(
         {
           ...input,
           customerId,
-          regionCode: customer.regionCode as 'UZB' | 'KOR',
-          currency: (customer.regionCode === 'UZB' ? 'UZS' : 'KRW') as any,
+          regionCode: input.regionCode as 'UZB' | 'KOR',
+          currency: (input.regionCode === 'UZB' ? 'UZS' : 'KRW') as any,
           couponId: couponData?.couponId,
           couponCode: couponCode,
           discountAmount: couponData?.discountAmount || 0n,

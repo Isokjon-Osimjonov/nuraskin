@@ -23,7 +23,7 @@ export const STORE_INFO = {
     UZ: 'Koreya, Gyeongsan sh., Imdang-dong 574-11, 1-qavat',
   },
   PHONES: [
-    { label: '010-359-89697', href: 'tel:+821035989697' },
+    { label: '010-3598-9697', href: 'tel:+821035989697' },
     { label: '010-8088-9697', href: 'tel:+821080889697' },
   ],
   SOCIAL: {
