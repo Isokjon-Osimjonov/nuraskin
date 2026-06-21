@@ -8,9 +8,7 @@ import { RecentProductsSection } from '@/components/home/RecentProductsSection';
 import { AboutSummary } from '@/components/home/AboutSummary';
 import { PromoSection } from '@/components/home/PromoSection';
 
-const HERO_BG_IMAGE = '/nsbg.png';
-export const HERO_PRODUCT_IMAGE = '/nsb.png';
-
+const heroImageUrl = 'https://res.cloudinary.com/dyykeybrk/image/upload/v1782037054/nsb_taqfv7.png';
 export const Route = createFileRoute('/')({
   component: HeroPage,
 });
@@ -25,7 +23,7 @@ function HeroPage() {
           marginTop: '-64px',
           backgroundImage: `
             linear-gradient(180deg, rgba(20,5,12,0.35) 0%, rgba(40,8,22,0.25) 55%, rgba(15,3,8,0.55) 100%),
-            url(${HERO_BG_IMAGE})
+            url('https://res.cloudinary.com/dyykeybrk/image/upload/v1782037055/nsbg_legrty.png ')
           `,
           backgroundSize: 'cover',
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -53,7 +51,7 @@ function HeroPage() {
         </div>
 
         {/* Product jar */}
-        <HeroProduct productImage={HERO_PRODUCT_IMAGE} />
+        <HeroProduct productImage={heroImageUrl} />
 
         {/* Hero content wrapper — sitting ~30% up */}
         <div className="absolute bottom-16 sm:bottom-24 lg:bottom-28 left-0 right-0 px-6 sm:px-12 lg:px-16 z-20 flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between w-full">
