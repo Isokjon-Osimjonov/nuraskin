@@ -47,3 +47,12 @@ jobs:
 
       - name: Test Docker build (admin)
         run: docker build -f apps/admin/Dockerfile --build-arg VITE_API_BASE_URL=https://api.nuraskin.uz -t nuraskin-admin:test .
+
+      - name: Verify script permissions
+        run: |
+          for script in scripts/db-backup.sh scripts/check-disk.sh scripts/check-memory.sh scripts/docker-cleanup.sh; do
+            if [ ! -x "$script" ]; then
+              echo "ERROR: $script lost its executable permission!"
+              exit 1
+            fi
+          done
