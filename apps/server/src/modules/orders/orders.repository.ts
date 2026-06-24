@@ -274,33 +274,7 @@ export async function releaseOrderReservations(orderId: string, tx?: any) {
   if (activeReservations.length === 0) return;
 
   for (const res of activeReservations) {
-    // 1. Get current physical stock with FOR UPDATE lock
-    const [batch] = await d
-      .select({ currentQty: inventoryBatches.currentQty })
-      .from(inventoryBatches)
-      .where(eq(inventoryBatches.id, res.batchId))
-      .for('update');
-
-    const qtyBefore = batch?.currentQty ?? 0;
-    const qtyAfter = qtyBefore + res.quantity;
-
-    // 2. Restore physical stock in the batch
-    await d
-      .update(inventoryBatches)
-      .set({ currentQty: qtyAfter, updatedAt: new Date() })
-      .where(eq(inventoryBatches.id, res.batchId));
-
-    // 3. Write stock_movement with accurate snapshots
-    await d.insert(stockMovements).values({
-      batchId: res.batchId,
-      productId: res.productId,
-      orderId: res.orderId,
-      movementType: 'RESERVATION_RELEASED',
-      quantityDelta: res.quantity,
-      qtyBefore,
-      qtyAfter,
-      note: 'Order cancellation/timeout',
-    });
+    // (Restoration and stock movement logic removed as per soft-hold model)
 
     // 4. Mark reservation as RELEASED
     await d

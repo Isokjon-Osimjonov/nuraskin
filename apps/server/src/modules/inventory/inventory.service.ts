@@ -181,12 +181,7 @@ export async function checkAndNotifyStock(productId: string, txIn?: any) {
   const [product] = await runner.select().from(products).where(eq(products.id, productId)).limit(1);
   if (!product) return;
 
-  const [stockRow] = await runner
-    .select({ total: sql<number>`coalesce(sum(${inventoryBatches.currentQty})::int, 0)` })
-    .from(inventoryBatches)
-    .where(eq(inventoryBatches.productId, productId));
-
-  const totalStock = stockRow ? stockRow.total : 0;
+  const totalStock = await repository.getAvailableStock(productId, runner);
   const [settingsRow] = await runner.select().from(settings).limit(1);
   const LOW_STOCK_THRESHOLD = settingsRow?.lowStockThreshold ?? 10;
 

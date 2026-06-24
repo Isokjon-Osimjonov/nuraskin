@@ -17,6 +17,7 @@ import {
   orderBoxes,
   shippingBoxes,
   exchangeRateSnapshots,
+  stockMovements,
 } from '@nuraskin/database';
 import { eq, sql, and, asc, gt, or, ilike } from 'drizzle-orm';
 import { logger } from '../../common/utils/logger';
@@ -1085,15 +1086,9 @@ export async function transitionOrderStatus(
       updates.paymentConfirmedAt = now;
       updates.paymentConfirmedBy = adminId || null;
 
-      await tx
-        .update(stockReservations)
-        .set({ status: 'CONVERTED', updatedAt: now })
-        .where(
-          and(
-            eq(stockReservations.orderId, orderId),
-            eq(stockReservations.status, 'ACTIVE')
-          )
-        );
+      // Notice: We NO LONGER set reservations to CONVERTED here.
+      // They stay ACTIVE so they continue to hold the soft stock.
+      // They will be CONVERTED and physical stock deducted when SHIPPED.
     }
     if (to === 'PAYMENT_REJECTED') updates.paymentRejectedAt = now;
     if (to === 'PACKING') {
@@ -1106,6 +1101,8 @@ export async function transitionOrderStatus(
         updates.packedAt = now;
         updates.packedBy = adminId;
       }
+      // Perform actual physical deduction and convert reservations to CONVERTED
+      await convertOrderReservationsAndDeductStock(orderId, tx);
     }
     if (to === 'DELIVERED') updates.deliveredAt = now;
 
@@ -1301,10 +1298,6 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
         status: 'ACTIVE',
         expiresAt: new Date(Date.now() + timeoutMinutes * 60 * 1000),
       });
-      await tx
-        .update(inventoryBatches)
-        .set({ currentQty: batch.currentQty - reserveFromThisBatch })
-        .where(eq(inventoryBatches.id, batch.id));
 
       remainingToReserve -= reserveFromThisBatch;
     }
@@ -1334,50 +1327,7 @@ export async function completePacking(orderId: string, adminId?: string) {
   }
 
   const result = await db.transaction(async tx => {
-    const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-
-    for (const item of items) {
-      const reservations = await tx
-        .select({
-          id: stockReservations.id,
-          quantity: stockReservations.quantity,
-          batchId: stockReservations.batchId,
-          costPrice: inventoryBatches.costPrice,
-        })
-        .from(stockReservations)
-        .innerJoin(inventoryBatches, eq(stockReservations.batchId, inventoryBatches.id))
-        .where(
-          and(
-            eq(stockReservations.orderItemId, item.id),
-            or(eq(stockReservations.status, 'ACTIVE'), eq(stockReservations.status, 'CONVERTED'))
-          )
-        );
-
-      let totalCostSum = 0n;
-      let totalUnits = 0;
-
-      for (const res of reservations) {
-        const costPriceKrw = res.costPrice ? BigInt(res.costPrice) : 0n;
-        if (!res.costPrice) {
-          logger.warn({ batchId: res.batchId }, 'Batch has missing cost_price_krw. Using 0.');
-        }
-        totalCostSum += costPriceKrw * BigInt(res.quantity);
-        totalUnits += res.quantity;
-
-        await tx
-          .update(stockReservations)
-          .set({ status: 'CONVERTED', updatedAt: new Date() })
-          .where(eq(stockReservations.id, res.id));
-      }
-
-      if (totalUnits > 0) {
-        const costAtSaleKrw = totalCostSum / BigInt(totalUnits);
-        await tx
-          .update(orderItems)
-          .set({ costAtSaleKrw, updatedAt: new Date() })
-          .where(eq(orderItems.id, item.id));
-      }
-    }
+    await convertOrderReservationsAndDeductStock(orderId, tx);
 
     const now = new Date();
     await tx
@@ -1411,4 +1361,80 @@ export async function completePacking(orderId: string, adminId?: string) {
 // We no longer automatically add a separate subsidy entry for KOR free shipping based on settings.
 async function tryAddFreeShippingSubsidy(orderId: string) {
   /* No-op */
+}
+
+async function convertOrderReservationsAndDeductStock(orderId: string, tx: any) {
+  const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+
+  for (const item of items) {
+    const reservations = await tx
+      .select({
+        id: stockReservations.id,
+        quantity: stockReservations.quantity,
+        batchId: stockReservations.batchId,
+        costPrice: inventoryBatches.costPrice,
+      })
+      .from(stockReservations)
+      .innerJoin(inventoryBatches, eq(stockReservations.batchId, inventoryBatches.id))
+      .where(
+        and(
+          eq(stockReservations.orderItemId, item.id),
+          eq(stockReservations.status, 'ACTIVE')
+        )
+      );
+
+    let totalCostSum = 0n;
+    let totalUnits = 0;
+
+    for (const res of reservations) {
+      const costPriceKrw = res.costPrice ? BigInt(res.costPrice) : 0n;
+      if (!res.costPrice) {
+        logger.warn({ batchId: res.batchId }, 'Batch has missing cost_price_krw. Using 0.');
+      }
+      totalCostSum += costPriceKrw * BigInt(res.quantity);
+      totalUnits += res.quantity;
+
+      // 1. Physically deduct stock
+      const [batch] = await tx
+        .select({ currentQty: inventoryBatches.currentQty })
+        .from(inventoryBatches)
+        .where(eq(inventoryBatches.id, res.batchId))
+        .for('update');
+        
+      const qtyBefore = batch?.currentQty ?? 0;
+      const qtyAfter = qtyBefore - res.quantity;
+      
+      await tx
+        .update(inventoryBatches)
+        .set({ currentQty: qtyAfter, updatedAt: new Date() })
+        .where(eq(inventoryBatches.id, res.batchId));
+        
+      // 2. Insert stock movement record
+      await tx.insert(stockMovements).values({
+        batchId: res.batchId,
+        productId: item.productId,
+        orderId: orderId,
+        movementType: 'DEDUCTED',
+        quantityDelta: -res.quantity,
+        qtyBefore,
+        qtyAfter,
+        note: 'Order packed/shipped',
+      });
+
+      // 3. Mark reservation as CONVERTED
+      await tx
+        .update(stockReservations)
+        .set({ status: 'CONVERTED', updatedAt: new Date() })
+        .where(eq(stockReservations.id, res.id));
+    }
+
+    // Only update costAtSaleKrw if we actually processed units this time
+    if (totalUnits > 0) {
+      const costAtSaleKrw = totalCostSum / BigInt(totalUnits);
+      await tx
+        .update(orderItems)
+        .set({ costAtSaleKrw, updatedAt: new Date() })
+        .where(eq(orderItems.id, item.id));
+    }
+  }
 }
