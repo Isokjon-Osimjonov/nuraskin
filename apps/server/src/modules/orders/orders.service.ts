@@ -1075,6 +1075,16 @@ export async function transitionOrderStatus(
       updates.paymentVerifiedBy = adminId || null;
       updates.paymentConfirmedAt = now;
       updates.paymentConfirmedBy = adminId || null;
+
+      await tx
+        .update(stockReservations)
+        .set({ status: 'CONVERTED', updatedAt: now })
+        .where(
+          and(
+            eq(stockReservations.orderId, orderId),
+            eq(stockReservations.status, 'ACTIVE')
+          )
+        );
     }
     if (to === 'PAYMENT_REJECTED') updates.paymentRejectedAt = now;
     if (to === 'PACKING') {
@@ -1327,7 +1337,10 @@ export async function completePacking(orderId: string, adminId?: string) {
         .from(stockReservations)
         .innerJoin(inventoryBatches, eq(stockReservations.batchId, inventoryBatches.id))
         .where(
-          and(eq(stockReservations.orderItemId, item.id), eq(stockReservations.status, 'ACTIVE'))
+          and(
+            eq(stockReservations.orderItemId, item.id),
+            or(eq(stockReservations.status, 'ACTIVE'), eq(stockReservations.status, 'CONVERTED'))
+          )
         );
 
       let totalCostSum = 0n;
