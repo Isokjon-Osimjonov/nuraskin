@@ -11,6 +11,7 @@ export function useProducts(params?: Record<string, unknown>) {
       const res = await getProducts({ ...params, region: regionCode as string });
       return res;
     },
+    refetchOnMount: 'always',
   });
 }
 
@@ -25,5 +26,7 @@ export function useProductBySlug(slug?: string) {
       return res;
     },
     enabled: !!slug,
+    refetchInterval: 10000,
+    refetchOnMount: 'always',
   });
 }
