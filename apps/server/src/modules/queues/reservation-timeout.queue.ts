@@ -17,12 +17,12 @@ export const worker = new Worker(
     const { orderId } = job.data;
     logger.info({ orderId }, 'Processing reservation timeout job');
 
-    // 1. Check order is still PENDING_PAYMENT
+    // 1. Check order is still PENDING_PAYMENT or PAYMENT_SUBMITTED
     const order = await ordersRepository.findById(orderId);
-    if (!order || order.status !== 'PENDING_PAYMENT') {
+    if (!order || !['PENDING_PAYMENT', 'PAYMENT_SUBMITTED'].includes(order.status)) {
       logger.info(
         { orderId, status: order?.status },
-        'Order not pending payment, skipping timeout'
+        'Order not pending/submitted, skipping timeout'
       );
       return; // Already paid or cancelled — do nothing
     }
@@ -42,7 +42,7 @@ export const worker = new Worker(
       // 5. Write order_status_history
       await tx.insert(orderStatusHistory).values({
         orderId,
-        fromStatus: 'PENDING_PAYMENT',
+        fromStatus: order.status,
         toStatus: 'CANCELED',
         note: `To'lov muddati tugadi (${settingsRow?.paymentTimeoutMinutes || 30} daqiqa)`,
       });

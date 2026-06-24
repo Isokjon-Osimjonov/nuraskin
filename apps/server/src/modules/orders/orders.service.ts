@@ -1030,12 +1030,13 @@ interface TransitionInput {
 
 const VALID_TRANSITIONS: Partial<Record<string, string[]>> = {
   PAYMENT_SUBMITTED: ['PENDING_PAYMENT'],
-  PAYMENT_CONFIRMED: ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
+  PAYMENT_CONFIRMED: ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
   PAYMENT_REJECTED: ['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'],
   PACKING: ['PAYMENT_CONFIRMED'],
   SHIPPED: ['PACKING', 'PAYMENT_CONFIRMED'],
   DELIVERED: ['SHIPPED'],
   CANCELED: ['DRAFT', 'PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED', 'PACKING'],
+  REFUNDED: ['PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED'],
 };
 
 export async function transitionOrderStatus(
@@ -1070,6 +1071,14 @@ export async function transitionOrderStatus(
     if (input.trackingNumber) updates.trackingNumber = input.trackingNumber;
 
     if (to === 'PAYMENT_SUBMITTED') updates.paymentSubmittedAt = now;
+    
+    // Ensure manual orders get their reservations created BEFORE we convert them below
+    if (to === 'PAYMENT_CONFIRMED' && order.status === 'DRAFT') {
+      const [settingsRow] = await tx.select().from(settings).limit(1);
+      const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
+      await reserveStock(orderId, timeoutMinutes, tx);
+    }
+    
     if (to === 'PAYMENT_CONFIRMED') {
       updates.paymentVerifiedAt = now;
       updates.paymentVerifiedBy = adminId || null;
@@ -1100,11 +1109,6 @@ export async function transitionOrderStatus(
     }
     if (to === 'DELIVERED') updates.deliveredAt = now;
 
-    if ((to === 'PAYMENT_CONFIRMED' || to === 'PAYMENT_CONFIRMED') && order.status === 'DRAFT') {
-      const [settingsRow] = await tx.select().from(settings).limit(1);
-      const timeoutMinutes = settingsRow?.paymentTimeoutMinutes || 30;
-      await reserveStock(orderId, timeoutMinutes, tx);
-    }
 
     if (to === 'CANCELED') {
       if (
@@ -1118,6 +1122,12 @@ export async function transitionOrderStatus(
 
     if (to === 'PAYMENT_REJECTED') {
       if (['PENDING_PAYMENT', 'PAYMENT_SUBMITTED', 'PAYMENT_CONFIRMED'].includes(order.status)) {
+        await repository.releaseOrderReservations(orderId, tx);
+      }
+    }
+
+    if (to === 'REFUNDED') {
+      if (['PAYMENT_CONFIRMED', 'PACKING', 'SHIPPED', 'DELIVERED'].includes(order.status)) {
         await repository.releaseOrderReservations(orderId, tx);
       }
     }

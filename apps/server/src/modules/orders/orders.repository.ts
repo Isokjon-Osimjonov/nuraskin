@@ -264,7 +264,12 @@ export async function releaseOrderReservations(orderId: string, tx?: any) {
   const activeReservations = await d
     .select()
     .from(stockReservations)
-    .where(and(eq(stockReservations.orderId, orderId), eq(stockReservations.status, 'ACTIVE')));
+    .where(
+      and(
+        eq(stockReservations.orderId, orderId),
+        inArray(stockReservations.status, ['ACTIVE', 'CONVERTED'])
+      )
+    );
 
   if (activeReservations.length === 0) return;
 
