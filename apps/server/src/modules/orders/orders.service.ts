@@ -309,6 +309,8 @@ export async function confirmManualPayment(
       }
     }
 
+    await convertOrderReservationsAndDeductStock(orderId, tx);
+
     return await repository.findById(orderId, tx);
   });
 

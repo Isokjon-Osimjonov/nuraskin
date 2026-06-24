@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app.store';
 import { getMyOrders, uploadReceipt, getUploadUrl, cancelOrder } from '@/api/orders';
 import { getPaymentInfo } from '@/api/settings';
-import { formatUzs, formatKrw, formatPrice, ORDER_STATUS_LABELS_UZ } from '@nuraskin/shared-utils';
+import { formatUzs, formatKrw, formatPrice, ORDER_STATUS_LABELS_UZ, DELIVERY_ESTIMATE } from '@nuraskin/shared-utils';
 import type { StorefrontOrderResponse } from '@nuraskin/shared-types';
 import {
   ArrowLeft,
@@ -291,6 +291,15 @@ function OrderCard({ order }: { order: StorefrontOrderResponse }) {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {order.regionCode === 'UZB' && (
+        <div className="text-[13px] text-stone-500 bg-stone-50 rounded-xl p-3 mb-4 border border-stone-100">
+          <span className="font-medium text-stone-600">
+            Taxminiy yetkazib berish muddati:
+          </span>{' '}
+          {DELIVERY_ESTIMATE.UZB}
         </div>
       )}
 

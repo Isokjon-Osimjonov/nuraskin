@@ -643,6 +643,7 @@ export async function createOrder(
     return {
       id: finalOrder.id,
       orderNumber: finalOrder.orderNumber,
+      regionCode: finalOrder.regionCode,
       totalAmount: finalOrder.totalAmount.toString(),
       subtotal: finalOrder.subtotal.toString(),
       cargoFee: finalOrder.cargoFee.toString(),

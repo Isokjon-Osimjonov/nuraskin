@@ -105,6 +105,7 @@ export interface StorefrontOrderResponse {
   id: string;
   orderNumber: string;
   status: string;
+  regionCode: string;
   subtotal: string;
   cargoFee: string;
   totalAmount: string;

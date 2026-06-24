@@ -179,6 +179,7 @@ export async function getMyOrders(customerId: string) {
       id: orders.id,
       orderNumber: orders.orderNumber,
       status: orders.status,
+      regionCode: orders.regionCode,
       totalAmount: orders.totalAmount,
       currency: orders.currency,
       cargoFee: orders.cargoFee,

@@ -4,6 +4,10 @@ export const STORAGE_KEYS = {
   PROMO_DISMISSED: 'nura_promo_dismissed_v1',
 } as const;
 
+export const DELIVERY_ESTIMATE = {
+  UZB: '7-10 ish kuni',
+} as const;
+
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_LIMIT: 10,
