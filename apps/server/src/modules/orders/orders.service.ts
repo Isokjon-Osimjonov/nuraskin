@@ -1086,9 +1086,8 @@ export async function transitionOrderStatus(
       updates.paymentConfirmedAt = now;
       updates.paymentConfirmedBy = adminId || null;
 
-      // Notice: We NO LONGER set reservations to CONVERTED here.
-      // They stay ACTIVE so they continue to hold the soft stock.
-      // They will be CONVERTED and physical stock deducted when SHIPPED.
+      // Perform actual physical deduction and convert reservations to CONVERTED
+      await convertOrderReservationsAndDeductStock(orderId, tx);
     }
     if (to === 'PAYMENT_REJECTED') updates.paymentRejectedAt = now;
     if (to === 'PACKING') {
@@ -1101,8 +1100,7 @@ export async function transitionOrderStatus(
         updates.packedAt = now;
         updates.packedBy = adminId;
       }
-      // Perform actual physical deduction and convert reservations to CONVERTED
-      await convertOrderReservationsAndDeductStock(orderId, tx);
+      // Physical deduction is now done at PAYMENT_CONFIRMED
     }
     if (to === 'DELIVERED') updates.deliveredAt = now;
 
@@ -1261,7 +1259,7 @@ export async function scanOrderItem(
   };
 }
 
-async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
+export async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   const order = await tx
     .select()
@@ -1281,12 +1279,34 @@ async function reserveStock(orderId: string, timeoutMinutes: number, tx: any) {
       .orderBy(asc(inventoryBatches.expiryDate), asc(inventoryBatches.createdAt))
       .for('update');
 
+    const activeReservations = await tx
+      .select({ 
+        batchId: stockReservations.batchId,
+        totalReserved: sql<number>`coalesce(sum(${stockReservations.quantity})::int, 0)`
+      })
+      .from(stockReservations)
+      .where(
+        and(
+          eq(stockReservations.productId, item.productId),
+          eq(stockReservations.status, 'ACTIVE'),
+          gt(stockReservations.expiresAt, new Date())
+        )
+      )
+      .groupBy(stockReservations.batchId);
+
+    const reservedByBatch = Object.fromEntries(
+      activeReservations.map((r: any) => [r.batchId, r.totalReserved])
+    );
+
     const reservations: NewStockReservation[] = [];
 
     for (const batch of batches) {
       if (remainingToReserve <= 0) break;
 
-      const reserveFromThisBatch = Math.min(batch.currentQty, remainingToReserve);
+      const availableInBatch = Math.max(0, batch.currentQty - (reservedByBatch[batch.id] || 0));
+      if (availableInBatch <= 0) continue;
+
+      const reserveFromThisBatch = Math.min(availableInBatch, remainingToReserve);
 
       reservations.push({
         orderId: order.id,
@@ -1327,8 +1347,6 @@ export async function completePacking(orderId: string, adminId?: string) {
   }
 
   const result = await db.transaction(async tx => {
-    await convertOrderReservationsAndDeductStock(orderId, tx);
-
     const now = new Date();
     await tx
       .update(orders)

@@ -274,7 +274,34 @@ export async function releaseOrderReservations(orderId: string, tx?: any) {
   if (activeReservations.length === 0) return;
 
   for (const res of activeReservations) {
-    // (Restoration and stock movement logic removed as per soft-hold model)
+    if (res.status === 'CONVERTED') {
+      // 1. Physically restore stock
+      const [batch] = await d
+        .select({ currentQty: inventoryBatches.currentQty })
+        .from(inventoryBatches)
+        .where(eq(inventoryBatches.id, res.batchId))
+        .for('update');
+        
+      const qtyBefore = batch?.currentQty ?? 0;
+      const qtyAfter = qtyBefore + res.quantity;
+      
+      await d
+        .update(inventoryBatches)
+        .set({ currentQty: qtyAfter, updatedAt: new Date() })
+        .where(eq(inventoryBatches.id, res.batchId));
+        
+      // 2. Insert stock movement record
+      await d.insert(stockMovements).values({
+        batchId: res.batchId,
+        productId: res.productId,
+        orderId: orderId,
+        movementType: 'RETURNED',
+        quantityDelta: res.quantity,
+        qtyBefore,
+        qtyAfter,
+        note: 'Order refunded/cancelled - stock restored',
+      });
+    }
 
     // 4. Mark reservation as RELEASED
     await d
