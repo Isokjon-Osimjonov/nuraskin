@@ -154,6 +154,13 @@ export async function deleteBatch(batchId: string) {
   const batch = await repository.getBatchById(batchId);
   if (!batch) throw new NotFoundError('Batch not found');
 
+  const hasOrders = await repository.checkBatchHasOrders(batchId);
+  if (hasOrders) {
+    throw new BadRequestError(
+      "Bu partiyadan sotuv bo'lgan, shuning uchun o'chirib bo'lmaydi. Miqdorni 0 ga tushiring."
+    );
+  }
+
   if (batch.currentQty !== batch.initialQty) {
     throw new BadRequestError("Foydalanilgan partiyani o'chirib bo'lmaydi");
   }

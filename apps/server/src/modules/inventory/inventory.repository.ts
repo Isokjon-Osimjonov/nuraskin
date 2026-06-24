@@ -6,6 +6,7 @@ import {
   stockReservations,
   productWaitlist,
   batchAdjustments,
+  orderItems,
 } from '@nuraskin/database';
 import { eq, and, sql, asc, isNull, isNotNull, gt } from 'drizzle-orm';
 import type {
@@ -144,7 +145,21 @@ export async function correctBatchInitialQty(
 }
 
 export async function deleteBatch(batchId: string) {
-  return await db.delete(inventoryBatches).where(eq(inventoryBatches.id, batchId)).returning();
+  return await db.transaction(async tx => {
+    // Delete dependent stock movements and adjustments first to avoid FK constraint violations
+    await tx.delete(stockMovements).where(eq(stockMovements.batchId, batchId));
+    await tx.delete(batchAdjustments).where(eq(batchAdjustments.batchId, batchId));
+    
+    return await tx.delete(inventoryBatches).where(eq(inventoryBatches.id, batchId)).returning();
+  });
+}
+
+export async function checkBatchHasOrders(batchId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(orderItems)
+    .where(eq(orderItems.batchId, batchId));
+  return row.count > 0;
 }
 
 export async function getAvailableStock(productId: string, tx?: any) {

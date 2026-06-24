@@ -38,8 +38,9 @@ export function buildCaptionPreview(
     if (uzbConfig && rate) {
       const weightGrams = product.weightGrams || 0;
 
-      const krwToUzs = BigInt(rate.krwToUzs);
-      const cargoRateKrw = BigInt(rate.cargoRateKrwPerKg);
+      const SCALE = 10000n;
+      const krwToUzsScaled = BigInt(Math.round(Number(rate.krwToUzs) * 10000));
+      const cargoRateKrwScaled = BigInt(Math.round(Number(rate.cargoRateKrwPerKg) * 10000));
 
       const round1000UZS = (val: bigint) =>
         (val / 100000n) * 100000n + (val % 100000n >= 50000n ? 100000n : 0n);
@@ -47,8 +48,8 @@ export function buildCaptionPreview(
       // Retail UZS
       if (form.showUzsRetail) {
         const retailKrw = BigInt(uzbConfig.retailPrice);
-        const retailProductUzsMinor = retailKrw * krwToUzs * 100n;
-        const retailCargoUzsMinor = (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
+        const retailProductUzsMinor = (retailKrw * krwToUzsScaled * 100n) / SCALE;
+        const retailCargoUzsMinor = (BigInt(weightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
         const retailUzs = round1000UZS(retailProductUzsMinor) + round1000UZS(retailCargoUzsMinor);
         const formattedUzsRetail = new Intl.NumberFormat('en-US').format(tiyinToSom(retailUzs));
         uzsBlock.push(`🇺🇿 Narx: ${formattedUzsRetail} so'm / dona`);
@@ -57,9 +58,9 @@ export function buildCaptionPreview(
       // Wholesale UZS
       if (form.showUzsWholesale) {
         const wholesaleKrw = BigInt(uzbConfig.wholesalePrice);
-        const wholesaleProductUzsMinor = wholesaleKrw * krwToUzs * 100n;
+        const wholesaleProductUzsMinor = (wholesaleKrw * krwToUzsScaled * 100n) / SCALE;
         const wholesaleCargoUzsMinor =
-          (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
+          (BigInt(weightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
         const wholesaleUzs =
           round1000UZS(wholesaleProductUzsMinor) + round1000UZS(wholesaleCargoUzsMinor);
         const formattedUzsWholesale = new Intl.NumberFormat('en-US').format(

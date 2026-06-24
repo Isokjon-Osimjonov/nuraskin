@@ -513,22 +513,23 @@ export function PostCreatePage() {
                             );
 
                           const weightGrams = fullProduct.weightGrams || 0;
-                          const krwToUzs = BigInt(latestRate.krwToUzs);
-                          const cargoRateKrw = BigInt(latestRate.cargoRateKrwPerKg);
+                          const SCALE = 10000n;
+                          const krwToUzsScaled = BigInt(Math.round(Number(latestRate.krwToUzs) * 10000));
+                          const cargoRateKrwScaled = BigInt(Math.round(Number(latestRate.cargoRateKrwPerKg) * 10000));
 
                           const retailKrw = BigInt(uzbConfig.retailPrice);
-                          const retailProductUzsMinor = retailKrw * krwToUzs * 100n;
+                          const retailProductUzsMinor = (retailKrw * krwToUzsScaled * 100n) / SCALE;
                           const retailCargoUzsMinor =
-                            (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
+                            (BigInt(weightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
                           const round1000UZS = (val: bigint) =>
                             (val / 100000n) * 100000n + (val % 100000n >= 50000n ? 100000n : 0n);
                           const retailUzs =
                             round1000UZS(retailProductUzsMinor) + round1000UZS(retailCargoUzsMinor);
 
                           const wholesaleKrw = BigInt(uzbConfig.wholesalePrice);
-                          const wholesaleProductUzsMinor = wholesaleKrw * krwToUzs * 100n;
+                          const wholesaleProductUzsMinor = (wholesaleKrw * krwToUzsScaled * 100n) / SCALE;
                           const wholesaleCargoUzsMinor =
-                            (BigInt(weightGrams) * cargoRateKrw * krwToUzs * 100n) / 1000n;
+                            (BigInt(weightGrams) * cargoRateKrwScaled * krwToUzsScaled * 100n) / (1000n * SCALE * SCALE);
                           const wholesaleUzs =
                             round1000UZS(wholesaleProductUzsMinor) +
                             round1000UZS(wholesaleCargoUzsMinor);
